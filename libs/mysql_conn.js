@@ -7,8 +7,5 @@ var connection = mysql.createPool({
     database: "crypto",
 });
 
-connection.connect(function(err) {
-    if (err) throw err;
-});
 
 module.exports = connection;
