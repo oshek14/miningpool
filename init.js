@@ -443,7 +443,7 @@ var testMyDb = function(){
         'nice_onehah'
     ]
     connection.query(
-        'INSERT INTO `test_2` SET value = ?',
+        'INSERT INTO `test_1` SET value = ?',
         data,
         function(err, result) {
             if (err)
@@ -453,7 +453,7 @@ var testMyDb = function(){
         }
     );
     
-}
+};
 
 
 (function init(){
