@@ -72,6 +72,7 @@ module.exports = function(logger, poolConfig){
         var data = [
             "nice_gio"
         ]
+        redisCommands.push(['hincrby', 'fuck:shares:roundCurrent', 'ragac', 1]);
         if (isValidShare){
             db.query(
                 'INSERT INTO `crypto_test` SET value = ?',
