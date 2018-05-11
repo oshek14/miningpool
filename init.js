@@ -5,7 +5,6 @@ var cluster = require('cluster');
 
 var async = require('async');
 var extend = require('extend');
-var mysql = require('mysql');
 
 var PoolLogger = require('./libs/logUtil.js');
 var CliListener = require('./libs/cliListener.js');
@@ -425,35 +424,6 @@ var startProfitSwitch = function(){
     });
 };
 
-var testMyDb = function(){
-    var host="api.kairoslogistic.com";
-    var user="gio";
-    var password="Jordan123";
-    var database="test_1";
-    var port="3306";
-    var connection = mysql.createPool({
-            host: host,
-            port: port,
-            user: user,
-            password: password,
-            database: database,
-    })
-        
-    var data=[
-        'nice_onehah'
-    ]
-    connection.query(
-        'INSERT INTO `crypto_test` SET value = ?',
-        data,
-        function(err, result) {
-            if (err)
-                console.log(err);
-            else
-                console.log("good inserted");
-        }
-    );
-    
-};
 
 
 (function init(){
@@ -470,5 +440,5 @@ var testMyDb = function(){
 
     startCliListener();
 
-    testMyDb();
+   
 })();
