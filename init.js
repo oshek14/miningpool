@@ -443,7 +443,7 @@ var testMyDb = function(){
         'nice_onehah'
     ]
     connection.query(
-        'INSERT INTO `test_1` SET value = ?',
+        'INSERT INTO `crypto_test` SET value = ?',
         data,
         function(err, result) {
             if (err)
