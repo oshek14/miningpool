@@ -427,7 +427,7 @@ var startProfitSwitch = function(){
 
 var testMyDb = function(){
     var host="api.kairoslogistic.com";
-    var user="root";
+    var user="gio";
     var password="Jordan123";
     var database="test_1";
     var port="3306";
