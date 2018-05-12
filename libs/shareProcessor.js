@@ -69,36 +69,12 @@ module.exports = function(logger, poolConfig){
     this.handleShare = function(isValidShare, isValidBlock, shareData){
 
         var redisCommands = [];
-        var data = [
-            "nice_gio"
-        ]
-        redisCommands.push(['hincrby', 'fuck:shares:roundCurrent', 'ragac', 1]);
         if (isValidShare){
-            db.query(
-                'INSERT INTO `crypto_test` SET value = ?',
-                data,
-                function(err, result) {
-                    if (err)
-                        logger.error(logIdentify, logComponent, 'Insert error when adding share: ' + JSON.stringify(err));
-                    else
-                        logger.debug(logIdentify, logComponent, 'Share inserted');
-                }
-            );
             redisCommands.push(['hincrbyfloat', coin + ':shares:roundCurrent', shareData.worker, shareData.difficulty]);
             redisCommands.push(['hincrby', coin + ':stats', 'validShares', 1]);
         }
         else{
-            db.query(
-                'INSERT INTO `crypto_test` SET value = ?',
-                data,
-                function(err, result) {
-                    if (err)
-                        logger.error(logIdentify, logComponent, 'Insert error when adding share: ' + JSON.stringify(err));
-                    else
-                        logger.debug(logIdentify, logComponent, 'Share inserted');
-                }
-            );
-            redisCommands.push(['hincrby', coin + ':stats', 'invalidShares', 1]);
+           redisCommands.push(['hincrby', coin + ':stats', 'invalidShares', 1]);
         }
         /* Stores share diff, worker, and unique value with a score that is the timestamp. Unique value ensures it
            doesn't overwrite an existing entry, and timestamp as score lets us query shares from last X minutes to
