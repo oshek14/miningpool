@@ -68,20 +68,45 @@ module.exports = function(logger, poolConfig){
 
     this.handleShare = function(isValidShare, isValidBlock, shareData){
 
-        var redisCommands = [];
 
+        /* shareData looks something like this 
+        {   job: '2',
+            ip: '92.51.74.178',
+            port: 3032,
+            worker: 'MCchQ675kJYeXoCACgkKx6xakubE8CAQ5A',
+            height: 1420231,
+            blockReward: 2526049517,
+            difficulty: 32,
+            shareDiff: '131.72379925',
+            blockDiff: 653840520178.7593,
+            blockDiffActual: 9976814.577922963,
+            blockHash: undefined,
+            blockHashInvalid: undefined 
+        } */
+
+        var redisCommands = [];
+        
         if (isValidShare){
+            /*  It finds the table named coin + ':shares:roundCurrent',
+            looks for the shareData.worker address as key, if doesn't find it, 
+            the value of it becomes shareData.difficulty. if finds it, 
+            the value becomes = what was the value plus shareData.difficulty */
             redisCommands.push(['hincrbyfloat', coin + ':shares:roundCurrent', shareData.worker, shareData.difficulty]);
+            
+            /* it looks for coin+':stats' table, finds validShares key and makes it bigger than 1 */
             redisCommands.push(['hincrby', coin + ':stats', 'validShares', 1]);
         }
         else{
+            /* if share invalid, it looks for coin+':stats' table, 
+                finds validShares key and makes it bigger than 1 */
            redisCommands.push(['hincrby', coin + ':stats', 'invalidShares', 1]);
         }
-        /* Stores share diff, worker, and unique value with a score that is the timestamp. Unique value ensures it
-           doesn't overwrite an existing entry, and timestamp as score lets us query shares from last X minutes to
-           generate hashrate for each worker and pool. */
+        
         var dateNow = Date.now();
+
         var hashrateData = [ isValidShare ? shareData.difficulty : -shareData.difficulty, shareData.worker, dateNow];
+        console.log(hashrateData);
+        console.log(-shareData.difficulty);
         redisCommands.push(['zadd', coin + ':hashrate', dateNow / 1000 | 0, hashrateData.join(':')]);
 
         if (isValidBlock){
