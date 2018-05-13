@@ -20,7 +20,14 @@
 
     "ports": {
         "8182": {
-           "diff":1024
+            "diff": 1024,
+            "varDiff": {
+                "minDiff": 1024,
+                "maxDiff": 32768,
+                "targetTime": 15,
+                "retargetTime": 90,
+                "variancePercent": 30
+            }
         }
        
     },
