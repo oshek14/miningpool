@@ -1,13 +1,10 @@
 {
-    "enabled": false,
-    "coin": "litecoin.json",
+    "enabled":true,
+    "coin": "bitcoin.json",
 
-    "address": "n4jSe18kZMCdGcZqaYprShXW6EH1wivUK1",
+    "address": "MUkJyA8cBf3kQtwaJMZ4SjdMsiZCFh1Pww",
 
-    "rewardRecipients": {
-        "n37vuNFkXfk15uFnGoVyHZ6PYQxppD3QqK": 1.5,
-        "22851477d63a085dbc2398c8430af1c09e7343f6": 0.1
-    },
+    "rewardRecipients": {},
 
     "paymentProcessing": {
         "enabled": true,
@@ -15,9 +12,9 @@
         "minimumPayment": 70,
         "daemon": {
             "host": "127.0.0.1",
-            "port": 19332,
-            "user": "testuser",
-            "password": "testpass"
+            "port": 18332,
+            "user": "bitcoinrpc",
+            "password": "wdYMsDT4E61jCv8xx6zZd6PYF3iZkjD7t3NpuiGpn6X"
         }
     },
 
@@ -43,9 +40,9 @@
     "daemons": [
         {
             "host": "127.0.0.1",
-            "port": 19332,
-            "user": "testuser",
-            "password": "testpass"
+            "port": 18332,
+            "user": "bitcoinrpc",
+            "password": "wdYMsDT4E61jCv8xx6zZd6PYF3iZkjD7t3NpuiGpn6X"
         }
     ],
 

@@ -19,8 +19,7 @@ module.exports = function(logger, poolConfig){
 
     var redisConfig = poolConfig.redis;
     var coin = poolConfig.coin.name;
-
-
+    
     var forkId = process.env.forkId;
     var logSystem = 'Pool';
     var logComponent = coin;
@@ -74,7 +73,7 @@ module.exports = function(logger, poolConfig){
             ip: '92.51.74.178',
             port: 3032,
             worker: 'MCchQ675kJYeXoCACgkKx6xakubE8CAQ5A',
-            height: 1420231,
+            height: 1420231, which block is it from the beginning
             blockReward: 2526049517,
             difficulty: 32,
             shareDiff: '131.72379925',
@@ -102,15 +101,29 @@ module.exports = function(logger, poolConfig){
            redisCommands.push(['hincrby', coin + ':stats', 'invalidShares', 1]);
         }
         
+        
+
+        /* Stores share diff, worker, and unique value with a score that is the timestamp. Unique value ensures it
+           doesn't overwrite an existing entry, and timestamp as score lets us query shares from last X minutes to
+           generate hashrate for each worker and pool. */
+
         var dateNow = Date.now();
 
         var hashrateData = [ isValidShare ? shareData.difficulty : -shareData.difficulty, shareData.worker, dateNow];
-        console.log(hashrateData);
-        console.log(-shareData.difficulty);
+        
+        /* zadd 1 "dodo" what this does is saves in redis like this:
+            value  score
+            dodo     1 
+            if i type again zadd 5 "dodo" , if "dodo" already exists, 
+            it will overwrite 5 to 1 ,if not it will add new one */
         redisCommands.push(['zadd', coin + ':hashrate', dateNow / 1000 | 0, hashrateData.join(':')]);
 
         if (isValidBlock){
+            /* when block is finished, it means round is over, so roundcurrent becomes round+which round it was 
+                all the information that was in roundCurrent stays in round+which round (just only name changes) */
             redisCommands.push(['rename', coin + ':shares:roundCurrent', coin + ':shares:round' + shareData.height]);
+
+            /* sadd is (coin+'blockspending' is set) and value gets added to that set */
             redisCommands.push(['sadd', coin + ':blocksPending', [shareData.blockHash, shareData.txHash, shareData.height].join(':')]);
             redisCommands.push(['hincrby', coin + ':stats', 'validBlocks', 1]);
         }
