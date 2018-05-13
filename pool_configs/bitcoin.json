@@ -23,14 +23,8 @@
             "diff": 8
         },
         "8182": {
-            "diff": 32,
-            "varDiff": {
-                "minDiff": 8,
-                "maxDiff": 512,
-                "targetTime": 15,
-                "retargetTime": 90,
-                "variancePercent": 30
-            }
+            "minDiff": 1024,
+            "maxDiff": 32768
         },
         "8183": {
             "diff": 256
