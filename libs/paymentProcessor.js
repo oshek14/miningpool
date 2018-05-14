@@ -54,12 +54,14 @@ function SetupForPool(logger, poolOptions, setupFinished){
     });
     var command =  [ 
         [ 'gettransaction',
-            [ '2885c9aab9feee9eb6a7c865667d14ba3f268ac601dd669964e2ff1b47e02e1c' ] 
+            [ '111d82d1f454242f5d9bb8e2c576b1e85b478530d1a84b4af558bfac219c040b' ] 
         ],
         [ 'getaccount', 
             [ '2ND2zyKThTH78j96ytR3a4SCeASvtdSk2wS' ] 
         ] 
     ];
+
+    
     
     daemon.batchCmd(command, function(error, txDetails){
         console.log(txDetails);
