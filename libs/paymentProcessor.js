@@ -60,6 +60,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
             [ '2ND2zyKThTH78j96ytR3a4SCeASvtdSk2wS' ] 
         ] 
     ];
+    console.log(coin);
     daemon.batchCmd(command, function(error, txDetails){
         console.log(txDetails);
     })
