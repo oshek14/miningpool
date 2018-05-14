@@ -52,9 +52,16 @@ function SetupForPool(logger, poolOptions, setupFinished){
     var daemon = new Stratum.daemon.interface([processingConfig.daemon], function(severity, message){
         logger[severity](logSystem, logComponent, message);
     });
-    daemon.cmd('getbalance', [], function(result){
-
-        console.log("giorgi is testing",result);
+    var command =  [ 
+        [ 'gettransaction',
+            [ '2d493dd70a0dcece8ef20eb5656d5f6413b00a21eaa984cc9a991bda13b9e167' ] 
+        ],
+        [ 'getaccount', 
+            [ '2ND2zyKThTH78j96ytR3a4SCeASvtdSk2wS' ] 
+        ] 
+    ];
+    daemon.batchCmd(batchRPCcommand, function(error, txDetails){
+        console.log(txDetails);
     })
     var redisClient = redis.createClient(poolOptions.redis.port, poolOptions.redis.host);
 
@@ -95,12 +102,31 @@ function SetupForPool(logger, poolOptions, setupFinished){
         },
         function(callback){
             daemon.cmd('getbalance', [], function(result){
-                console.log(result,"giorgi is testing hehe");
+                /* the result is the following:
+                {   error: null,
+                    response: 0,
+                    instance: 
+                        {   host: '127.0.0.1',
+                            port: 2300,
+                            user: 'litecoinrpc',
+                            password: 'wdYMsDT4E61jCv8xx6zZd6PYF3iZkjD7t3NpuiGpn6X',
+                            index: 0 
+                        },
+                    data: '{"result":0.00000000,"error":null,"id":1526286705456}\n' 
+                } 
+                1 satoshi = 0.00000001BTC
+                x satoshi  = 0.01
+                */
                 if (result.error){
                     callback(true);
                     return;
                 }
                 try {
+                    /* when the balance is 0.00000000 
+                        "00000000"
+                        100000000
+                        1000000
+                        8 */
                     var d = result.data.split('result":')[1].split(',')[0].split('.')[1];
                     magnitude = parseInt('10' + new Array(d.length).join('0'));
                     minPaymentSatoshis = parseInt(processingConfig.minimumPayment * magnitude);
@@ -165,7 +191,6 @@ function SetupForPool(logger, poolOptions, setupFinished){
             /* Call redis to get an array of rounds - which are coinbase transactions and block heights from submitted
                blocks. */
             function(callback){
-
                 startRedisTimer();
                 redisClient.multi([
                     ['hgetall', coin + ':balances'],
@@ -195,7 +220,12 @@ function SetupForPool(logger, poolOptions, setupFinished){
                             serialized: r
                         };
                     });
-
+                    /* rounds looks like this 
+                    {   blockHash: '0000000000011267f79129257d841ab1036a478d095f1a7ba8ec6b57b30c3741',
+                        txHash: '2d493dd70a0dcece8ef20eb5656d5f6413b00a21eaa984cc9a991bda13b9e167',
+                        height: '1297596',
+                        serialized: '0000000000011267f79129257d841ab1036a478d095f1a7ba8ec6b57b30c3741:2d493dd70a0dcece8ef20eb5656d5f6413b00a21eaa984cc9a991bda13b9e167:1297596' 
+                    } */
                     callback(null, workers, rounds);
                 });
             },
@@ -208,30 +238,40 @@ function SetupForPool(logger, poolOptions, setupFinished){
                     return ['gettransaction', [r.txHash]];
                 });
 
+                /* batchRPCcommand looks like this 
+                [ 
+                    [ 'gettransaction',
+                        [ '2d493dd70a0dcece8ef20eb5656d5f6413b00a21eaa984cc9a991bda13b9e167' ] 
+                    ] 
+                ] */
+
                 batchRPCcommand.push(['getaccount', [poolOptions.address]]);
 
+                /* now batchrPCcommand looks like this *
+                [ 
+                    [ 'gettransaction',
+                        [ '2d493dd70a0dcece8ef20eb5656d5f6413b00a21eaa984cc9a991bda13b9e167' ] 
+                    ],
+                    [ 'getaccount', 
+                        [ '2ND2zyKThTH78j96ytR3a4SCeASvtdSk2wS' ] 
+                    ] 
+                ] */
                 startRPCTimer();
                 daemon.batchCmd(batchRPCcommand, function(error, txDetails){
                     endRPCTimer();
-
                     if (error || !txDetails){
                         logger.error(logSystem, logComponent, 'Check finished - daemon rpc error with batch gettransactions '
                             + JSON.stringify(error));
                         callback(true);
                         return;
                     }
-
                     var addressAccount;
-
                     txDetails.forEach(function(tx, i){
-
                         if (i === txDetails.length - 1){
                             addressAccount = tx.result;
                             return;
                         }
-
                         var round = rounds[i];
-
                         if (tx.error && tx.error.code === -5){
                             logger.warning(logSystem, logComponent, 'Daemon reports invalid transaction: ' + round.txHash);
                             round.category = 'kicked';
