@@ -91,7 +91,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
         },
         function(callback){
             daemon.cmd('getbalance', [], function(result){
-                console.log(result);
+                console.log(result,"giorgi is testing hehe");
                 if (result.error){
                     callback(true);
                     return;
