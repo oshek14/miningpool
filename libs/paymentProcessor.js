@@ -8,9 +8,7 @@ var util = require('stratum-pool/lib/util.js');
 
 
 module.exports = function(logger){
-
     var poolConfigs = JSON.parse(process.env.pools);
-
     var enabledPools = [];
 
     Object.keys(poolConfigs).forEach(function(coin) {
@@ -93,6 +91,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
         },
         function(callback){
             daemon.cmd('getbalance', [], function(result){
+                console.log(result);
                 if (result.error){
                     callback(true);
                     return;

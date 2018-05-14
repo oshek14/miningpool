@@ -66,8 +66,6 @@ module.exports = function(logger, poolConfig){
 
 
     this.handleShare = function(isValidShare, isValidBlock, shareData){
-
-
         /* shareData looks something like this 
         {   job: '2',
             ip: '92.51.74.178',
