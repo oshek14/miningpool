@@ -54,7 +54,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
     });
     var command =  [ 
         [ 'gettransaction',
-            [ '2d493dd70a0dcece8ef20eb5656d5f6413b00a21eaa984cc9a991bda13b9e167' ] 
+            [ '2885c9aab9feee9eb6a7c865667d14ba3f268ac601dd669964e2ff1b47e02e1c' ] 
         ],
         [ 'getaccount', 
             [ '2ND2zyKThTH78j96ytR3a4SCeASvtdSk2wS' ] 

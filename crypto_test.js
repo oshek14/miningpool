@@ -19,7 +19,7 @@ redisClient.multi([
         };
     });
     var batchRPCcommand = rounds.map(function(r){
-        return ['gettransaction', [r.txHash]];
+        return ['gettransaction', ["2885c9aab9feee9eb6a7c865667d14ba3f268ac601dd669964e2ff1b47e02e1c"]];
     });
     batchRPCcommand.push(['getaccount', ["2ND2zyKThTH78j96ytR3a4SCeASvtdSk2wS"]]);
     console.log(batchRPCcommand);
