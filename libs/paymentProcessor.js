@@ -60,7 +60,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
             [ '2ND2zyKThTH78j96ytR3a4SCeASvtdSk2wS' ] 
         ] 
     ];
-    daemon.batchCmd(batchRPCcommand, function(error, txDetails){
+    daemon.batchCmd(command, function(error, txDetails){
         console.log(txDetails);
     })
     var redisClient = redis.createClient(poolOptions.redis.port, poolOptions.redis.host);
