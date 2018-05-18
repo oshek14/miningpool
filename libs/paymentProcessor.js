@@ -52,20 +52,20 @@ function SetupForPool(logger, poolOptions, setupFinished){
     var daemon = new Stratum.daemon.interface([processingConfig.daemon], function(severity, message){
         logger[severity](logSystem, logComponent, message);
     });
-    var command =  [ 
-        [ 'gettransaction',
-            [ '111d82d1f454242f5d9bb8e2c576b1e85b478530d1a84b4af558bfac219c040b' ] 
-        ],
-        [ 'getaccount', 
-            [ '2ND2zyKThTH78j96ytR3a4SCeASvtdSk2wS' ] 
-        ] 
-    ];
+    // var command =  [ 
+    //     [ 'gettransaction',
+    //         [ '2d493dd70a0dcece8ef20eb5656d5f6413b00a21eaa984cc9a991bda13b9e167' ] 
+    //     ],
+    //     ['getaccount', 
+    //         ['mpUXGRRbktvTD4ayHNCyTxxivKTTYtng7o' ] 
+    //     ] 
+    // ];
 
     
     
-    daemon.batchCmd(command, function(error, txDetails){
-        console.log(txDetails);
-    })
+    // daemon.batchCmd(command, function(error, txDetails){
+    //     console.log(txDetails);
+    // })
     var redisClient = redis.createClient(poolOptions.redis.port, poolOptions.redis.host);
 
     var magnitude;
@@ -123,7 +123,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                 if (result.error){
                     callback(true);
                     return;
-                }
+                }  
                 try {
                     /* when the balance is 0.00000000 
                         "00000000"
@@ -191,8 +191,8 @@ function SetupForPool(logger, poolOptions, setupFinished){
 
         async.waterfall([
 
-            /* Call redis to get an array of rounds - which are coinbase transactions and block heights from submitted
-               blocks. */
+            /* Call redis to get an array of rounds - which are coinbase transactions 
+               and block heights from submitted blocks. */
             function(callback){
                 startRedisTimer();
                 redisClient.multi([
@@ -214,6 +214,10 @@ function SetupForPool(logger, poolOptions, setupFinished){
                         workers[w] = {balance: coinsToSatoshies(parseFloat(results[0][w]))};
                     }
 
+                    /* workers = [worker_id:{balance:coinToSatoshi(balance_from_redis_for_this_user)}]; */
+
+
+                    
                     var rounds = results[1].map(function(r){
                         var details = r.split(':');
                         return {
@@ -223,7 +227,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                             serialized: r
                         };
                     });
-                    /* rounds looks like this 
+                    /* rounds looks like this  it will be array of jsons
                     {   blockHash: '0000000000011267f79129257d841ab1036a478d095f1a7ba8ec6b57b30c3741',
                         txHash: '2d493dd70a0dcece8ef20eb5656d5f6413b00a21eaa984cc9a991bda13b9e167',
                         height: '1297596',
@@ -259,9 +263,36 @@ function SetupForPool(logger, poolOptions, setupFinished){
                         [ '2ND2zyKThTH78j96ytR3a4SCeASvtdSk2wS' ] 
                     ] 
                 ] */
+                
                 startRPCTimer();
                 daemon.batchCmd(batchRPCcommand, function(error, txDetails){
                     endRPCTimer();
+                    /* txDetails seems to be this kind of sanava biiich 
+                    {
+                        "amount": 0.00000000,
+                        "confirmations": 9,
+                        "generated": true,
+                        "blockhash": "0000000000011267f79129257d841ab1036a478d095f1a7ba8ec6b57b30c3741",
+                        "blockindex": 0,
+                        "blocktime": 1526293691,
+                        "txid": "2d493dd70a0dcece8ef20eb5656d5f6413b00a21eaa984cc9a991bda13b9e167",
+                        "walletconflicts": [
+                        ],
+                        "time": 1526293691,
+                        "timereceived": 1526293694,
+                        "bip125-replaceable": "no",
+                        "details": [
+                            {
+                            "account": "`poolmaintransaction`",
+                            "address": "myFUwuJBZQ5JyUvycRfE91Fgy7VatxHEZX",
+                            "category": "immature",
+                            "amount": 1.16694071,
+                            "label": "poolmaintransaction",
+                            "vout": 1
+                            }
+                        ],
+                        "hex": "010000000001010000000000000000000000000000000000000000000000000000000000000000ffffffff2003bccc1304bb64f95a0858000000e72600000d2f6e6f64655374726174756d2f00000000040000000000000000266a24aa21a9ed7d81d35efc6c4b3930034a841a54c152fb89a76f9aca8d96286ce6b9896cdabf379cf406000000001976a914c28532395869e6b598b5388fd39323250ed85e4088ac3bec6200000000001976a914d0c66a7e2d074bdb7e00595c6b4f984bd495ee4c88ac3bec6200000000001976a91417ee85869b459da5ff2f630f207d6b4c2e64222a88ac0120000000000000000000000000000000000000000000000000000000000000000000000000"
+                    } */
                     if (error || !txDetails){
                         logger.error(logSystem, logComponent, 'Check finished - daemon rpc error with batch gettransactions '
                             + JSON.stringify(error));
@@ -308,7 +339,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
 
                         round.category = generationTx.category;
                         if (round.category === 'generate') {
-                            round.reward = generationTx.amount || generationTx.value;
+                            round.reward = generatonTx.amount || generationTx.value;
                         }
 
                     });
@@ -340,7 +371,10 @@ function SetupForPool(logger, poolOptions, setupFinished){
                         }
                     });
 
-
+                    //* here we have rounds that has category that has kicked,orphan,generate. if other ones,it's deleted
+                    // from that rounds. if round is kicked,or orphan it has another option canDeleteShares.
+                    // if round is generate, it has option reward= generatonTx.amount || generationTx.value;
+                    // which is the block reward that has to go to addressAcount which is pool's address by my guess.
                     callback(null, workers, rounds, addressAccount);
 
                 });
@@ -366,6 +400,14 @@ function SetupForPool(logger, poolOptions, setupFinished){
                     }
 
 
+
+                    /*  [{   blockHash: '0000000000011267f79129257d841ab1036a478d095f1a7ba8ec6b57b30c3741',
+                        txHash: '2d493dd70a0dcece8ef20eb5656d5f6413b00a21eaa984cc9a991bda13b9e167',
+                        height: '1297596',
+                        serialized: '0000000000011267f79129257d841ab1036a478d095f1a7ba8ec6b57b30c3741:2d493dd70a0dcece8ef20eb5656d5f6413b00a21eaa984cc9a991bda13b9e167:1297596' 
+                        category:kicked,
+                        canDeleteShares:function();
+                        }] */
                     rounds.forEach(function(round, i){
                         var workerShares = allWorkerShares[i];
 
@@ -378,7 +420,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                         switch (round.category){
                             case 'kicked':
                             case 'orphan':
-                                round.workerShares = workerShares;
+                                round.workerShares = workerShares; /* all shares for this specific round */
                                 break;
 
                             case 'generate':
@@ -386,9 +428,13 @@ function SetupForPool(logger, poolOptions, setupFinished){
                                    we owe each miner based on the shares they submitted during that block round. */
                                 var reward = parseInt(round.reward * magnitude);
 
+
+
                                 var totalShares = Object.keys(workerShares).reduce(function(p, c){
                                     return p + parseFloat(workerShares[c])
                                 }, 0);
+
+                                
 
                                 for (var workerAddress in workerShares){
                                     var percent = parseFloat(workerShares[workerAddress]) / totalShares;
@@ -399,6 +445,18 @@ function SetupForPool(logger, poolOptions, setupFinished){
                                 break;
                         }
                     });
+
+
+                   
+                    /* in workers, we have those who have already option .reward.
+                       in rounds, we have 
+                       /*  [{   blockHash: '0000000000011267f79129257d841ab1036a478d095f1a7ba8ec6b57b30c3741',
+                        txHash: '2d493dd70a0dcece8ef20eb5656d5f6413b00a21eaa984cc9a991bda13b9e167',
+                        height: '1297596',
+                        serialized: '0000000000011267f79129257d841ab1036a478d095f1a7ba8ec6b57b30c3741:2d493dd70a0dcece8ef20eb5656d5f6413b00a21eaa984cc9a991bda13b9e167:1297596' 
+                        category:kicked,
+                        canDeleteShares:function();
+                        }] */
 
                     callback(null, workers, rounds, addressAccount);
                 });
@@ -432,13 +490,19 @@ function SetupForPool(logger, poolOptions, setupFinished){
                             worker.sent = 0;
                         }
                     }
+                    
+                    var paymentHappened ={};
+                    paymentHappened.state = false;
 
+                    /* if addressAmounds is zero length, no payments at all */
                     if (Object.keys(addressAmounts).length === 0){
-                        callback(null, workers, rounds);
+                        callback(null, workers, rounds,paymentHappened);
                         return;
                     }
-
+                    
+                    /* transfer from pool address to users accounts */
                     daemon.cmd('sendmany', [addressAccount || '', addressAmounts], function (result) {
+
                         //Check if payments failed because wallet doesn't have enough coins to pay for tx fees
                         if (result.error && result.error.code === -6) {
                             var higherPercent = withholdPercent + 0.01;
@@ -459,19 +523,27 @@ function SetupForPool(logger, poolOptions, setupFinished){
                                     + '% of reward from miners to cover transaction fees. '
                                     + 'Fund pool wallet with coins to prevent this from happening');
                             }
-                            callback(null, workers, rounds);
+                            
+                            paymentHappened.state = true;
+                            callback(null, workers, rounds,paymentHappened);
                         }
                     }, true, true);
                 };
                 trySend(0);
 
             },
-            function(workers, rounds, callback){
+            function(workers, rounds, paymentHappened, callback){
 
                 var totalPaid = 0;
 
                 var balanceUpdateCommands = [];
                 var workerPayoutsCommand = [];
+
+                /*this records how much we paid to each miner.
+                it's used to show users how much we paid to them for the last 15 days each day. */
+                var lastFifteenDaysPayment = []; 
+
+                
 
                 for (var w in workers) {
                     var worker = workers[w];
@@ -485,9 +557,16 @@ function SetupForPool(logger, poolOptions, setupFinished){
                     }
                     if (worker.sent !== 0){
                         workerPayoutsCommand.push(['hincrbyfloat', coin + ':payouts', w, worker.sent]);
+                        if(paymentHappened.state){
+                            var dateNow = Date.now();
+                            var minerPaid = [w,worker.sent,dateNow];
+                            lastFifteenDaysPayment.push(['zadd',coin+':lastPayouts',dateNow / 1000 | 0, minerPaid.join(':')]);
+                        }
                         totalPaid += worker.sent;
                     }
                 }
+
+                var deleteOldPayouts = ['ZREMRANGEBYSCORE','bitcoin:lastPayouts','-inf',(Date.now()-14*24*3600*1000)/1000];
 
 
 
@@ -524,6 +603,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                 });
 
                 var finalRedisCommands = [];
+                
 
                 if (movePendingCommands.length > 0)
                     finalRedisCommands = finalRedisCommands.concat(movePendingCommands);
@@ -542,6 +622,12 @@ function SetupForPool(logger, poolOptions, setupFinished){
 
                 if (totalPaid !== 0)
                     finalRedisCommands.push(['hincrbyfloat', coin + ':stats', 'totalPaid', totalPaid]);
+
+                
+                if(lastFifteenDaysPayment.length > 0) 
+                    finalRedisCommands.push(lastFifteenDaysPayment);
+                
+                finalRedisCommands.push(deleteOldPayouts);
 
                 if (finalRedisCommands.length === 0){
                     callback();

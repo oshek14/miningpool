@@ -115,7 +115,7 @@ module.exports = function(logger, poolConfig){
             if i type again zadd 5 "dodo" , if "dodo" already exists, 
             it will overwrite 5 to 1 ,if not it will add new one */
         redisCommands.push(['zadd', coin + ':hashrate', dateNow / 1000 | 0, hashrateData.join(':')]);
-
+        
         if (isValidBlock){
             /* when block is finished, it means round is over, so roundcurrent becomes round+which round it was 
                 all the information that was in roundCurrent stays in round+which round (just only name changes) */
