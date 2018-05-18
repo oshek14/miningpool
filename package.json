@@ -1,0 +1,55 @@
+{
+    "name": "node-open-mining-portal",
+    "version": "0.0.4",
+    "description": "An extremely efficient, highly scalable, all-in-one, easy to setup cryptocurrency mining pool",
+    "keywords": [
+        "stratum",
+        "mining",
+        "pool",
+        "server",
+        "poolserver",
+        "bitcoin",
+        "litecoin",
+        "scrypt"
+    ],
+    "homepage": "https://github.com/zone117x/node-open-mining-portal",
+    "bugs": {
+        "url": "https://github.com/zone117x/node-open-mining-portal/issues"
+    },
+    "license": "GPL-2.0",
+    "author": "Matthew Little",
+    "contributors": [
+        "vekexasia",
+        "TheSeven"
+    ],
+    "main": "init.js",
+    "bin": {
+        "block-notify": "./scripts/blockNotify.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/zone117x/node-open-mining-portal.git"
+    },
+    "dependencies": {
+        "async": "1.5.2",
+        "bignum": "0.12.5",
+        "body-parser": "^1.18.3",
+        "colors": "*",
+        "compression": "*",
+        "dateformat": "1.0.12",
+        "dot": "*",
+        "express": "^4.16.3",
+        "express-handlebars": "^3.0.0",
+        "extend": "*",
+        "mysql": "*",
+        "node-json-minify": "*",
+        "node-watch": "*",
+        "nonce": "*",
+        "redis": "^0.12.1",
+        "request": "2.69.0",
+        "stratum-pool": "git://github.com/zone117x/node-stratum-pool.git"
+    },
+    "engines": {
+        "node": ">=0.10"
+    }
+}

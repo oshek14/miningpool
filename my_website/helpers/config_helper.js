@@ -3,6 +3,7 @@ var path = require('path');
 JSON.minify = JSON.minify || require("node-json-minify");
 
 var configDir = "pool_configs/";
+var coinDir = "coins/";
 module.exports = {
     configDir:configDir,
     getPoolConfigs : function(callback){
@@ -18,7 +19,7 @@ module.exports = {
             callback(poolConfigFiles)
         });
     },
-    getCoinConfig : function(dir, callback){
-        fs.readFileSync(configDir);
+    getCoinConfig : function(coin){
+        return JSON.parse(JSON.minify(fs.readFileSync(coinDir+coin,{encoding:'utf8'})));
     }
 }
