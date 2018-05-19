@@ -10,7 +10,7 @@
     },
 
     "defaultPoolConfigs": {
-        "blockRefreshInterval": 996,
+        "blockRefreshInterval": 1000,
         "jobRebroadcastTimeout": 55,
         "connectionTimeout": 600,
         "emitInvalidBlockHashes": false,
@@ -25,15 +25,14 @@
         },
         "redis": {
             "host": "127.0.0.1",
-            "port": 6399
+            "port": 6777
         }
     },
-
     "website": {
         "enabled": true,
-        "host": "159.65.38.43",
+        "host": "0.0.0.0",
         "port": 80,
-        "stratumHost": "159.65.38.43",
+        "stratumHost": "165.227.143.126",
         "stats": {
             "updateInterval": 60,
             "historicalRetention": 43200,
@@ -41,15 +40,14 @@
         },
         "adminCenter": {
             "enabled": true,
-            "password": "password"
+            "password": "chacho"
         }
     },
 
     "redis": {
         "host": "127.0.0.1",
-        "port": 6399
+        "port": 6777
     },
-
     "switching": {
         "switch1": {
             "enabled": false,
@@ -68,7 +66,7 @@
             }
         },
         "switch2": {
-            "enabled":true,
+            "enabled": false,
             "algorithm": "scrypt",
             "ports": {
                 "4444": {
