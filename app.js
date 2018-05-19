@@ -12,7 +12,7 @@ var PoolWorker = require('./libs/poolWorker.js');
 var PaymentProcessor = require('./libs/paymentProcessor.js');
 var Website = require('./libs/website.js');
 var ProfitSwitch = require('./libs/profitSwitch.js');
-var UpdateStatistic = require('./libs/updateStats');
+
 var algos = require('stratum-pool/lib/algoProperties.js');
 
 JSON.minify = JSON.minify || require("node-json-minify");
@@ -82,9 +82,6 @@ if (cluster.isWorker){
         case 'profitSwitch':
             new ProfitSwitch(logger);
             break;
-        case 'updateStats':
-            new UpdateStatistic(logger);
-            break;
     }
 
     return;
@@ -134,16 +131,21 @@ var buildPoolConfigs = function(){
 
 
     poolConfigFiles.forEach(function(poolOptions){
+
         poolOptions.coinFileName = poolOptions.coin;
+
         var coinFilePath = 'coins/' + poolOptions.coinFileName;
         if (!fs.existsSync(coinFilePath)){
             logger.error('Master', poolOptions.coinFileName, 'could not find file: ' + coinFilePath);
             return;
         }
+
         var coinProfile = JSON.parse(JSON.minify(fs.readFileSync(coinFilePath, {encoding: 'utf8'})));
         poolOptions.coin = coinProfile;
         poolOptions.coin.name = poolOptions.coin.name.toLowerCase();
+
         if (poolOptions.coin.name in configs){
+
             logger.error('Master', poolOptions.fileName, 'coins/' + poolOptions.coinFileName
                 + ' has same configured coin name ' + poolOptions.coin.name + ' as coins/'
                 + configs[poolOptions.coin.name].coinFileName + ' used by pool config '
@@ -422,29 +424,20 @@ var startProfitSwitch = function(){
     });
 };
 
-var updateStats = function(){
-    var worker = cluster.fork({
-        workerType:'updateStats',
-        pools: JSON.stringify(poolConfigs),
-        portalConfig: JSON.stringify(portalConfig)
-    });
-    worker.on('exit', function(code, signal){
-        logger.error('Master', 'Stats', 'Update statcs process died, spawning replacement...');
-        setTimeout(function(){
-            updateStats();
-        }, 2000);
-    });
-}
 
 
+(function init(){
 
-function init(){
     poolConfigs = buildPoolConfigs();
-    spawnPoolWorkers();
-    startPaymentProcessor();
-    //updateStats();
-    startProfitSwitch();
-    startCliListener();
-};
 
-init();
+    spawnPoolWorkers();
+
+    startPaymentProcessor();
+
+    startWebsite();
+
+    startProfitSwitch();
+
+    startCliListener();
+
+})();
