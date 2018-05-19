@@ -25,7 +25,7 @@ router.get('/',(req,res)=>{
                 poolCoinConfig:data[i],   
             };
             var tabStatsCommand = [
-                ['zrangebyscore', coin_name+':hashrate', '-inf', '+inf'],
+                ['zrangebyscore', coin_name+':hashrate', (Date.now() -  configHelper.hashRateStatTime*1000)/1000, '+inf'],
                 ['hgetall', coin_name+':stats'],
                 ['scard', coin_name+':blocksPending'],
                 ['scard', coin_name+':blocksConfirmed'],
@@ -39,11 +39,24 @@ router.get('/',(req,res)=>{
                 return;
             }else{
                 for(var i=0;i<Object.keys(poolConfigsData).length;i++){
-                    // var shareMultiplier = Math.pow(2, 32) / algos[coinStats.algorithm].multiplier;
-                    // coinStats.hashrate = shareMultiplier * coinStats.shares / portalConfig.website.stats.hashrateWindow;
                     var coin_name =  Object.keys(poolConfigsData)[i];
                     var algorithm = poolConfigsData[coin_name].coinConfigs.algorithm;
-                    
+                    var hashratesPerCoin = res[i*commandsPerCoin];
+                    var workersSet = new Set;
+                    var shares = 0;
+                    hashratesPerCoin.forEach(minerRate => {
+                        var miner_address = minerRate.split(":")[1];
+                        var difficulty = parseFloat(minerRate.split(":")[0]);
+                        if(difficulty > 0) shares+=difficulty;
+                        workersSet.add(miner_address);
+                    });
+
+                    var workersCount = workersSet.size;
+                    delete workersSet;
+
+                    var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
+                    var hashrate = shareMultiplier * shares / configHelper.hashRateStatTime;
+
                     coinStats[coin_name] = {
                         blocks:{
                             pendingCount:res[i*commandsPerCoin+2],
@@ -56,15 +69,13 @@ router.get('/',(req,res)=>{
                             validBlocks:res[i*commandsPerCoin+1] ? (res[i*commandsPerCoin+1].validBlocks || 0) :0,
                             totalPaid:res[i*commandsPerCoin+1] ? (res[i*commandsPerCoin+1].totalPaid || 0) :0,
                         },
-                        hashrates:res[i*commandsPerCoin],
+                        hashrate:hashrate,
                         algorithm:algorithm,
+                        workersCount:workersCount,
                     }
+                    
                 }
-               
             }
-
-            
-
         })
     })
 

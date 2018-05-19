@@ -12,7 +12,7 @@ var PoolWorker = require('./libs/poolWorker.js');
 var PaymentProcessor = require('./libs/paymentProcessor.js');
 var Website = require('./libs/website.js');
 var ProfitSwitch = require('./libs/profitSwitch.js');
-
+var UpdateStatistic = require('./libs/updateStats');
 var algos = require('stratum-pool/lib/algoProperties.js');
 
 JSON.minify = JSON.minify || require("node-json-minify");
@@ -81,6 +81,9 @@ if (cluster.isWorker){
             break;
         case 'profitSwitch':
             new ProfitSwitch(logger);
+            break;
+        case 'updateStats':
+            new UpdateStatistic(logger);
             break;
     }
 
@@ -419,13 +422,27 @@ var startProfitSwitch = function(){
     });
 };
 
+var updateStats = function(){
+    var worker = cluster.fork({
+        workerType:'updateStats',
+        pools: JSON.stringify(poolConfigs),
+        portalConfig: JSON.stringify(portalConfig)
+    })
+    worker.on('exit', function(code, signal){
+        logger.error('Master', 'Stats', 'Update statcs process died, spawning replacement...');
+        setTimeout(function(){
+            updateStats();
+        }, 2000);
+    });
+}
+
 
 
 (function init(){
     poolConfigs = buildPoolConfigs();
     spawnPoolWorkers();
     startPaymentProcessor();
-    //startWebsite();
+    updateStats();
     startProfitSwitch();
     startCliListener();
 })();

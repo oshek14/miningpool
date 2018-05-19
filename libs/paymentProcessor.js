@@ -566,7 +566,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                     }
                 }
 
-                var deleteOldPayouts = ['ZREMRANGEBYSCORE','bitcoin:lastPayouts','-inf',(Date.now()-14*24*3600*1000)/1000];
+                //var deleteOldPayouts = ['ZREMRANGEBYSCORE','bitcoin:lastPayouts','-inf',(Date.now()-14*24*3600*1000)/1000];
 
 
 
@@ -627,7 +627,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                 if(lastFifteenDaysPayment.length > 0) 
                     finalRedisCommands.push(lastFifteenDaysPayment);
                 
-                finalRedisCommands.push(deleteOldPayouts);
+                //finalRedisCommands.push(deleteOldPayouts);
 
                 if (finalRedisCommands.length === 0){
                     callback();
