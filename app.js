@@ -427,7 +427,7 @@ var updateStats = function(){
         workerType:'updateStats',
         pools: JSON.stringify(poolConfigs),
         portalConfig: JSON.stringify(portalConfig)
-    })
+    });
     worker.on('exit', function(code, signal){
         logger.error('Master', 'Stats', 'Update statcs process died, spawning replacement...');
         setTimeout(function(){
