@@ -438,11 +438,13 @@ var updateStats = function(){
 
 
 
-(function init(){
+function init(){
     poolConfigs = buildPoolConfigs();
     spawnPoolWorkers();
     startPaymentProcessor();
     //updateStats();
     startProfitSwitch();
     startCliListener();
-})();
+};
+
+init();
