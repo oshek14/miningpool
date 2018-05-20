@@ -339,7 +339,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
 
                         round.category = generationTx.category;
                         if (round.category === 'generate') {
-                            round.reward = generatonTx.amount || generationTx.value;
+                            round.reward = generationTx.amount || generationTx.value;
                         }
 
                     });
