@@ -34,11 +34,12 @@ module.exports = {
         var redisCommands = [];
         var commandsPerCoin = 5;
         var data = pool_configs;
+        console.log(data.length);
         
         for(var i=0;i<Object.keys(data).length;i++){
             var coin_name = data[i].coin.split('.')[0];
             var coinConfig = configHelper.getCoinConfig(data[i].coin);
-            console.log("ahahahaha");
+            
             poolConfigsData[coin_name] = {
                 coinConfigs:coinConfig,
                 poolCoinConfig:data[i],   
@@ -55,11 +56,11 @@ module.exports = {
         redisClient.multi(redisCommands).exec(function(err,res){
             
             if(err){
-                console.log(err);
+                
                 //needs implementation 
                 return;
             }else{
-                console.log(poolConfigsData);
+                
                 for(var i=0;i<Object.keys(poolConfigsData).length;i++){
                     
                     var coin_name =  Object.keys(poolConfigsData)[i];
