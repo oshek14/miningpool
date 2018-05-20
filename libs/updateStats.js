@@ -9,6 +9,6 @@ module.exports = function(logger){
     
     console.log("here it comes");
 
-    return;
+
 
 }
