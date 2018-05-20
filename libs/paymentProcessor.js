@@ -624,8 +624,8 @@ function SetupForPool(logger, poolOptions, setupFinished){
                     finalRedisCommands.push(['hincrbyfloat', coin + ':stats', 'totalPaid', totalPaid]);
 
                 
-                if(lastFifteenDaysPayment.length > 0) 
-                    finalRedisCommands.push(lastFifteenDaysPayment);
+                // if(lastFifteenDaysPayment.length > 0) 
+                //     finalRedisCommands.push(lastFifteenDaysPayment);
                 
                 //finalRedisCommands.push(deleteOldPayouts);
 
