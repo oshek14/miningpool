@@ -59,9 +59,6 @@ router.get('/worker_stats',(req,res)=>{
     var timeSeconds = req.query.timeSeconds;
     var coin_name = req.query.coin_name;
     var algorithm = req.query.algorithm;
-    console.log(timeSeconds)
-    console.log(coin_name)
-    console.log(algorithm)
 
     configHelper.getWorkerStats(timeSeconds,coin_name,algorithm,function(workerStats){
         if(workerStats === false){
@@ -69,7 +66,6 @@ router.get('/worker_stats',(req,res)=>{
         }else if(workerStats==500){
             //TODO REDIS ERROR
         }else{
-            console.log(workerStats)
             let result = []
             for (let i = 0; i < Object.keys(workerStats[coin_name]).length; i++) {
                 let workerName = Object.keys(workerStats[coin_name])[i]
