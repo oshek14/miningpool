@@ -19,7 +19,7 @@ app.use(function (req, res, next) {
     next();
 });
 
-var adminStatistics = require('../crypto/my_website/routes/admin/admin_get_statistics');
+var adminStatistics = require('./my_website/routes/admin/admin_get_statistics');
 app.use('/admin',adminStatistics);
 
 
