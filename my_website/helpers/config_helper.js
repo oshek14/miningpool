@@ -93,7 +93,8 @@ module.exports = {
                         workersCount:workersCount,
                     }
                 }
-                return coinStats;
+                console.log(coinStats);
+                // return coinStats;
                     
                     
                 
