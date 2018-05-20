@@ -1,10 +1,13 @@
 var fs = require('fs');
 var path = require('path');
 var redis = require('redis');
+var extend = require('extend');
+
 JSON.minify = JSON.minify || require("node-json-minify");
 
 var configDir = "pool_configs/";
 var coinDir = "coins/";
+var portalConfig = JSON.parse(JSON.minify(fs.readFileSync("config.json", {encoding: 'utf8'})));
 var hashRateStatTime = 300;  //how many seconds worth of share to show for each pool
 
 module.exports = {
@@ -12,6 +15,7 @@ module.exports = {
     hashRateStatTime:hashRateStatTime,
     getPoolConfigs : function(callback){
         var poolConfigFiles=[];
+        var configs=[];
         fs.readdirSync(configDir).forEach(function(file){
             if (!fs.existsSync(configDir + file) || path.extname(configDir + file) !== '.json')  return;
             var poolOptions = JSON.parse(JSON.minify(fs.readFileSync(configDir + file, {encoding: 'utf8'})));
@@ -19,7 +23,31 @@ module.exports = {
             poolOptions.fileName = file;
             poolConfigFiles.push(poolOptions);
         });
-
+        poolConfigFiles.forEach(function(poolOptions){
+            poolOptions.coinFileName = poolOptions.coin;
+            var coinFilePath = coinDir + poolOptions.coinFileName;
+            if (!fs.existsSync(coinFilePath)){
+                // logger.error('Master', poolOptions.coinFileName, 'could not find file: ' + coinFilePath);
+                return;
+            }
+            var coinProfile = JSON.parse(JSON.minify(fs.readFileSync(coinFilePath, {encoding: 'utf8'})));
+            poolOptions.coin = coinProfile;
+            poolOptions.coin.name = poolOptions.coin.name.toLowerCase();
+            for (var option in portalConfig.defaultPoolConfigs){
+                if (!(option in poolOptions)){
+                    var toCloneOption = portalConfig.defaultPoolConfigs[option];
+                    var clonedOption = {};
+                    if (toCloneOption.constructor === Object)
+                        extend(true, clonedOption, toCloneOption);
+                    else
+                        clonedOption = toCloneOption;
+                    poolOptions[option] = clonedOption;
+                }
+            }
+            configs[poolOptions.coin.name] = poolOptions;
+            callback(configs);
+    
+        });
     },
     getCoinConfig : function(coin){
         return JSON.parse(JSON.minify(fs.readFileSync(coinDir+coin,{encoding:'utf8'})));
@@ -32,8 +60,6 @@ module.exports = {
         var redisCommands = [];
         var commandsPerCoin = 5;
         var data = pool_configs;
-        console.log(data);
-       
         for(var i=0;i<Object.keys(data).length;i++){
             var coin_name  = Object.keys(data)[i]; // bitcoin
             var coinConfig = data[coin_name].coin; // {coin:'bitcoin', symbol:'BTC',algorithm:'sha256'}
@@ -49,13 +75,11 @@ module.exports = {
         redisClient.multi(redisCommands).exec(function(err,res){
             
             if(err){
-                
                 //needs implementation 
                 return;
             }else{
                 
                 for(var i=0;i<Object.keys(data).length;i++){
-                    
                     var coin_name  = Object.keys(data)[i];
                     var algorithm = data[coin_name].coin.algorithm;
                     var hashratesPerCoin = res[i*commandsPerCoin];
@@ -71,8 +95,8 @@ module.exports = {
                     var workersCount = workersSet.size;
                     delete workersSet;
 
-                    // var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
-                    var hashrate = 15;
+                    var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
+                    var hashrate = shareMultiplier * shares / hashRateStatTime;
                     
                     coinStats[coin_name] = {
                         blocks:{
@@ -91,8 +115,7 @@ module.exports = {
                         workersCount:workersCount,
                     }
                 }
-                //console.log(coinStats);
-                // return coinStats;
+                return coinStats;
                     
                     
                 

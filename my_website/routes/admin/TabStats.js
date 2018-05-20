@@ -12,8 +12,7 @@ router.all("/*",(req,res,next)=>{
 
 
 router.get('/',(req,res)=>{
-   configHelper.getPoolConfigs(function(data) {
-       //console.log(data);
+    configHelper.getPoolConfigs(function(data) {
         var coinStats = configHelper.getCoinStats(data);
     })
 })
