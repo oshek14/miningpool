@@ -34,9 +34,10 @@ module.exports = {
         var redisCommands = [];
         var commandsPerCoin = 5;
         var data = pool_configs;
-        console.log(data);
-        console.log(data.length);
-        for(var i=0;i<data.length;i++){
+        //console.log(data);
+        console.log(Object.keys(data));
+        console.log(Object.keys(data).length);
+        for(var i=0;i<Object.keys(data).length;i++){
             var coin_name = data[i].coin.split('.')[0];
             var coinConfig = configHelper.getCoinConfig(data[i].coin);
             
