@@ -52,13 +52,13 @@ module.exports = {
             redisCommands = redisCommands.concat(tabStatsCommand);
         }
         redisClient.multi(redisCommands).exec(function(err,res){
-            console.log("modis");
+            
             if(err){
                 console.log(err);
                 //needs implementation 
                 return;
             }else{
-                console.log("bl");
+                
                 for(var i=0;i<Object.keys(poolConfigsData).length;i++){
                     var coin_name =  Object.keys(poolConfigsData)[i];
                     var algorithm = poolConfigsData[coin_name].coinConfigs.algorithm;
@@ -77,7 +77,8 @@ module.exports = {
 
                     var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
                     var hashrate = shareMultiplier * shares / configHelper.hashRateStatTime;
-
+                    console.log("aqac modis");
+                    console.log(hashrate);
                     coinStats[coin_name] = {
                         blocks:{
                             pendingCount:res[i*commandsPerCoin+2],
@@ -94,6 +95,7 @@ module.exports = {
                         algorithm:algorithm,
                         workersCount:workersCount,
                     }
+                    console.log("hop");
                     
                     
                 }
