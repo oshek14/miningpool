@@ -5,7 +5,7 @@ module.exports = function(logger){
     var poolConfigs = JSON.parse(process.env.pools);
     setInterval(function(){ 
         saveStatsEveryInterval(portalConfig,poolConfigs);
-    }, configHelper.saveStatsTime*1000);
+    }, 5*1000);
 }
 
 
