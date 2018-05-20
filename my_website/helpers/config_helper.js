@@ -52,10 +52,13 @@ module.exports = {
             redisCommands = redisCommands.concat(tabStatsCommand);
         }
         redisClient.multi(redisCommands).exec(function(err,res){
+            console.log("modis");
             if(err){
+                console.log(err);
                 //needs implementation 
                 return;
             }else{
+                console.log("bl");
                 for(var i=0;i<Object.keys(poolConfigsData).length;i++){
                     var coin_name =  Object.keys(poolConfigsData)[i];
                     var algorithm = poolConfigsData[coin_name].coinConfigs.algorithm;
@@ -91,7 +94,7 @@ module.exports = {
                         algorithm:algorithm,
                         workersCount:workersCount,
                     }
-                    console.log(coinStats);
+                    
                     
                 }
                 return coinStats;
