@@ -40,7 +40,7 @@ module.exports = {
             var coin_name  = Object.keys(data)[i]; // bitcoin
             var coinConfig = data[coin_name].coin; // {coin:'bitcoin', symbol:'BTC',algorithm:'sha256'}
             var tabStatsCommand = [
-                ['zrangebyscore', coin_name+':hashrate', (Date.now() -  configHelper.hashRateStatTime*1000)/1000, '+inf'],
+                ['zrangebyscore', coin_name+':hashrate', (Date.now() -  hashRateStatTime*1000)/1000, '+inf'],
                 ['hgetall', coin_name+':stats'],
                 ['scard', coin_name+':blocksPending'],
                 ['scard', coin_name+':blocksConfirmed'],
