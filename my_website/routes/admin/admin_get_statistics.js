@@ -56,9 +56,9 @@ router.get('/tab_stats',(req,res)=>{
 })
 
 router.get('/worker_stats',(req,res)=>{
-    var timeSeconds = 30*1000;
-    var coin_name = 'bitcoin';
-    var algorithm = "sha256";
+    var timeSeconds = req.body.timeSeconds;
+    var coin_name = req.body.coin_name;
+    var algorithm = req.body.algorithm;
     configHelper.getWorkerStats(timeSeconds,coin_name,algorithm,function(workerStats){
         if(workerStats === false){
             //TODO empty returns
@@ -71,8 +71,8 @@ router.get('/worker_stats',(req,res)=>{
                 let data = {}
                 data.worker = workerName
                 data.shares = workerStats[coin_name][workerName].shares
-                data.invalidShares = workerStats[coin_name][workerName].invalidshares
-                data.hashRate = workerStats[coin_name][workerName].hashrateString
+                data.invalidShares = Math.floor(workerStats[coin_name][workerName].invalidshares)
+                data.hashRate = Math.floor(workerStats[coin_name][workerName].hashrateString)
                 data.efficiency = (data.shares > 0) ? (Math.floor(10000 * data.shares / (data.shares + data.invalidShares)))/100 : 0
                 result.push(data)
             }
