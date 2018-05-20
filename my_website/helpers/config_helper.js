@@ -92,11 +92,12 @@ module.exports = {
                         algorithm:algorithm,
                         workersCount:workersCount,
                     }
-                    console.log(coinStats);
-                    
-                    
                 }
                 return coinStats;
+                    
+                    
+                
+                
             }
         })
         
