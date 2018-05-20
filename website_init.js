@@ -8,19 +8,11 @@ const bodyParser = require('body-parser');
 var redis = require('redis');
 var redisClient = redis.createClient("6777", "165.227.143.126");
 
-
-
-
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-
-
-
-
-
 var adminTabStats = require('../crypto/my_website/routes/admin/TabStats.js');
-app.use('/tab_stats',adminTabStats);
+app.use('/tab_stats', adminTabStats);
 
 
 http.listen(4500,()=>{

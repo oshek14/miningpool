@@ -5,6 +5,7 @@ var redis = require('redis');
 
 //var algos = require('stratum-pool/lib/algoProperties.js');
 var fs = require('fs');
+
 router.all("/*",(req,res,next)=>{
     req.app.locals.layout = 'admin';
     next();
@@ -17,7 +18,7 @@ router.get('/',(req,res)=>{
             if(coinsStats === false){
                 //TODO
             }else{
-                //TODO
+                res.send({dara: coinsStats})
             }
         });
     })
