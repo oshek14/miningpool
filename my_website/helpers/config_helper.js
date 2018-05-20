@@ -11,17 +11,15 @@ module.exports = {
     configDir:configDir,
     hashRateStatTime:hashRateStatTime,
     getPoolConfigs : function(callback){
+        var poolConfigFiles=[];
         fs.readdirSync(configDir).forEach(function(file){
-            if (!fs.existsSync(configDir + file) || path.extname(configDir + file) !== '.json') 
-                return;
+            if (!fs.existsSync(configDir + file) || path.extname(configDir + file) !== '.json')  return;
             var poolOptions = JSON.parse(JSON.minify(fs.readFileSync(configDir + file, {encoding: 'utf8'})));
-            if (!poolOptions.enabled) 
-                return;
+            if (!poolOptions.enabled)  return;
             poolOptions.fileName = file;
-            var poolConfigFiles=[];
             poolConfigFiles.push(poolOptions);
-            callback(poolConfigFiles)
         });
+
     },
     getCoinConfig : function(coin){
         return JSON.parse(JSON.minify(fs.readFileSync(coinDir+coin,{encoding:'utf8'})));
@@ -34,7 +32,7 @@ module.exports = {
         var redisCommands = [];
         var commandsPerCoin = 5;
         var data = pool_configs;
-        //console.log(data);
+        console.log(data);
        
         for(var i=0;i<Object.keys(data).length;i++){
             var coin_name  = Object.keys(data)[i]; // bitcoin
@@ -73,8 +71,8 @@ module.exports = {
                     var workersCount = workersSet.size;
                     delete workersSet;
 
-                    var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
-                    var hashrate = shareMultiplier * shares / hashRateStatTime;
+                    // var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
+                    var hashrate = 15;
                     
                     coinStats[coin_name] = {
                         blocks:{
@@ -93,7 +91,7 @@ module.exports = {
                         workersCount:workersCount,
                     }
                 }
-                console.log(coinStats);
+                //console.log(coinStats);
                 // return coinStats;
                     
                     
