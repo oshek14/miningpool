@@ -11,11 +11,18 @@ module.exports = function(logger){
 
 function saveStatsEveryInterval(portalConfig,poolConfigs){
     configHelper.getCoinStats(poolConfigs,function(coinStats){
-        console.log(coinStats);
         if(coinStats === false){
             //TODO
         }else{
-            
+            var portalStats = {
+                time: statGatherTime,
+                global:{
+                    workers: 0,
+                    hashrate: 0
+                },
+                algos: {},
+                pools: allCoinStats
+            };
         }
      });
 }

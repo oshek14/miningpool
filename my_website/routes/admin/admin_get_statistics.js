@@ -11,7 +11,7 @@ router.all("/*",(req,res,next)=>{
 })
 
 
-router.get('/',(req,res)=>{
+router.get('/tab_stats',(req,res)=>{
     configHelper.getPoolConfigs(function(data) {
         configHelper.getCoinStats(data,function(coinsStats){
             if(coinsStats === false){
@@ -22,5 +22,20 @@ router.get('/',(req,res)=>{
         });
     })
 })
+
+router.get('/worker_stats',(req,res)=>{
+    configHelper.getPoolConfigs(function(data) {
+        var timeSeconds = req.body.time_stats;
+        configHelper.getWorkerStats(data,timeSeconds,function(workerStats){
+            if(workerStats === false){
+                //TODO
+            }else{
+                //TODO
+            }
+        });
+    })
+})
+
+
 
 module.exports = router;

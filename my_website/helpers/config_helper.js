@@ -1,3 +1,4 @@
+
 var fs = require('fs');
 var path = require('path');
 var redis = require('redis');
@@ -47,13 +48,21 @@ module.exports = {
             }
             configs[poolOptions.coin.name] = poolOptions;
             callback(configs);
-    
         });
     },
     getCoinConfig : function(coin){
         return JSON.parse(JSON.minify(fs.readFileSync(coinDir+coin,{encoding:'utf8'})));
     },
-    
+    getReadableHashRateString : function(hashrate){
+        var i = -1;
+        var byteUnits = [ ' KH', ' MH', ' GH', ' TH', ' PH' ];
+        do {
+            hashrate = hashrate / 1000;
+			i++;
+        } while (hashrate > 1000);
+        return hashrate.toFixed(2) + byteUnits[i];
+    },
+
     getCoinStats:function(pool_configs,callback){
         var poolConfigsData = {};
         var coinStats = {};
@@ -63,7 +72,7 @@ module.exports = {
         var data = pool_configs;
         for(var i=0;i<Object.keys(data).length;i++){
             var coin_name  = Object.keys(data)[i]; // bitcoin
-            var coinConfig = data[coin_name].coin; // {coin:'bitcoin', symbol:'BTC',algorithm:'sha256'}
+            //var coinConfig = data[coin_name].coin; // {coin:'bitcoin', symbol:'BTC',algorithm:'sha256'}
             var tabStatsCommand = [
                 ['zrangebyscore', coin_name+':hashrate', (Date.now() -  hashRateStatTime*1000)/1000, '+inf'],
                 ['hgetall', coin_name+':stats'],
@@ -114,8 +123,76 @@ module.exports = {
                         workersCount:workersCount,
                     }
                 }
+
                 callback(coinStats);
             }
+        })
+    },
+    getWorkerStats:function(pool_configs,time_stats, callback){
+        var poolConfigsData = {};
+        var workerStats = {};
+        var redisClient = redis.createClient("6777",'165.227.143.126');
+        var redisCommands = [];
+        var commandsPerCoin = 1;
+        var data = pool_configs;
+        for(var i=0;i<Object.keys(data).length;i++){
+            var coin_name  = Object.keys(data)[i]; // bitcoin
+            //var coinConfig = data[coin_name].coin; // {coin:'bitcoin', symbol:'BTC',algorithm:'sha256'}
+            var tabStatsCommand = [
+                ['zrangebyscore', coin_name+':hashrate', (Date.now() - time_stats)/1000, '+inf'],
+            ];
+            redisCommands = redisCommands.concat(tabStatsCommand);
+        }
+        redisClient.multi(redisCommands).exec(function(err,res){
+            if(err){
+                callback(false);
+                return;
+            }else{
+                for(var i=0;i<Object.keys(data).length;i++){
+                    var coin_name  = Object.keys(data)[i];
+                    var algorithm = data[coin_name].coin.algorithm;
+                    var shareMultiplier = Math.pow(2, 32) / 2;
+                    var hashratesPerCoin = res[i*commandsPerCoin];
+                    var workers = {};
+                    hashratesPerCoin.forEach(minerRate => {
+                        var miner_address = minerRate.split(":")[1];
+                        var difficulty = parseFloat(minerRate.split(":")[0]);
+                        if(difficulty > 0) {
+                            if(miner_address in workers){
+                                workers[miner_address].shares+=difficulty;
+                            }
+                            else{
+                                workers[miner_address]  = {
+                                    shares: difficulty,
+                                    invalidshares: 0,
+                                    hashrateString: null
+                                };
+                            }
+                        }else{
+                            if(miner_address in workers){
+                                workers[miner_address].invalidShares-=difficulty;
+                            }else{
+                                workers[miner_address]  = {
+                                    shares: 0,
+                                    invalidshares: -difficulty,
+                                    hashrateString: null
+                                };
+                            }
+                        }
+                       
+                    });
+                    for (var worker in workers) {
+                        workers[worker].hashrateString = module.exports.getReadableHashRateString(shareMultiplier * workers[worker].shares / time_stats / 1000);
+                    }
+                    workerStats[coin_name] = workers;
+                }
+                callback(workerStats);
+                
+
+            }
+
+
+
         })
     }
 }

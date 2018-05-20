@@ -19,8 +19,8 @@ app.use(bodyParser.json());
 
 
 
-var adminTabStats = require('../crypto/my_website/routes/admin/TabStats.js');
-app.use('/tab_stats',adminTabStats);
+var adminStatistics = require('../crypto/my_website/routes/admin/admin_get_statistics');
+app.use('/admin',adminStatistics);
 
 
 http.listen(4500,()=>{
