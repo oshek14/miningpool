@@ -38,6 +38,7 @@ module.exports = {
         for(var i=0;i<data.length;i++){
             var coin_name = data[i].coin.split('.')[0];
             var coinConfig = configHelper.getCoinConfig(data[i].coin);
+            console.log("ahahahaha");
             poolConfigsData[coin_name] = {
                 coinConfigs:coinConfig,
                 poolCoinConfig:data[i],   
