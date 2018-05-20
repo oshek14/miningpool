@@ -58,9 +58,9 @@ module.exports = {
                 //needs implementation 
                 return;
             }else{
-                console.log(Object.keys(poolConfigsData).length);
+                console.log(poolConfigsData);
                 for(var i=0;i<Object.keys(poolConfigsData).length;i++){
-                    console.log("hop");
+                    
                     var coin_name =  Object.keys(poolConfigsData)[i];
                     var algorithm = poolConfigsData[coin_name].coinConfigs.algorithm;
                     var hashratesPerCoin = res[i*commandsPerCoin];
@@ -78,8 +78,7 @@ module.exports = {
 
                     var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
                     var hashrate = shareMultiplier * shares / configHelper.hashRateStatTime;
-                    console.log("aqac modis");
-                    console.log(hashrate);
+                    
                     coinStats[coin_name] = {
                         blocks:{
                             pendingCount:res[i*commandsPerCoin+2],
@@ -96,7 +95,6 @@ module.exports = {
                         algorithm:algorithm,
                         workersCount:workersCount,
                     }
-                    console.log("hop1");
                     
                     
                 }
