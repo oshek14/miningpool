@@ -56,12 +56,9 @@ router.get('/tab_stats',(req,res)=>{
 })
 
 router.get('/worker_stats',(req,res)=>{
-    var timeSeconds = req.body.timeSeconds;
-    var coin_name = req.body.coin_name;
-    var algorithm = req.body.algorithm;
-    console.log(req)
-    console.log(req.timeSeconds)
-    console.log(req.params)
+    var timeSeconds = req.query.timeSeconds;
+    var coin_name = req.query.coin_name;
+    var algorithm = req.query.algorithm;
     configHelper.getWorkerStats(timeSeconds,coin_name,algorithm,function(workerStats){
         if(workerStats === false){
             //TODO empty returns
