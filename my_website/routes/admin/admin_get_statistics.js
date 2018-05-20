@@ -73,6 +73,7 @@ router.get('/worker_stats',(req,res)=>{
                 data.shares = workerStats[coin_name][workerName].shares
                 data.invalidShares = workerStats[coin_name][workerName].invalidshares
                 data.hashRate = workerStats[coin_name][workerName].hashrateString
+                data.efficiency = (data.shares > 0) ? (Math.floor(10000 * data.shares / (data.shares + data.invalidShares))) : 0
                 result.push(data)
             }
             res.send({status: 200, data: result})
