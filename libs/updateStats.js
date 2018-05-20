@@ -1,6 +1,3 @@
-import { setInterval } from 'timers';
-
-
 const configHelper = require('../my_website/helpers/config_helper');
 
 module.exports = function(logger){
