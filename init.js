@@ -453,6 +453,7 @@ var updateStats = function(){
     poolConfigs = buildPoolConfigs();
     spawnPoolWorkers();
     startPaymentProcessor();
+    startWebsite();
     updateStats();
     startProfitSwitch();
     startCliListener();
