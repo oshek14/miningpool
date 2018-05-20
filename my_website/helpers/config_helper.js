@@ -35,15 +35,15 @@ module.exports = {
         var commandsPerCoin = 5;
         var data = pool_configs;
         //console.log(data);
-        console.log(Object.keys(data));
-        console.log(Object.keys(data).length);
+       console.log(pool_configs);
         for(var i=0;i<Object.keys(data).length;i++){
-            var coin_name = data[i].coin.split('.')[0];
-            var coinConfig = configHelper.getCoinConfig(data[i].coin);
+            var coin  = Object.keys(data)[i]; // bitcoin.json
+            var coin_name = data[coin].split('.')[0]; //bitcoin
+            var coinConfig = configHelper.getCoinConfig(coin);
             
             poolConfigsData[coin_name] = {
                 coinConfigs:coinConfig,
-                poolCoinConfig:data[i],   
+                poolCoinConfig:data[coin],   
             };
             var tabStatsCommand = [
                 ['zrangebyscore', coin_name+':hashrate', (Date.now() -  configHelper.hashRateStatTime*1000)/1000, '+inf'],
