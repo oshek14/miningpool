@@ -6,9 +6,11 @@ module.exports = function(logger){
     var portalConfig = JSON.parse(process.env.portalConfig);
     var poolConfigs = JSON.parse(process.env.pools);
 
-    var coinStats = configHelper.getCoinStats(poolConfigs);
+    configHelper.getCoinStats(poolConfigs,function(coinStats){
+        console.log(coinStats);
+    });
     
-    console.log(coinStats);
+   // console.log(coinStats);
 
 
 

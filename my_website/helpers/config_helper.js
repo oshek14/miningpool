@@ -53,7 +53,7 @@ module.exports = {
         return JSON.parse(JSON.minify(fs.readFileSync(coinDir+coin,{encoding:'utf8'})));
     },
     
-    getCoinStats:function(pool_configs){
+    getCoinStats:function(pool_configs,callback){
         var poolConfigsData = {};
         var coinStats = {};
         var redisClient = redis.createClient("6777",'165.227.143.126');
@@ -115,8 +115,7 @@ module.exports = {
                         workersCount:workersCount,
                     }
                 }
-                console.log(coinStats);
-                return coinStats;
+                callback(coinStats);
                     
                     
                 
