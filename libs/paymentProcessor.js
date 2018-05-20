@@ -623,7 +623,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                 if (totalPaid !== 0)
                     finalRedisCommands.push(['hincrbyfloat', coin + ':stats', 'totalPaid', totalPaid]);
 
-                
+                console.log(lastFifteenDaysPayment);
                 // if(lastFifteenDaysPayment.length > 0) 
                 //     finalRedisCommands.push(lastFifteenDaysPayment);
                 
