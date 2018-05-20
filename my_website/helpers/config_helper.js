@@ -84,6 +84,9 @@ module.exports = {
         }
         redisClient.multi(redisCommands).exec(function(err,res){
             if(err){
+                callback(500);
+                return;
+            }else if(res.length==0){
                 callback(false);
                 return;
             }else{
@@ -103,8 +106,8 @@ module.exports = {
                     var workersCount = workersSet.size;
                     delete workersSet;
 
-                    // var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
-                    // var hashrate = shareMultiplier * shares / hashRateStatTime;
+                    var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
+                    var hashrate = shareMultiplier * shares / hashRateStatTime;
                     var hashrate = 14;
                     coinStats[coin_name] = {
                         blocks:{
@@ -128,76 +131,67 @@ module.exports = {
             }
         })
     },
-    getWorkerStats:function(pool_configs,time_stats, callback){
-        var poolConfigsData = {};
+    getWorkerStats:function(time_stats,coin_name,algorithm,callback){
         var workerStats = {};
         var redisClient = redis.createClient("6777",'165.227.143.126');
         var redisCommands = [];
-        var commandsPerCoin = 1;
-        var data = pool_configs;
-        for(var i=0;i<Object.keys(data).length;i++){
-            var coin_name  = Object.keys(data)[i]; // bitcoin
-            //var coinConfig = data[coin_name].coin; // {coin:'bitcoin', symbol:'BTC',algorithm:'sha256'}
-            var tabStatsCommand = [
-                ['zrangebyscore', coin_name+':hashrate', (Date.now() - time_stats)/1000, '+inf'],
-            ];
-            redisCommands = redisCommands.concat(tabStatsCommand);
-        }
+        var hashRateCommand = [
+            ['zrangebyscore', coin_name+':hashrate', (Date.now() - time_stats)/1000, '+inf'],
+        ];
+        redisCommands = redisCommands.concat(hashRateCommand);
         redisClient.multi(redisCommands).exec(function(err,res){
             if(err){
+                callback(500);
+                return;
+            }else if(res.length == 0){
                 callback(false);
                 return;
-            }else{
-                for(var i=0;i<Object.keys(data).length;i++){
-                    var coin_name  = Object.keys(data)[i];
-                    var algorithm = data[coin_name].coin.algorithm;
-                    var shareMultiplier = Math.pow(2, 32) / 2;
-                    var hashratesPerCoin = res[i*commandsPerCoin];
-                    var workers = {};
-                    hashratesPerCoin.forEach(minerRate => {
-                        var miner_address = minerRate.split(":")[1];
-                        var difficulty = parseFloat(minerRate.split(":")[0]);
-                        if(difficulty > 0) {
-                            if(miner_address in workers){
-                                workers[miner_address].shares+=difficulty;
-                            }
-                            else{
-                                workers[miner_address]  = {
-                                    shares: difficulty,
-                                    invalidshares: 0,
-                                    hashrateString: null
-                                };
-                            }
-                        }else{
-                            if(miner_address in workers){
-                                workers[miner_address].invalidShares-=difficulty;
-                            }else{
-                                workers[miner_address]  = {
-                                    shares: 0,
-                                    invalidshares: -difficulty,
-                                    hashrateString: null
-                                };
-                            }
-                        }
-                       
-                    });
-                    for (var worker in workers) {
-                        workers[worker].hashrateString = module.exports.getReadableHashRateString(shareMultiplier * workers[worker].shares / time_stats / 1000);
-                    }
-                    workerStats[coin_name] = workers;
-                }
-                callback(workerStats);
-                
-
             }
-
-
+            else{
+                var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
+                var hashratesPerCoin = res[0];
+                var workers = {};
+                hashratesPerCoin.forEach(minerRate => {
+                    var miner_address = minerRate.split(":")[1];
+                    var difficulty = parseFloat(minerRate.split(":")[0]);
+                    if(difficulty > 0) {
+                        if(miner_address in workers){
+                            workers[miner_address].shares+=difficulty;
+                        }
+                        else{
+                            workers[miner_address]  = {
+                                shares: difficulty,
+                                invalidshares: 0,
+                                hashrateString: null
+                            };
+                        }
+                    }else{
+                        if(miner_address in workers){
+                            workers[miner_address].invalidShares-=difficulty;
+                        }else{
+                            workers[miner_address]  = {
+                                shares: 0,
+                                invalidshares: -difficulty,
+                                hashrateString: null
+                            };
+                        }
+                    }
+                    
+                });
+                for (var worker in workers) {
+                    workers[worker].hashrateString = module.exports.getReadableHashRateString(shareMultiplier * workers[worker].shares / time_stats / 1000);
+                }
+                workerStats[coin_name] = workers;
+            }
+            
+            callback(workerStats);
+                
 
         })
     }
 }
-                    
-                    
+
+          
                 
                 
      

@@ -11,13 +11,25 @@ router.all("/*",(req,res,next)=>{
     next();
 })
 
+router.get('/active_coins',(req,res)=>{
+    configHelper.getPoolConfigs(function(data) {
+        var coins={};
+        var keys = Object.keys(data);
+        for(var i=0;i<keys.length;i++)
+           coins[keys[i]] = data[keys[i]].coin.algorithm;
+        
+        res.send({status:200,data:coins});
+    })
+})
 
 router.get('/tab_stats',(req,res)=>{
     configHelper.getPoolConfigs(function(data) {
         configHelper.getCoinStats(data,function(coinsStats){
             if(coinsStats === false){
-                //TODO
-            }else{
+                //TODO empty
+            }else if(coinsStats == 500){
+                //TODO REDIS ERROR   
+            }{
                 let result = []
                 if (coinsStats) {
                     for (let i = 0; i < Object.keys(coinsStats).length; i++) {
@@ -44,16 +56,19 @@ router.get('/tab_stats',(req,res)=>{
 })
 
 router.get('/worker_stats',(req,res)=>{
-    configHelper.getPoolConfigs(function(data) {
-        var timeSeconds = req.body.time_stats;
-        configHelper.getWorkerStats(data,timeSeconds,function(workerStats){
-            if(workerStats === false){
-                //TODO
-            }else{
-                //TODO
-            }
-        });
-    })
+    var timeSeconds = 30*1000;
+    var coin_name = 'bitcoin';
+    var algorithm = "sha256";
+    configHelper.getWorkerStats(timeSeconds,coin_name,algorithm,function(workerStats){
+        if(workerStats === false){
+            //TODO empty returns
+        }else if(workerStats==500){
+            //TODO REDIS ERROR
+        }else{
+            console.log(workerStats);
+        }
+    });
+    
 })
 
 
