@@ -65,6 +65,11 @@ router.get('/worker_stats',(req,res)=>{
         }else if(workerStats==500){
             //TODO REDIS ERROR
         }else{
+            let result = []
+            for (let i = 0; i < Object.keys(workerStats[coin_name]); i++) {
+                let workerName = Object.keys(workerStats[coin_name])[i]
+                console.log(workerName)
+            }
             console.log(workerStats);
         }
     });
