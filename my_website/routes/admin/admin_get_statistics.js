@@ -66,11 +66,12 @@ router.get('/worker_stats',(req,res)=>{
             //TODO REDIS ERROR
         }else{
             let result = []
+            console.log(workerStats[coin_name])
             for (let i = 0; i < Object.keys(workerStats[coin_name]); i++) {
                 let workerName = Object.keys(workerStats[coin_name])[i]
                 console.log(workerName)
             }
-            console.log(workerStats);
+            //console.log(workerStats);
         }
     });
     
