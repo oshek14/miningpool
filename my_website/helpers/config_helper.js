@@ -103,9 +103,9 @@ module.exports = {
                     var workersCount = workersSet.size;
                     delete workersSet;
 
-                    var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
-                    var hashrate = shareMultiplier * shares / hashRateStatTime;
-                    
+                    // var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
+                    // var hashrate = shareMultiplier * shares / hashRateStatTime;
+                    var hashrate = 14;
                     coinStats[coin_name] = {
                         blocks:{
                             pendingCount:res[i*commandsPerCoin+2],
