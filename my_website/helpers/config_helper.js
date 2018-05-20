@@ -7,8 +7,10 @@ JSON.minify = JSON.minify || require("node-json-minify");
 
 var configDir = "pool_configs/";
 var coinDir = "coins/";
-var portalConfig = JSON.parse(JSON.minify(fs.readFileSync("config.json", {encoding: 'utf8'})));
 var hashRateStatTime = 300;  //how many seconds worth of share to show for each pool
+var saveStatsTime = 5; //howmany seconds worth of stats to save in statHistory
+var deleteOldPayouts = 14*24*3600*1000; //howmany days data we save for last payouts.
+var portalConfig = JSON.parse(JSON.minify(fs.readFileSync("config.json", {encoding: 'utf8'})));
 
 module.exports = {
     configDir:configDir,
@@ -26,10 +28,7 @@ module.exports = {
         poolConfigFiles.forEach(function(poolOptions){
             poolOptions.coinFileName = poolOptions.coin;
             var coinFilePath = coinDir + poolOptions.coinFileName;
-            if (!fs.existsSync(coinFilePath)){
-                // logger.error('Master', poolOptions.coinFileName, 'could not find file: ' + coinFilePath);
-                return;
-            }
+            if (!fs.existsSync(coinFilePath)) return;
             var coinProfile = JSON.parse(JSON.minify(fs.readFileSync(coinFilePath, {encoding: 'utf8'})));
             poolOptions.coin = coinProfile;
             poolOptions.coin.name = poolOptions.coin.name.toLowerCase();
@@ -73,12 +72,10 @@ module.exports = {
             redisCommands = redisCommands.concat(tabStatsCommand);
         }
         redisClient.multi(redisCommands).exec(function(err,res){
-            
             if(err){
-                //needs implementation 
+                callback(false);
                 return;
             }else{
-                
                 for(var i=0;i<Object.keys(data).length;i++){
                     var coin_name  = Object.keys(data)[i];
                     var algorithm = data[coin_name].coin.algorithm;
@@ -116,12 +113,12 @@ module.exports = {
                     }
                 }
                 callback(coinStats);
-                    
-                    
-                
-                
             }
         })
-        
     }
 }
+                    
+                    
+                
+                
+     

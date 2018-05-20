@@ -2,7 +2,7 @@ var fs = require('fs');
 
 var redis = require('redis');
 var async = require('async');
-
+var configHelper = require('../my_website/helpers/config_helper')
 var Stratum = require('stratum-pool');
 var util = require('stratum-pool/lib/util.js');
 
@@ -566,7 +566,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                     }
                 }
 
-                //var deleteOldPayouts = ['ZREMRANGEBYSCORE','bitcoin:lastPayouts','-inf',(Date.now()-14*24*3600*1000)/1000];
+                var deleteOldPayouts = ['ZREMRANGEBYSCORE','bitcoin:lastPayouts','-inf',(Date.now()-configHelper.deleteOldPayouts)/1000];
 
 
 
@@ -629,7 +629,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                 }
                 
                 
-                //finalRedisCommands.push(deleteOldPayouts);
+                finalRedisCommands.push(deleteOldPayouts);
 
                 if (finalRedisCommands.length === 0){
                     callback();

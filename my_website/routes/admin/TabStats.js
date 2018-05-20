@@ -13,7 +13,13 @@ router.all("/*",(req,res,next)=>{
 
 router.get('/',(req,res)=>{
     configHelper.getPoolConfigs(function(data) {
-        var coinStats = configHelper.getCoinStats(data);
+        configHelper.getCoinStats(data,function(coinsStats){
+            if(coinsStats === false){
+                //TODO
+            }else{
+                //TODO
+            }
+        });
     })
 })
 
