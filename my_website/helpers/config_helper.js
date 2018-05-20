@@ -74,7 +74,7 @@ module.exports = {
                     delete workersSet;
 
                     var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
-                    var hashrate = shareMultiplier * shares / configHelper.hashRateStatTime;
+                    var hashrate = shareMultiplier * shares / hashRateStatTime;
                     
                     coinStats[coin_name] = {
                         blocks:{
