@@ -7,7 +7,7 @@ module.exports = function(logger){
     var poolConfigs = JSON.parse(process.env.pools);
 
     
-
+    console.log("here it comes");
 
 
 
