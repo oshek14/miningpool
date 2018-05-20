@@ -1,5 +1,6 @@
 var fs = require('fs');
 var path = require('path');
+var redis = require('redis');
 JSON.minify = JSON.minify || require("node-json-minify");
 
 var configDir = "pool_configs/";
