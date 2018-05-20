@@ -58,8 +58,9 @@ module.exports = {
                 //needs implementation 
                 return;
             }else{
-                
+                console.log(Object.keys(poolConfigsData).length);
                 for(var i=0;i<Object.keys(poolConfigsData).length;i++){
+                    console.log("hop");
                     var coin_name =  Object.keys(poolConfigsData)[i];
                     var algorithm = poolConfigsData[coin_name].coinConfigs.algorithm;
                     var hashratesPerCoin = res[i*commandsPerCoin];
@@ -95,7 +96,7 @@ module.exports = {
                         algorithm:algorithm,
                         workersCount:workersCount,
                     }
-                    console.log("hop");
+                    console.log("hop1");
                     
                     
                 }
