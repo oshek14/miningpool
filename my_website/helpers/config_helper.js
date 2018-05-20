@@ -35,16 +35,10 @@ module.exports = {
         var commandsPerCoin = 5;
         var data = pool_configs;
         //console.log(data);
-       console.log(pool_configs);
+       
         for(var i=0;i<Object.keys(data).length;i++){
-            var coin  = Object.keys(data)[i]; // bitcoin.json
-            var coin_name = data[coin].split('.')[0]; //bitcoin
-            var coinConfig = configHelper.getCoinConfig(coin);
-            
-            poolConfigsData[coin_name] = {
-                coinConfigs:coinConfig,
-                poolCoinConfig:data[coin],   
-            };
+            var coin_name  = Object.keys(data)[i]; // bitcoin
+            var coinConfig = data[coin_name].coin; // {coin:'bitcoin', symbol:'BTC',algorithm:'sha256'}
             var tabStatsCommand = [
                 ['zrangebyscore', coin_name+':hashrate', (Date.now() -  configHelper.hashRateStatTime*1000)/1000, '+inf'],
                 ['hgetall', coin_name+':stats'],
@@ -62,10 +56,10 @@ module.exports = {
                 return;
             }else{
                 
-                for(var i=0;i<Object.keys(poolConfigsData).length;i++){
+                for(var i=0;i<Object.keys(data).length;i++){
                     
-                    var coin_name =  Object.keys(poolConfigsData)[i];
-                    var algorithm = poolConfigsData[coin_name].coinConfigs.algorithm;
+                    var coin_name  = Object.keys(data)[i];
+                    var algorithm = data[coin_name].coin.algorithm;
                     var hashratesPerCoin = res[i*commandsPerCoin];
                     var workersSet = new Set;
                     var shares = 0;
