@@ -15,7 +15,8 @@ function saveStatsEveryInterval(portalConfig,poolConfigs){
     var redisClient = redis.createClient("6777",'165.227.143.126');
     configHelper.getPoolConfigs(function(data) {
         configHelper.getCoinStats(data,configHelper.hashRateStatTime,function(allCoinStats){
-            var gatherTime = Date.now();
+           
+            var gatherTime = Date.now() / 1000 | 0;
             var portalStats = {
                 time: gatherTime,
                 global:{
@@ -27,6 +28,7 @@ function saveStatsEveryInterval(portalConfig,poolConfigs){
             };
             Object.keys(allCoinStats).forEach(function(coin){
                 var coinStats = allCoinStats[coin];
+                console.log(coin);
                 coinStats.workers = {};
                 coinStats.shares = 0;
                 coinStats.hashrates.forEach(function(ins){
@@ -87,10 +89,18 @@ function saveStatsEveryInterval(portalConfig,poolConfigs){
                 var algoStats = portalStats.algos[algo];
                 algoStats.hashrateString = configHelper.getReadableHashRateString(algoStats.hashrate);
             });
+            
+            var finalStatistics = JSON.stringify(portalStats);
 
-            console.log(JSON.stringify(portalStats));
+            // redisStats.multi([
+            //     ['zadd', 'statHistory', gatherTime, finalStatistics],
+            //     ['zremrangebyscore', 'statHistory', '-inf', (Date.now() - configHelper.statHistoryLifetime)/1000],
+            //     ['zremrangebyscore', coin_name+':hashrate', '-inf', (Date.now() - configHelper.statHistoryLifetime)/1000],
+
+            // ]).exec(function(err, replies){
 
 
+            // })
         })
     })
 

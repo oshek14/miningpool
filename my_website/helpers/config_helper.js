@@ -13,6 +13,7 @@ var coinDir = "coins/";
 var hashRateStatTime = 3600*1000;  //how many days worth of share to show for each pool
 var saveStatsTime = 5; //howmany seconds worth of stats to save in statHistory
 var deleteOldPayouts = 14*24*3600*1000; //howmany days data we save for last payouts.
+var statHistoryLifetime = 30*24*3600*1000;
 var portalConfig = JSON.parse(JSON.minify(fs.readFileSync("config.json", {encoding: 'utf8'})));
 
 module.exports = {
@@ -154,12 +155,12 @@ module.exports = {
             }
             else{
                 var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
-                //var shareMultiplier = 1212212223;
+                
                 if(!algos.hasOwnProperty(algorithm)) {
                     callback(false);
                     return;
                 }
-                //var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
+                
                 var hashratesPerCoin = res[0];
                 var workers = {};
                 hashratesPerCoin.forEach(minerRate => {
