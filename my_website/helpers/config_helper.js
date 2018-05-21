@@ -74,7 +74,6 @@ module.exports = {
         var data = pool_configs;
         for(var i=0;i<Object.keys(data).length;i++){
             var coin_name  = Object.keys(data)[i]; // bitcoin
-            //var coinConfig = data[coin_name].coin; // {coin:'bitcoin', symbol:'BTC',algorithm:'sha256'}
             var tabStatsCommand = [
                 ['zrangebyscore', coin_name+':hashrate', (Date.now() -  hashRateStatTime*1000)/1000, '+inf'],
                 ['hgetall', coin_name+':stats'],
@@ -108,9 +107,9 @@ module.exports = {
                     var workersCount = workersSet.size;
                     delete workersSet;
 
-                    //var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
-                    //var hashrate = shareMultiplier * shares / hashRateStatTime;
-                    var hashrate = 1412122;
+                    var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
+                    var hashrate = shareMultiplier * shares / hashRateStatTime;
+                    // var hashrate = 1412122;
                     coinStats[coin_name] = {
                         blocks:{
                             pendingCount:res[i*commandsPerCoin+2],
