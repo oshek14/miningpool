@@ -175,19 +175,17 @@ module.exports = {
                         else{
                             workers[miner_address]  = {
                                 shares: difficulty,
-                                invalidshares: 0,
+                                invalidShares: 0,
                                 hashrateString: null
                             };
                         }
                     }else{
-                        
                         if(miner_address in workers){
                             workers[miner_address].invalidShares-=difficulty;
-                            console.log(workers[miner_address].invalidShares);
                         }else{
                             workers[miner_address]  = {
                                 shares: 0,
-                                invalidshares: -difficulty,
+                                invalidShares: -difficulty,
                                 hashrateString: null
                             };
                         }
