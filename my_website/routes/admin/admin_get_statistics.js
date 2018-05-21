@@ -25,6 +25,7 @@ router.get('/active_coins',(req,res)=>{
 router.get('/tab_stats',(req,res)=>{
     configHelper.getPoolConfigs(function(data) {
         configHelper.getCoinStats(data,function(coinsStats){
+            console.log(coinsStats);
             if(coinsStats === false){
                 //TODO empty
             }else if(coinsStats == 500){
@@ -66,7 +67,7 @@ router.get('/worker_stats',(req,res)=>{
             //TODO REDIS ERROR
         }else{
             let result = []
-            console.log(workerStats[coin_name])
+            //console.log(workerStats[coin_name])
             for (let i = 0; i < Object.keys(workerStats[coin_name]).length; i++) {
                 let workerName = Object.keys(workerStats[coin_name])[i]
                 let data = {}
@@ -77,6 +78,15 @@ router.get('/worker_stats',(req,res)=>{
         }
     });
     
+})
+
+router.get('/global_stats',(req,res)=>{
+    configHelper.globalStats(function(globalStats){
+        console.log(globalStats.length);
+        for (var i = 0; i < globalStats.length; i++){
+            console.log(JSON.stringify(globalStats[i]));
+        }
+    });
 })
 
 

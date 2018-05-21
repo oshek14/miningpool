@@ -4,7 +4,7 @@ var path = require('path');
 var redis = require('redis');
 var extend = require('extend');
 
-var algos = require('stratum-pool/lib/algoProperties.js');
+//var algos = require('stratum-pool/lib/algoProperties.js');
 
 JSON.minify = JSON.minify || require("node-json-minify");
 
@@ -108,9 +108,9 @@ module.exports = {
                     var workersCount = workersSet.size;
                     delete workersSet;
 
-                    var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
-                    var hashrate = shareMultiplier * shares / hashRateStatTime;
-                    var hashrate = 14;
+                    //var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
+                    //var hashrate = shareMultiplier * shares / hashRateStatTime;
+                    var hashrate = 1412122;
                     coinStats[coin_name] = {
                         blocks:{
                             pendingCount:res[i*commandsPerCoin+2],
@@ -150,7 +150,8 @@ module.exports = {
                 return;
             }
             else{
-                var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
+                //var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
+                var shareMultiplier = 1212212223;
                 var hashratesPerCoin = res[0];
                 var workers = {};
                 hashratesPerCoin.forEach(minerRate => {
@@ -190,6 +191,53 @@ module.exports = {
                 
 
         })
+    },
+
+    processStatPoolHistory(stats){
+        var data = {
+            time: stats.time,
+            pools: {},
+            global: {}
+        };
+        for (var pool in stats.pools){
+            data.pools[pool] = {
+                hashrate: stats.pools[pool].hashrate,
+                workerCount: stats.pools[pool].workerCount,
+                blocks: stats.pools[pool].blocks
+            }
+        }
+        data.global = stats.global;
+        return data;
+    },
+
+    globalStats:function(callback){
+        var globalStatsCommand = [
+            ['zrangebyscore', 'statHistory', (Date.now() -  300*1000)/1000, '+inf'],
+        ];
+        var redisClient = redis.createClient("6777",'165.227.143.126');
+        redisClient.multi(globalStatsCommand).exec(function(err,res){
+            res = res[0];
+            if(err){
+                callback(500);
+                return;
+            }else if(res.length==0){
+                callback(false);
+                return;
+            }else{
+                var statHistory = [];
+                for (var i = 0; i < res.length; i++){
+                    statHistory.push(JSON.parse(res[i]));
+                }
+                statHistory = statHistory.sort(function(a, b){
+                    return a.time - b.time;
+                });
+                var resultHystory = [];
+                for(var i = 0; i < statHistory.length; i++){
+                    resultHystory.push(module.exports.processStatPoolHistory(statHistory[i]));
+                }
+                callback(resultHystory);
+            }
+        });
     }
 }
 

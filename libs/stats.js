@@ -80,6 +80,29 @@ module.exports = function(logger, portalConfig, poolConfigs){
     }
 
     function addStatPoolHistory(stats){
+        /*  stats - 
+            {
+                "time":1526813312,
+                "global":{"workers":2,"hashrate":0},
+                "algos":{"sha256":{"workers":2,"hashrate":747667906887.68,"hashrateString":"747.67 GH"}},
+                "pools":{
+                    "bitcoin":{
+                        "name":"bitcoin",
+                        "symbol":"BTC",
+                        "algorithm":"sha256",
+                        "poolStats":{"validShares":"39039","validBlocks":"83","invalidShares":"2297","totalPaid":"47.6260794499999982"},
+                        "blocks":{"pending":1,"confirmed":80,"orphaned":2},
+                        "workers":{
+                            "msxzy8MrSQKAjBrp8XfHK1bvF6iAr5FTBR":{"shares":29696,"invalidshares":116736,"hashrateString":"425.14 GH"},
+                            "miircTYxHsNBAJiBaKt9z2i5uxMMi1YN6q":{"shares":22528,"invalidshares":73728,"hashrateString":"322.52 GH"}
+                        },
+                        "hashrate":747667906887.68,
+                        "workerCount":2,
+                        "hashrateString":"747.67 GH"}
+                    }
+                }
+            }
+        */
         var data = {
             time: stats.time,
             pools: {}
@@ -91,6 +114,18 @@ module.exports = function(logger, portalConfig, poolConfigs){
                 blocks: stats.pools[pool].blocks
             }
         }
+        /*  data -
+            {
+                "time":1526813312,
+                "pools":{
+                    "bitcoin":{
+                        "hashrate":747667906887.68,
+                        "workerCount":2,
+                        "blocks":{"pending":1,"confirmed":80,"orphaned":2}
+                    }
+                }
+            }
+        */
         _this.statPoolHistory.push(data);
     }
 
