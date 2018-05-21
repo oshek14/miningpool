@@ -161,7 +161,7 @@ module.exports = {
                     callback(false);
                     return;
                 }
-                console.log(res);
+               
                 var hashratesPerCoin = res[0];
                 var workers = {};
                 hashratesPerCoin.forEach(minerRate => {
@@ -169,6 +169,7 @@ module.exports = {
                     var difficulty = parseFloat(minerRate.split(":")[0]);
                     if(difficulty > 0) {
                         if(miner_address in workers){
+                            console.log(difficulty);
                             workers[miner_address].shares+=difficulty;
                         }
                         else{
