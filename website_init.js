@@ -20,8 +20,10 @@ app.use(function (req, res, next) {
 });
 
 var adminStatistics = require('./my_website/routes/admin/admin_get_statistics');
-app.use('/admin',adminStatistics);
+var adminGraphs = require('./my_website/routes/admin/admin_graph_statistics');
 
+app.use('/admin',adminStatistics);
+app.use('/admin/graphs',adminGraphs);
 
 http.listen(4500,()=>{
     console.log("listen on 4500 port");
