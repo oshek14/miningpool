@@ -143,7 +143,7 @@ module.exports = {
         var redisClient = redis.createClient("6777",'165.227.143.126');
         var redisCommands = [];
         var hashRateCommand = [
-            ['zrangebyscore', coin_name+':hashrate', '-inf', '+inf'],
+            ['zrangebyscore', coin_name+':hashrate', '-inf', (Date.now()-time_stats)/1000],
         ];
         redisCommands = redisCommands.concat(hashRateCommand);
         redisClient.multi(redisCommands).exec(function(err,res){
