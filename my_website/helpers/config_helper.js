@@ -122,7 +122,7 @@ module.exports = {
                             validBlocks:res[i*commandsPerCoin+1] ? (res[i*commandsPerCoin+1].validBlocks || 0) :0,
                             totalPaid:res[i*commandsPerCoin+1] ? (res[i*commandsPerCoin+1].totalPaid || 0) :0,
                         },
-                        hashrate:hashrate,
+                        hashrate:module.exports.getReadableHashRateString(hashrate),
                         algorithm:algorithm,
                         workersCount:workersCount,
                     }
