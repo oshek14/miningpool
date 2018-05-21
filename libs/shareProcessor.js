@@ -92,11 +92,13 @@ module.exports = function(logger, poolConfig){
             
             /* it looks for coin+':stats' table, finds validShares key and makes it bigger than 1 */
             redisCommands.push(['hincrby', coin + ':stats', 'validShares', 1]);
+            redisCommands.push(['hincrby', coin + ':workers:validShares', shareData.worker, 1]);
         }
         else{
             /* if share invalid, it looks for coin+':stats' table, 
                 finds validShares key and makes it bigger than 1 */
            redisCommands.push(['hincrby', coin + ':stats', 'invalidShares', 1]);
+           redisCommands.push(['hincrby', coin + ':workers:invalidShares', shareData.worker, 1]);
         }
         
         
