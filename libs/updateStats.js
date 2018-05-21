@@ -14,15 +14,15 @@ function saveStatsEveryInterval(portalConfig,poolConfigs){
         if(coinStats === false){
             //TODO
         }else{
-            var portalStats = {
-                time: statGatherTime,
-                global:{
-                    workers: 0,
-                    hashrate: 0
-                },
-                algos: {},
-                pools: allCoinStats
-            };
+            // var portalStats = {
+            //     time: statGatherTime,
+            //     global:{
+            //         workers: 0,
+            //         hashrate: 0
+            //     },
+            //     algos: {},
+            //     pools: allCoinStats
+            // };
         }
      });
 }
