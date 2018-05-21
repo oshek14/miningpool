@@ -116,13 +116,17 @@ module.exports = {
                             confirmedCount: res[i*commandsPerCoin+3],
                             orphanedOrKicked:res[i*commandsPerCoin+4],
                         },
+                        
                         stats:{
                             validShares:res[i*commandsPerCoin+1] ? (res[i*commandsPerCoin+1].validShares || 0) :0,
                             invalidShares:res[i*commandsPerCoin+1] ? (res[i*commandsPerCoin+1].invalidShares || 0) :0,
                             validBlocks:res[i*commandsPerCoin+1] ? (res[i*commandsPerCoin+1].validBlocks || 0) :0,
                             totalPaid:res[i*commandsPerCoin+1] ? (res[i*commandsPerCoin+1].totalPaid || 0) :0,
                         },
+                        algorithm:algorithm,
+                        symbol:data[coin_name].coin.symbol.toUpperCase(),
                         hashrate:hashrate,
+                        hashrates:hashratesPerCoin,
                         algorithm:algorithm,
                         workersCount:workersCount,
                     }
