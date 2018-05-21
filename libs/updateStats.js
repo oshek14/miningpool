@@ -1,4 +1,5 @@
 const configHelper = require('../my_website/helpers/config_helper');
+var algos = require('stratum-pool/lib/algoProperties.js');
 var redis = require('redis');
 
 module.exports = function(logger){
@@ -12,11 +13,84 @@ module.exports = function(logger){
 
 function saveStatsEveryInterval(portalConfig,poolConfigs){
     var redisClient = redis.createClient("6777",'165.227.143.126');
-    
     configHelper.getPoolConfigs(function(data) {
-        
-        configHelper.getCoinStats(data,configHelper.hashRateStatTime,function(coinsStats){
-            console.log(coinsStats);
+        configHelper.getCoinStats(data,configHelper.hashRateStatTime,function(allCoinStats){
+            var gatherTime = Date.now();
+            var portalStats = {
+                time: gatherTime,
+                global:{
+                    workers: 0,
+                    hashrate: 0
+                },
+                algos: {},
+                pools: allCoinStats
+            };
+            Object.keys(allCoinStats).forEach(function(coin){
+                var coinStats = allCoinStats[coin];
+                coinStats.workers = {};
+                coinStats.shares = 0;
+                coinStats.hashrates.forEach(function(ins){
+                    var parts = ins.split(':');
+                    var workerShares = parseFloat(parts[0]);
+                    var worker = parts[1];
+                    if (workerShares > 0) {
+                        coinStats.shares += workerShares;
+                        if (worker in coinStats.workers)
+                            coinStats.workers[worker].shares += workerShares;
+                        else
+                            coinStats.workers[worker] = {
+                                shares: workerShares,
+                                invalidshares: 0,
+                                hashrateString: null
+                            };
+                    }
+                    else {
+                        if (worker in coinStats.workers)
+                            coinStats.workers[worker].invalidshares -= workerShares; // workerShares is negative number!
+                        else
+                            coinStats.workers[worker] = {
+                                shares: 0,
+                                invalidshares: -workerShares,
+                                hashrateString: null
+                            };
+                    }
+                });
+
+                var shareMultiplier = Math.pow(2, 32) / algos[coinStats.algorithm].multiplier;
+                coinStats.hashrate = shareMultiplier * coinStats.shares / (configHelper.hashRateStatTime /1000);
+
+                coinStats.workerCount = Object.keys(coinStats.workers).length;
+                portalStats.global.workers += coinStats.workerCount;
+
+                /* algorithm specific global stats */
+                var algo = coinStats.algorithm;
+                if (!portalStats.algos.hasOwnProperty(algo)){
+                    portalStats.algos[algo] = {
+                        workers: 0,
+                        hashrate: 0,
+                        hashrateString: null
+                    };
+                }
+                portalStats.algos[algo].hashrate += coinStats.hashrate;
+                portalStats.algos[algo].workers += Object.keys(coinStats.workers).length;
+
+                for (var worker in coinStats.workers) {
+                    coinStats.workers[worker].hashrateString =configHelper.getReadableHashRateString(shareMultiplier * coinStats.workers[worker].shares / (configHelper.hashRateStatTime/1000));
+                }
+
+                delete coinStats.hashrates;
+                delete coinStats.shares;
+                coinStats.hashrateString = configHelper.getReadableHashRateString(coinStats.hashrate);
+            });
+
+            Object.keys(portalStats.algos).forEach(function(algo){
+                var algoStats = portalStats.algos[algo];
+                algoStats.hashrateString = configHelper.getReadableHashRateString(algoStats.hashrate);
+            });
+
+            console.log(JSON.stringify(portalStats));
+
+
         })
     })
 
