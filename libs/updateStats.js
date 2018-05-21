@@ -94,6 +94,10 @@ function saveStatsEveryInterval(portalConfig,poolConfigs){
             var redisCommands = [];
             var coinHashrateDeleteCommands=[];
             for(var i=0;i<coinArray.length;i++){
+                console.log(gatherTime)
+                console.log(configHelper.hashRateStatTime)
+            
+
                 coinHashrateDeleteCommands.push(['zremrangebyscore',coinArray[i]+":hashrate",'-inf',gatherTime-(configHelper.hashRateStatTime/1000)]);
             }
             if(coinHashrateDeleteCommands.length > 0) redisCommands.concat(coinHashrateDeleteCommands);
