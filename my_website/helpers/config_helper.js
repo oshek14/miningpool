@@ -4,6 +4,8 @@ var path = require('path');
 var redis = require('redis');
 var extend = require('extend');
 
+var algos = require('stratum-pool/lib/algoProperties.js');
+
 JSON.minify = JSON.minify || require("node-json-minify");
 
 var configDir = "pool_configs/";
