@@ -12,15 +12,7 @@ module.exports = function(logger){
 
 function saveStatsEveryInterval(portalConfig,poolConfigs){
     var redisClient = redis.createClient("6777",'165.227.143.126');
-    var portalStats = {
-        time: statGatherTime,
-        global:{
-            workers: 0,
-            hashrate: 0
-        },
-        algos: {},
-        pools: allCoinStats
-    };
+    
     configHelper.getPoolConfigs(function(data) {
        console.log(data);
     })
