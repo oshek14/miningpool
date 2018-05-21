@@ -180,9 +180,10 @@ module.exports = {
                             };
                         }
                     }else{
-                        console.log(difficulty);
+                        
                         if(miner_address in workers){
                             workers[miner_address].invalidShares-=difficulty;
+                            console.log(workers[miner_address].invalidShares);
                         }else{
                             workers[miner_address]  = {
                                 shares: 0,
