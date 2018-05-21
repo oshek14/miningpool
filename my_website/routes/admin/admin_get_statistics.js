@@ -73,7 +73,7 @@ router.get('/worker_stats',(req,res)=>{
                 let data = {}
                 data.worker = workerName
                 data.shares = Math.floor(workerStats[coin_name][workerName].shares)
-                data.invalidShares = Math.floor(workerStats[coin_name][workerName].invalidshares)
+                data.invalidShares = Math.floor(workerStats[coin_name][workerName].invalidShares)
                 data.hashRate = workerStats[coin_name][workerName].hashrateString
                 data.efficiency = (data.shares > 0) ? (Math.floor(10000 * data.shares / (data.shares + data.invalidShares)))/100 : 0
                 result.push(data)
