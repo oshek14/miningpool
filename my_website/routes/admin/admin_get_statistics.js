@@ -27,9 +27,9 @@ router.get('/tab_stats',(req,res)=>{
         configHelper.getCoinStats(data,function(coinsStats){
             console.log(coinsStats);
             if(coinsStats === false){
-                //TODO empty
+                res.send({status:404})
             }else if(coinsStats == 500){
-                //TODO REDIS ERROR   
+                res.send({status:500})
             }{
                 let result = []
                 if (coinsStats) {
@@ -57,14 +57,15 @@ router.get('/tab_stats',(req,res)=>{
 })
 
 router.get('/worker_stats',(req,res)=>{
-    var timeSeconds = 30*1000;
-    var coin_name = 'bitcoin';
-    var algorithm = "sha256";
+    var timeSeconds = req.query.timeSeconds;
+    var coin_name = req.query.coin_name;
+    var algorithm = req.query.algorithm;
+
     configHelper.getWorkerStats(timeSeconds,coin_name,algorithm,function(workerStats){
         if(workerStats === false){
-            //TODO empty returns
+            res.send({status:404})
         }else if(workerStats==500){
-            //TODO REDIS ERROR
+            res.send({status:500})
         }else{
             let result = []
             //console.log(workerStats[coin_name])
@@ -72,9 +73,13 @@ router.get('/worker_stats',(req,res)=>{
                 let workerName = Object.keys(workerStats[coin_name])[i]
                 let data = {}
                 data.worker = workerName
-                //data.shares = workerStats[coin_name][workerName].
+                data.shares = Math.floor(workerStats[coin_name][workerName].shares)
+                data.invalidShares = Math.floor(workerStats[coin_name][workerName].invalidshares)
+                data.hashRate = workerStats[coin_name][workerName].hashrateString
+                data.efficiency = (data.shares > 0) ? (Math.floor(10000 * data.shares / (data.shares + data.invalidShares)))/100 : 0
+                result.push(data)
             }
-            //console.log(workerStats);
+            res.send({status: 200, data: result})
         }
     });
     

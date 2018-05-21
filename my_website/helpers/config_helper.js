@@ -152,6 +152,11 @@ module.exports = {
             else{
                 //var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
                 var shareMultiplier = 1212212223;
+                if(!algos.hasOwnProperty(algorithm)) {
+                    callback(false);
+                    return;
+                }
+                //var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
                 var hashratesPerCoin = res[0];
                 var workers = {};
                 hashratesPerCoin.forEach(minerRate => {
@@ -239,6 +244,7 @@ module.exports = {
             }
         });
     }
+    
 }
 
           
