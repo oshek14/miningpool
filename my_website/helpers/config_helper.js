@@ -21,6 +21,7 @@ module.exports = {
     saveStatsTime:saveStatsTime,
     deleteOldPayouts:deleteOldPayouts,
     hashRateStatTime:hashRateStatTime,
+    statHistoryLifetime:statHistoryLifetime,
     getPoolConfigs : function(callback){
         var poolConfigFiles=[];
         var configs=[];
