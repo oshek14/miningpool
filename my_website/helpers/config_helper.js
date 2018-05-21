@@ -169,7 +169,7 @@ module.exports = {
                     var difficulty = parseFloat(minerRate.split(":")[0]);
                     if(difficulty > 0) {
                         if(miner_address in workers){
-                            console.log(difficulty);
+                            
                             workers[miner_address].shares+=difficulty;
                         }
                         else{
@@ -180,6 +180,7 @@ module.exports = {
                             };
                         }
                     }else{
+                        console.log(difficulty);
                         if(miner_address in workers){
                             workers[miner_address].invalidShares-=difficulty;
                         }else{
