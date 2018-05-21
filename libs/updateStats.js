@@ -14,7 +14,10 @@ function saveStatsEveryInterval(portalConfig,poolConfigs){
     var redisClient = redis.createClient("6777",'165.227.143.126');
     
     configHelper.getPoolConfigs(function(data) {
-       console.log(data);
+        
+        configHelper.getCoinStats(data,configHelper.hashRateStatTime,function(coinsStats){
+            console.log(coinsStats);
+        })
     })
 
     
