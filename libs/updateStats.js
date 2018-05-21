@@ -15,7 +15,7 @@ function saveStatsEveryInterval(portalConfig,poolConfigs){
     var redisClient = redis.createClient("6777",'165.227.143.126');
     configHelper.getPoolConfigs(function(data) {
         configHelper.getCoinStats(data,configHelper.hashRateStatTime,function(allCoinStats){
-           
+            var coinArray=[];
             var gatherTime = Date.now() / 1000 | 0;
             var portalStats = {
                 time: gatherTime,
@@ -28,7 +28,7 @@ function saveStatsEveryInterval(portalConfig,poolConfigs){
             };
             Object.keys(allCoinStats).forEach(function(coin){
                 var coinStats = allCoinStats[coin];
-                console.log(coin);
+                coinArray.push(coin);
                 coinStats.workers = {};
                 coinStats.shares = 0;
                 coinStats.hashrates.forEach(function(ins){
@@ -91,16 +91,19 @@ function saveStatsEveryInterval(portalConfig,poolConfigs){
             });
             
             var finalStatistics = JSON.stringify(portalStats);
-
-            // redisStats.multi([
-            //     ['zadd', 'statHistory', gatherTime, finalStatistics],
-            //     ['zremrangebyscore', 'statHistory', '-inf', (Date.now() - configHelper.statHistoryLifetime)/1000],
-            //     ['zremrangebyscore', coin_name+':hashrate', '-inf', (Date.now() - configHelper.statHistoryLifetime)/1000],
-
-            // ]).exec(function(err, replies){
-
-
-            // })
+            var redisCommands = [];
+            var coinHashrateDeleteCommands=[];
+            for(var i=0;i<coinArray.length;i++){
+                coinHashrateDeleteCommands.push(['zremrangebyscore',coinArray[i],'-inf',(Date.now()-configHelper.hashRateStatTime)/1000]);
+            }
+            if(coinHashrateDeleteCommands.length > 0) redisCommands.concat(coinHashrateDeleteCommands);
+            redisCommands.push(['zadd', 'statHistory', gatherTime, finalStatistics]);
+            redisCommands.push(['zremrangebyscore', 'statHistory', '-inf', (Date.now() - configHelper.statHistoryLifetime)/1000]);
+            redisClient.multi(redisCommands).exec(function(err, replies){
+                if (err)
+                    logger.error(logSystem, 'Historics', 'Error adding stats to historics ' + JSON.stringify(err));
+            });
+          
         })
     })
 
