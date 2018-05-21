@@ -186,7 +186,7 @@ module.exports = {
                     
                 });
                 for (var worker in workers) {
-                    workers[worker].hashrateString = module.exports.getReadableHashRateString(shareMultiplier * workers[worker].shares / time_stats / 1000);
+                    workers[worker].hashrateString = module.exports.getReadableHashRateString( (shareMultiplier * workers[worker].shares / time_stats) / 1000);
                 }
                 workerStats[coin_name] = workers;
             }
