@@ -161,7 +161,7 @@ module.exports = {
                     callback(false);
                     return;
                 }
-                
+                console.log(res);
                 var hashratesPerCoin = res[0];
                 var workers = {};
                 hashratesPerCoin.forEach(minerRate => {
