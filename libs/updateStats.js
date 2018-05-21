@@ -99,9 +99,13 @@ function saveStatsEveryInterval(portalConfig,poolConfigs){
             if(coinHashrateDeleteCommands.length > 0) redisCommands.concat(coinHashrateDeleteCommands);
             redisCommands.push(['zadd', 'statHistory', gatherTime, finalStatistics]);
             redisCommands.push(['zremrangebyscore', 'statHistory', '-inf', (Date.now() - configHelper.statHistoryLifetime)/1000]);
+            console.log(redisCommands);
             redisClient.multi(redisCommands).exec(function(err, replies){
                 if (err)
                     logger.error(logSystem, 'Historics', 'Error adding stats to historics ' + JSON.stringify(err));
+                else{
+                    console.log("Made it");
+                }
             });
           
         })
