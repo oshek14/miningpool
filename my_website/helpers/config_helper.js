@@ -150,6 +150,7 @@ module.exports = {
                 return;
             }
             else{
+                if(!algos.hasOwnProperty(algorithm)) callback(false);
                 var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
                 var hashratesPerCoin = res[0];
                 var workers = {};
