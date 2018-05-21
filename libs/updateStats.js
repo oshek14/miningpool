@@ -94,12 +94,13 @@ function saveStatsEveryInterval(portalConfig,poolConfigs){
             var redisCommands = [];
             var coinHashrateDeleteCommands=[];
             for(var i=0;i<coinArray.length;i++){
-                console.log(gatherTime)
-                console.log(configHelper.hashRateStatTime)
+                
             
 
                 coinHashrateDeleteCommands.push(['zremrangebyscore',coinArray[i]+":hashrate",'-inf',gatherTime-(configHelper.hashRateStatTime/1000)]);
             }
+            console.log(gatherTime)
+                console.log(configHelper.statHistoryLifetime)
             if(coinHashrateDeleteCommands.length > 0) redisCommands.concat(coinHashrateDeleteCommands);
             redisCommands.push(['zadd', 'statHistory', gatherTime, finalStatistics]);
             redisCommands.push(['zremrangebyscore', 'statHistory', '-inf', gatherTime-(configHelper.statHistoryLifetime/1000)]);
