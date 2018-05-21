@@ -97,7 +97,7 @@ module.exports = {
                     var hashratesPerCoin = res[i*commandsPerCoin];
                     var workersSet = new Set;
                     var shares = 0;
-                    hashratesPerCoin.forEach(minerRate => {
+                        .forEach(minerRate => {
                         var miner_address = minerRate.split(":")[1];
                         var difficulty = parseFloat(minerRate.split(":")[0]);
                         if(difficulty > 0) shares+=difficulty;
@@ -149,8 +149,8 @@ module.exports = {
                 return;
             }
             else{
-                //var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
-                var shareMultiplier = 1212212223;
+                var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
+                //var shareMultiplier = 1212212223;
                 if(!algos.hasOwnProperty(algorithm)) {
                     callback(false);
                     return;
