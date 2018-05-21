@@ -10,7 +10,7 @@ JSON.minify = JSON.minify || require("node-json-minify");
 
 var configDir = "pool_configs/";
 var coinDir = "coins/";
-var hashRateStatTime = 300;  //how many seconds worth of share to show for each pool
+var hashRateStatTime = 3600*1000;  //how many days worth of share to show for each pool
 var saveStatsTime = 5; //howmany seconds worth of stats to save in statHistory
 var deleteOldPayouts = 14*24*3600*1000; //howmany days data we save for last payouts.
 var portalConfig = JSON.parse(JSON.minify(fs.readFileSync("config.json", {encoding: 'utf8'})));
@@ -65,7 +65,7 @@ module.exports = {
         return hashrate.toFixed(2) + byteUnits[i];
     },
 
-    getCoinStats:function(pool_configs,callback){
+    getCoinStats:function(pool_configs,statTime,callback){
         var poolConfigsData = {};
         var coinStats = {};
         var redisClient = redis.createClient("6777",'165.227.143.126');
@@ -75,7 +75,7 @@ module.exports = {
         for(var i=0;i<Object.keys(data).length;i++){
             var coin_name  = Object.keys(data)[i]; // bitcoin
             var tabStatsCommand = [
-                ['zrangebyscore', coin_name+':hashrate', (Date.now() -  hashRateStatTime*1000)/1000, '+inf'],
+                ['zrangebyscore', coin_name+':hashrate', (Date.now() -  statTime)/1000, '+inf'],
                 ['hgetall', coin_name+':stats'],
                 ['scard', coin_name+':blocksPending'],
                 ['scard', coin_name+':blocksConfirmed'],
@@ -108,7 +108,7 @@ module.exports = {
                     delete workersSet;
 
                     var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
-                    var hashrate = shareMultiplier * shares / hashRateStatTime;
+                    var hashrate = shareMultiplier * shares / (statTime / 1000);
                     // var hashrate = 1412122;
                     coinStats[coin_name] = {
                         blocks:{
@@ -122,7 +122,7 @@ module.exports = {
                             validBlocks:res[i*commandsPerCoin+1] ? (res[i*commandsPerCoin+1].validBlocks || 0) :0,
                             totalPaid:res[i*commandsPerCoin+1] ? (res[i*commandsPerCoin+1].totalPaid || 0) :0,
                         },
-                        hashrate:module.exports.getReadableHashRateString(hashrate),
+                        hashrate:hashrate,
                         algorithm:algorithm,
                         workersCount:workersCount,
                     }

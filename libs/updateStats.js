@@ -1,4 +1,5 @@
 const configHelper = require('../my_website/helpers/config_helper');
+var redis = require('redis');
 
 module.exports = function(logger){
     var portalConfig = JSON.parse(process.env.portalConfig);
@@ -10,19 +11,20 @@ module.exports = function(logger){
 
 
 function saveStatsEveryInterval(portalConfig,poolConfigs){
-    configHelper.getCoinStats(poolConfigs,function(coinStats){
-        if(coinStats === false){
-            //TODO
-        }else{
-            // var portalStats = {
-            //     time: statGatherTime,
-            //     global:{
-            //         workers: 0,
-            //         hashrate: 0
-            //     },
-            //     algos: {},
-            //     pools: allCoinStats
-            // };
-        }
-     });
+    var redisClient = redis.createClient("6777",'165.227.143.126');
+    var portalStats = {
+        time: statGatherTime,
+        global:{
+            workers: 0,
+            hashrate: 0
+        },
+        algos: {},
+        pools: allCoinStats
+    };
+    configHelper.getPoolConfigs(function(data) {
+       console.log(data);
+    })
+
+    
+    
 }

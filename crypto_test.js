@@ -8,16 +8,7 @@ var minerPaid = [1,3,dateNow];
 
 
 
-redisClient.zadd('bitcoin:lastPayouts',dateNow / 1000 | 0, minerPaid.join(':'),function(err,res){
-     console.log("chaemata");
-});
 
-
-var deleteOldPayouts = ['ZREMRANGEBYSCORE','bitcoin:lastPayouts','-inf',(Date.now()-120*1000)/1000];
-
-var finalRedisCommands = [];
-finalRedisCommands.push(deleteOldPayouts);
-console.log(finalRedisCommands);
 
 // redisClient.multi([
 //     ['zadd','bitcoin:lastPayouts',dateNow / 1000 | 0, minerPaid.join(':')],

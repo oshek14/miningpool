@@ -24,7 +24,8 @@ router.get('/active_coins',(req,res)=>{
 
 router.get('/tab_stats',(req,res)=>{
     configHelper.getPoolConfigs(function(data) {
-        configHelper.getCoinStats(data,function(coinsStats){
+        //var timeStats = req.query.time_stats;
+        configHelper.getCoinStats(data,timeStats,function(coinsStats){
             if(coinsStats === false){
                 res.send({status:404})
             }else if(coinsStats == 500){
@@ -45,7 +46,7 @@ router.get('/tab_stats',(req,res)=>{
                         coinData.pending = coinsStats[key].blocks.pendingCount 
                         coinData.confirmed = coinsStats[key].blocks.confirmedCount
                         coinData.orphaned = coinsStats[key].blocks.orphanedOrKicked 
-                        coinData.hashRate = coinsStats[key].hashrate
+                        coinData.hashRate = configHelper.getReadableHashRateString(coinsStats[key].hashrate);
                         result.push(coinData)
                     }
                 }
