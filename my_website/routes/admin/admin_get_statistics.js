@@ -68,7 +68,6 @@ router.get('/worker_stats',(req,res)=>{
             res.send({status:500})
         }else{
             let result = []
-            //console.log(workerStats[coin_name])
             for (let i = 0; i < Object.keys(workerStats[coin_name]).length; i++) {
                 let workerName = Object.keys(workerStats[coin_name])[i]
                 let data = {}
