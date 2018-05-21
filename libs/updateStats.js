@@ -94,11 +94,11 @@ function saveStatsEveryInterval(portalConfig,poolConfigs){
             var redisCommands = [];
             var coinHashrateDeleteCommands=[];
             for(var i=0;i<coinArray.length;i++){
-                coinHashrateDeleteCommands.push(['zremrangebyscore',coinArray[i]+":hashrate",'-inf',gatherTime-configHelper.hashRateStatTime/1000]);
+                coinHashrateDeleteCommands.push(['zremrangebyscore',coinArray[i]+":hashrate",'-inf',5]);
             }
             if(coinHashrateDeleteCommands.length > 0) redisCommands.concat(coinHashrateDeleteCommands);
             redisCommands.push(['zadd', 'statHistory', gatherTime, finalStatistics]);
-            redisCommands.push(['zremrangebyscore', 'statHistory', '-inf', gatherTime-configHelper.statHistoryLifetime/1000]);
+            redisCommands.push(['zremrangebyscore', 'statHistory', '-inf', 5]);
             console.log(redisCommands);
             redisClient.multi(redisCommands).exec(function(err, replies){
                 if (err)
