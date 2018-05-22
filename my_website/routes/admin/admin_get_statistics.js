@@ -24,8 +24,8 @@ router.get('/active_coins',(req,res)=>{
 
 router.get('/tab_stats',(req,res)=>{
     configHelper.getPoolConfigs(function(data) {
-        configHelper.getCoinStats(data,function(coinsStats){
-            console.log(coinsStats);
+        var timeStats = req.query.time_stats;
+        configHelper.getCoinStats(data,timeStats,function(coinsStats){
             if(coinsStats === false){
                 res.send({status:404})
             }else if(coinsStats == 500){
@@ -46,7 +46,7 @@ router.get('/tab_stats',(req,res)=>{
                         coinData.pending = coinsStats[key].blocks.pendingCount 
                         coinData.confirmed = coinsStats[key].blocks.confirmedCount
                         coinData.orphaned = coinsStats[key].blocks.orphanedOrKicked 
-                        coinData.hashRate = coinsStats[key].hashrate
+                        coinData.hashRate = configHelper.getReadableHashRateString(coinsStats[key].hashrate);
                         result.push(coinData)
                     }
                 }
@@ -68,13 +68,12 @@ router.get('/worker_stats',(req,res)=>{
             res.send({status:500})
         }else{
             let result = []
-            //console.log(workerStats[coin_name])
             for (let i = 0; i < Object.keys(workerStats[coin_name]).length; i++) {
                 let workerName = Object.keys(workerStats[coin_name])[i]
                 let data = {}
                 data.worker = workerName
                 data.shares = Math.floor(workerStats[coin_name][workerName].shares)
-                data.invalidShares = Math.floor(workerStats[coin_name][workerName].invalidshares)
+                data.invalidShares = Math.floor(workerStats[coin_name][workerName].invalidShares)
                 data.hashRate = workerStats[coin_name][workerName].hashrateString
                 data.efficiency = (data.shares > 0) ? (Math.floor(10000 * data.shares / (data.shares + data.invalidShares)))/100 : 0
                 result.push(data)

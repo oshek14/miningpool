@@ -10,9 +10,10 @@ JSON.minify = JSON.minify || require("node-json-minify");
 
 var configDir = "pool_configs/";
 var coinDir = "coins/";
-var hashRateStatTime = 300;  //how many seconds worth of share to show for each pool
+var hashRateStatTime = 3600*1000;  //how many days worth of share to show for each pool
 var saveStatsTime = 5; //howmany seconds worth of stats to save in statHistory
 var deleteOldPayouts = 14*24*3600*1000; //howmany days data we save for last payouts.
+var statHistoryLifetime = 30*24*3600*1000;
 var portalConfig = JSON.parse(JSON.minify(fs.readFileSync("config.json", {encoding: 'utf8'})));
 
 module.exports = {
@@ -20,6 +21,7 @@ module.exports = {
     saveStatsTime:saveStatsTime,
     deleteOldPayouts:deleteOldPayouts,
     hashRateStatTime:hashRateStatTime,
+    statHistoryLifetime:statHistoryLifetime,
     getPoolConfigs : function(callback){
         var poolConfigFiles=[];
         var configs=[];
@@ -65,7 +67,7 @@ module.exports = {
         return hashrate.toFixed(2) + byteUnits[i];
     },
 
-    getCoinStats:function(pool_configs,callback){
+    getCoinStats:function(pool_configs,statTime,callback){
         var poolConfigsData = {};
         var coinStats = {};
         var redisClient = redis.createClient("6777",'165.227.143.126');
@@ -74,9 +76,8 @@ module.exports = {
         var data = pool_configs;
         for(var i=0;i<Object.keys(data).length;i++){
             var coin_name  = Object.keys(data)[i]; // bitcoin
-            //var coinConfig = data[coin_name].coin; // {coin:'bitcoin', symbol:'BTC',algorithm:'sha256'}
             var tabStatsCommand = [
-                ['zrangebyscore', coin_name+':hashrate', (Date.now() -  hashRateStatTime*1000)/1000, '+inf'],
+                ['zrangebyscore', coin_name+':hashrate', (Date.now() -  statTime)/1000, '+inf'],
                 ['hgetall', coin_name+':stats'],
                 ['scard', coin_name+':blocksPending'],
                 ['scard', coin_name+':blocksConfirmed'],
@@ -108,22 +109,26 @@ module.exports = {
                     var workersCount = workersSet.size;
                     delete workersSet;
 
-                    //var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
-                    //var hashrate = shareMultiplier * shares / hashRateStatTime;
-                    var hashrate = 1412122;
+                    var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
+                    var hashrate = shareMultiplier * shares / (statTime / 1000);
+                    // var hashrate = 1412122;
                     coinStats[coin_name] = {
                         blocks:{
                             pendingCount:res[i*commandsPerCoin+2],
                             confirmedCount: res[i*commandsPerCoin+3],
                             orphanedOrKicked:res[i*commandsPerCoin+4],
                         },
+                        
                         stats:{
                             validShares:res[i*commandsPerCoin+1] ? (res[i*commandsPerCoin+1].validShares || 0) :0,
                             invalidShares:res[i*commandsPerCoin+1] ? (res[i*commandsPerCoin+1].invalidShares || 0) :0,
                             validBlocks:res[i*commandsPerCoin+1] ? (res[i*commandsPerCoin+1].validBlocks || 0) :0,
                             totalPaid:res[i*commandsPerCoin+1] ? (res[i*commandsPerCoin+1].totalPaid || 0) :0,
                         },
+                        algorithm:algorithm,
+                        symbol:data[coin_name].coin.symbol.toUpperCase(),
                         hashrate:hashrate,
+                        hashrates:hashratesPerCoin,
                         algorithm:algorithm,
                         workersCount:workersCount,
                     }
@@ -138,7 +143,7 @@ module.exports = {
         var redisClient = redis.createClient("6777",'165.227.143.126');
         var redisCommands = [];
         var hashRateCommand = [
-            ['zrangebyscore', coin_name+':hashrate', (Date.now() - time_stats)/1000, '+inf'],
+            ['zrangebyscore', coin_name+':hashrate', (Date.now()-time_stats)/1000,'+inf'],
         ];
         redisCommands = redisCommands.concat(hashRateCommand);
         redisClient.multi(redisCommands).exec(function(err,res){
@@ -150,13 +155,13 @@ module.exports = {
                 return;
             }
             else{
-                //var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
-                var shareMultiplier = 1212212223;
+                var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
+                
                 if(!algos.hasOwnProperty(algorithm)) {
                     callback(false);
                     return;
                 }
-                //var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
+               
                 var hashratesPerCoin = res[0];
                 var workers = {};
                 hashratesPerCoin.forEach(minerRate => {
@@ -164,12 +169,13 @@ module.exports = {
                     var difficulty = parseFloat(minerRate.split(":")[0]);
                     if(difficulty > 0) {
                         if(miner_address in workers){
+                            
                             workers[miner_address].shares+=difficulty;
                         }
                         else{
                             workers[miner_address]  = {
                                 shares: difficulty,
-                                invalidshares: 0,
+                                invalidShares: 0,
                                 hashrateString: null
                             };
                         }
@@ -179,7 +185,7 @@ module.exports = {
                         }else{
                             workers[miner_address]  = {
                                 shares: 0,
-                                invalidshares: -difficulty,
+                                invalidShares: -difficulty,
                                 hashrateString: null
                             };
                         }
@@ -187,8 +193,9 @@ module.exports = {
                     
                 });
                 for (var worker in workers) {
-                    workers[worker].hashrateString = module.exports.getReadableHashRateString(shareMultiplier * workers[worker].shares / time_stats / 1000);
+                    workers[worker].hashrateString = module.exports.getReadableHashRateString( shareMultiplier * workers[worker].shares / (time_stats / 1000));
                 }
+                
                 workerStats[coin_name] = workers;
             }
             
