@@ -140,6 +140,7 @@ module.exports = function(logger){
                     if(getUser.length == 1) {
                         console.log("modis 1");
                         redisClient.hget("users",getUser,function(err,res){
+                            console.log("modis bebruccc");
                             if(err || res == null){
                                 console.log("aq shemodis bebruc");
                                 authCallback(false);
