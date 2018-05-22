@@ -6,8 +6,6 @@ var redisClient = redis.createClient("6777", "165.227.143.126");
 var dateNow = Date.now();
 var minerPaid = [1,3,dateNow];
 
-var date = new Date(dateNow);
-//console.log(date.getHours(), " ",date.getMinutes());
 
 var diff = 3600 * 1000
 var dates = [

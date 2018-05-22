@@ -4,7 +4,7 @@ var path = require('path');
 var redis = require('redis');
 var extend = require('extend');
 
-//var algos = require('stratum-pool/lib/algoProperties.js');
+var algos = require('stratum-pool/lib/algoProperties.js');
 
 JSON.minify = JSON.minify || require("node-json-minify");
 
@@ -222,36 +222,37 @@ module.exports = {
         return data;
     },
 
-    globalStats:function(callback){
-        var globalStatsCommand = [
-            ['zrangebyscore', 'statHistory', (Date.now() -  300*1000)/1000, '+inf'],
-        ];
+    getWorkersCount:function(diff, dates, callback){
         var redisClient = redis.createClient("6777",'165.227.143.126');
-        redisClient.multi(globalStatsCommand).exec(function(err,res){
-            res = res[0];
-            if(err){
-                callback(500);
-                return;
-            }else if(res.length==0){
-                callback(false);
-                return;
-            }else{
-                var statHistory = [];
-                for (var i = 0; i < res.length; i++){
-                    statHistory.push(JSON.parse(res[i]));
+        let result = []
+        redisClient.ZRANGEBYSCORE('statHistory', (Date.now() - 30 * 24 * 3600 * 1000) / 1000, Date.now(), function(err, res) {
+            for (let i = 0; i < dates.length; i++) {
+                const upperDate = Math.floor((Date.now() - dates[i]) / 1000)
+                const lowerDate = Math.floor((Date.now() - dates[i] - diff) / 1000)
+                const resultItem = {
+                    workersSum: 0,
+                    count: 0
                 }
-                statHistory = statHistory.sort(function(a, b){
-                    return a.time - b.time;
-                });
-                var resultHystory = [];
-                for(var i = 0; i < statHistory.length; i++){
-                    resultHystory.push(module.exports.processStatPoolHistory(statHistory[i]));
+                
+                for (let j = 0; j < res.length; j++) {
+                    const itemParsed = JSON.parse(res[j])
+                    const itemTime = itemParsed.time
+                    if (itemTime >= lowerDate && itemTime <= upperDate) {
+                        resultItem.workersSum += itemParsed.algos.sha256.workers
+                        resultItem.count ++
+                    }
                 }
-                callback(resultHystory);
+                result.push(resultItem)
             }
-        });
+            let finalResult = []
+            
+            for (let i = 0; i < result.length; i++) {
+                finalResult.push(Math.ceil(result[i].workersSum / (result[i].count | 1)))
+            }
+            callback(finalResult);
+        })
     }
-    
+
 }
 
           
