@@ -76,7 +76,13 @@ function test() {
     })
 }
 
-test();
+redisClient.hget("users","myuser1",function(err,res){
+         console.log(err);
+         if(JSON.parse(res).workers.includes("gio22")){
+             console.log("nice");
+         }
+        //console.log(JSON.parse(res).workers);
+})
 
 // redisClient.multi([
 //     ['zadd','bitcoin:lastPayouts',dateNow / 1000 | 0, minerPaid.join(':')],

@@ -134,10 +134,55 @@ module.exports = function(logger){
                 if (poolOptions.validateWorkerUsername !== true)
                     authCallback(true);
                 else {
-                   
-                    if (workerName.length === 40) {
+                    var getUser = workerName.split(".");
+                    var userAddress;
+                    var redisClient = redis.createClient("6777", "165.227.143.126");
+                    if(getUser.length == 1) {
+                        console.log("modis 1",getUser[0]);
+                        redisClient.hget("users",getUser[0],function(err,res){
+                            console.log("modis bebruccc");
+                            if(err || res == null){
+                                console.log("aq shemodis bebruc");
+                                authCallback(false);
+                            } else{
+                                console.log("modis 2");
+                                var parsedData = JSON.parse(res);
+                                // if(password != parsedData.password){
+                                //     authCallback(false);
+                                // }
+                                // else{
+                                userAddress = parsedData.address;
+                                    //default
+                                // }
+                            }
+                        })
+                       
+                    }else{
+                        var userName = getUser[0];
+                        var workerName = getUser[1];
+                        console.log("modis 3");
+                        redisClient.hget("users",userName,function(err,res){
+                            if(err || res == null){
+                                console.log("modis 4");
+                                authCallback(false);
+                            } else{
+                                var parsedData = JSON.parse(res);
+                                userAddress = parsedData.address;
+                                // if(password != parsedData.password){
+                                //     authCallback(false);
+                                // }
+                                console.log("modis 5");
+                                if(!parsedData.workers.includes(workerName)){
+                                    //default
+                                    console.log("modis 6");
+                                }
+                            }
+                        })
+                    }
+
+                    if (userAddress.length === 40) {
                         try {
-                            new Buffer(workerName, 'hex');
+                            new Buffer(userAddress, 'hex');
                             authCallback(true);
                         }
                         catch (e) {
@@ -145,7 +190,7 @@ module.exports = function(logger){
                         }
                     }
                     else {
-                        pool.daemon.cmd('validateaddress', [workerName], function (results) {
+                        pool.daemon.cmd('validateaddress', [userAddress], function (results) {
                             var isValid = results.filter(function (r) {
                                 return r.response.isvalid
                             }).length > 0;
@@ -165,12 +210,13 @@ module.exports = function(logger){
             handlers.auth(port, workerName, password, function(authorized){
 
                 var authString = authorized ? 'Authorized' : 'Unauthorized ';
+                console.log("this is george and this is the way how it shows us if it's connected",authorized);
 
                 logger.debug(logSystem, logComponent, logSubCat, authString + ' ' + workerName + ':' + password + ' [' + ip + ']');
                 callback({
                     error: null,
                     authorized: authorized,
-                    disconnect: false
+                    disconnect: !authorized,
                 });
             });
         };
