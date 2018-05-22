@@ -11,15 +11,10 @@ router.all("/*",(req,res,next)=>{
     next();
 })
 
-router.get('/',(req,res)=>{
-    console.log("dada");
-    var redisClient = redis.createClient("6777", "165.227.143.126");
-    process.env.TZ = "Asia/Tbilisi";
-    redisClient.zrangebyscore(['statHistory', '-inf', '+inf'], function(err, replies){
-        var test = JSON.parse(replies[0]);
-        var timestamp = test.time;
-        var date = new Date(timestamp * 1000);
-        console.log(date.getHours(), " ",date.getMinutes());
+router.get('/workers_graph',(req,res)=>{
+    configHelper.getWorkersCount(req.query.distance,req.query.diff,req.query.dates,req.query.coins,function(result){
+        console.log(result);
+        res.send({status:200,data:result});
     })
 })
 module.exports = router;

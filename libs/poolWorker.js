@@ -134,11 +134,7 @@ module.exports = function(logger){
                 if (poolOptions.validateWorkerUsername !== true)
                     authCallback(true);
                 else {
-                    console.log(workerName);
-                    console.log(password);
-                    console.log(port);
-                    console.log("giorgiiii");
-                    
+                   
                     if (workerName.length === 40) {
                         try {
                             new Buffer(workerName, 'hex');
