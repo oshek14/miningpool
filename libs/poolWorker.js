@@ -138,7 +138,7 @@ module.exports = function(logger){
                     var userAddress;
                     var redisClient = redis.createClient("6777", "165.227.143.126");
                     if(getUser.length == 1) {
-                        console.log("modis 1",getUser);
+                        console.log("modis 1",getUser[0]);
                         redisClient.hget("users",getUser[0],function(err,res){
                             console.log("modis bebruccc");
                             if(err || res == null){
