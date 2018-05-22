@@ -140,6 +140,7 @@ module.exports = function(logger){
                     if(getUser.length == 1) {
                         redisClient.hget("users",getUser,function(err,res){
                             if(err || res == null){
+                                console.log("aq shemodis bebruc");
                                 authCallback(false);
                             } else{
                                 var parsedData = JSON.parse(res);
@@ -204,7 +205,7 @@ module.exports = function(logger){
 
                 var authString = authorized ? 'Authorized' : 'Unauthorized ';
                 console.log("this is george and this is the way how it shows us if it's connected",authorized);
-                
+
                 logger.debug(logSystem, logComponent, logSubCat, authString + ' ' + workerName + ':' + password + ' [' + ip + ']');
                 callback({
                     error: null,
