@@ -222,11 +222,11 @@ module.exports = {
         return data;
     },
 
-    getWorkersCount:function(diff, dates, callback){
+    getWorkersCount:function(diff, dates, coins,  callback){
         var redisClient = redis.createClient("6777",'165.227.143.126');
         let result = []
         redisClient.ZRANGEBYSCORE('statHistory', (Date.now() - 30 * 24 * 3600 * 1000) / 1000, Date.now(), function(err, res) {
-            for (let i = 0; i < dates.length; i++) {
+            for (let i = 0; i < dates.length; i++) { 
                 const upperDate = Math.floor((Date.now() - dates[i]) / 1000)
                 const lowerDate = Math.floor((Date.now() - dates[i] - diff) / 1000)
                 const resultItem = {
