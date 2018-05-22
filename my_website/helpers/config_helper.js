@@ -217,7 +217,7 @@ module.exports = {
 
     globalStats:function(callback){
         var globalStatsCommand = [
-            ['zrangebyscore', 'statHistory', (Date.now() -  300*1000)/1000, '+inf'],
+            ['zrangebyscore', 'statHistory', (Date.now() -  300000000*1000)/1000, '+inf'],
         ];
         var redisClient = redis.createClient("6777",'165.227.143.126');
         redisClient.multi(globalStatsCommand).exec(function(err,res){
