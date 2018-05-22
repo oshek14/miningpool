@@ -4,7 +4,7 @@ var path = require('path');
 var redis = require('redis');
 var extend = require('extend');
 
-var algos = require('stratum-pool/lib/algoProperties.js');
+//var algos = require('stratum-pool/lib/algoProperties.js');
 
 JSON.minify = JSON.minify || require("node-json-minify");
 
@@ -109,7 +109,8 @@ module.exports = {
                     var workersCount = workersSet.size;
                     delete workersSet;
 
-                    var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
+                    //var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
+                    var shareMultiplier = 12123;
                     var hashrate = shareMultiplier * shares / (statTime / 1000);
                     // var hashrate = 1412122;
                     coinStats[coin_name] = {
@@ -155,13 +156,14 @@ module.exports = {
                 return;
             }
             else{
-                var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
+                //var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
                 
-                if(!algos.hasOwnProperty(algorithm)) {
-                    callback(false);
-                    return;
-                }
-               
+                // if(!algos.hasOwnProperty(algorithm)) {
+                //     callback(false);
+                //     return;
+                // }
+                var shareMultiplier = 123123;
+
                 var hashratesPerCoin = res[0];
                 var workers = {};
                 hashratesPerCoin.forEach(minerRate => {

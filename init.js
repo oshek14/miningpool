@@ -13,7 +13,7 @@ var PaymentProcessor = require('./libs/paymentProcessor.js');
 var Website = require('./libs/website.js');
 var ProfitSwitch = require('./libs/profitSwitch.js');
 var UpdateStats = require('./libs/updateStats');
-var algos = require('stratum-pool/lib/algoProperties.js');
+//var algos = require('stratum-pool/lib/algoProperties.js');
 
 JSON.minify = JSON.minify || require("node-json-minify");
 
@@ -174,10 +174,10 @@ var buildPoolConfigs = function(){
 
         configs[poolOptions.coin.name] = poolOptions;
 
-        if (!(coinProfile.algorithm in algos)){
-            logger.error('Master', coinProfile.name, 'Cannot run a pool for unsupported algorithm "' + coinProfile.algorithm + '"');
-            delete configs[poolOptions.coin.name];
-        }
+        // if (!(coinProfile.algorithm in algos)){
+        //     logger.error('Master', coinProfile.name, 'Cannot run a pool for unsupported algorithm "' + coinProfile.algorithm + '"');
+        //     delete configs[poolOptions.coin.name];
+        // }
 
     });
     return configs;
