@@ -84,14 +84,7 @@ router.get('/worker_stats',(req,res)=>{
     
 })
 
-router.get('/global_stats',(req,res)=>{
-    configHelper.globalStats(function(globalStats){
-        console.log(globalStats.length);
-        for (var i = 0; i < globalStats.length; i++){
-            console.log(JSON.stringify(globalStats[i]));
-        }
-    });
-})
+
 
 
 
