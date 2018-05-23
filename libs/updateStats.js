@@ -26,10 +26,10 @@ module.exports = function(logger){
     
     //setInterval(calculateStatsForDay(portalConfig,poolConfigs,redisClients),1000);
     //saveStatsEveryHour(portalConfig,poolConfigs,redisClients);
-    calculateStatsForDay(portalConfig,poolConfigs,redisClients);
-    // setInterval(function(){
-    //     saveStatsEveryHour(portalConfig,poolConfigs,redisClients)   
-    // }, 2000);
+    //calculateStatsForDay(portalConfig,poolConfigs,redisClients);
+    setInterval(function(){
+        saveStatsEveryHour(portalConfig,poolConfigs,redisClients)   
+    }, 2000);
     
 }
 
