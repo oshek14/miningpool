@@ -235,12 +235,12 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
                     var hashrateString = configHelper.getReadableHashRateString(hashrate);
                     var workerData = {
                         shares:coinStats.workers[worker].shares,
-                        invalidShares:coinStats.workers[worker].invalidShares,
+                        invalidShares:coinStats.workers[worker].invalidshares,
                         hashrateString:hashrateString,
                         hashrate:hashrate,
                         date:statGatherTime
                     }
-                    workersOneHourCommands.push(['zadd',coinStats.name+":workers:hourly"+worker,statGatherTime,JSON.stringify(workerData)])
+                    workersOneHourCommands.push(['zadd',coinStats.name+":stat:workers:hourly"+worker,statGatherTime,JSON.stringify(workerData)])
                     coinStats.workers[worker].hashrateString = hashrateString
                 }
 
