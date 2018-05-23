@@ -182,10 +182,13 @@ function saveStatsEveryInterval(portalConfig,poolConfigs,redisClients){
     
             redisStats.multi([
                 ['zadd', 'statHistory', statGatherTime, statString],
-                ['zremrangebyscore', 'statHistory', '-inf', '(' + configHelper.statHistoryLifetime]
+                ['zremrangebyscore', 'statHistory', '-inf', '(' + (configHelper.statHistoryLifetime)/1000]
             ]).exec(function(err, replies){
                 if (err)
                     logger.error(logSystem, 'Historics', 'Error adding stats to historics ' + JSON.stringify(err));
+                else{
+                    console.log("done");
+                }
             });
             
         });
