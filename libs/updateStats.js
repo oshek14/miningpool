@@ -10,7 +10,7 @@ module.exports = function(logger){
 
     var logSystem = 'Stats';
 
-    var redisClients = [];
+    this.redisClients = [];
     var redisStats;
 
     
@@ -18,14 +18,14 @@ module.exports = function(logger){
         var poolConfig = poolConfigs[coin];
         var redisConfig = poolConfig.redis;
 
-        for (var i = 0; i < redisClients.length; i++){
-            var client = redisClients[i];
+        for (var i = 0; i < this.redisClients.length; i++){
+            var client = this.this.redisClients[i];
             if (client.client.port === redisConfig.port && client.client.host === redisConfig.host){
                 client.coins.push(coin);
                 return;
             }
         }
-        redisClients.push({
+        this.redisClients.push({
             coins: [coin],
             client: redis.createClient(redisConfig.port, redisConfig.host)
         });
@@ -44,7 +44,7 @@ function saveStatsEveryInterval(portalConfig,poolConfigs){
     var statGatherTime = Date.now() / 1000 | 0;
     var allCoinStats = {};
 
-    async.each(redisClients, function(client, callback){
+    async.each(this.redisClients, function(client, callback){
         var windowTime = (( (Date.now() / 1000) - (configHelper.hashRateStatTime)/1000) | 0).toString();
         var redisCommands = [];
         var redisCommandTemplates = [
