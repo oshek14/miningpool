@@ -1,36 +1,29 @@
 var redis = require('redis');
 
-const jm = require('js-meter')
+
 var redisClient = redis.createClient("6777", "165.227.143.126");
+
+const jm = require('js-meter')
 const isPrint = true
 const isMs = true       // or Second
 const isKb = true       // or Mb
 const m = new jm({isPrint, isMs, isKb})
-var array=[];
-
-var getCommands =[];
-for(var i=0;i<200000;i++){
-    array.push(['zadd','bitcoin:blaxblux:'+i,Date.now(),i]);
-}
-
-redisClient.multi(array).exec(function(err,res){
-    redisClient.keys('bitcoin:blaxblux:*',function(err,res){
-        for(var j=0;j<res.length;j++){
-            getCommands.push(['zrangebyscore',res[j],'-inf','+inf']);
-        }
-        redisClient.multi(getCommands).exec(function(err,res){
-            console.log("done");
-            const meter = m.stop()
-        })
-
-    })
-   
-});
 
 
 
+var existingWorkers= [];
 
-// var redisClient = redis.createClient("6777", "165.227.143.126");
+var rightNowWorkers={};
+
+
+
+redisClient.smembers('bitcoin:existingWorkers',function(err,res){
+    console.log(res);
+})
+const meter = m.stop()
+
+console.log("nice");
+
 
 // var ob ={
 //     workersCount:1,hashrateString:"6.11 GH",
@@ -46,16 +39,32 @@ redisClient.multi(array).exec(function(err,res){
 //     ['keys','bitcoin:stat:workers:hourly:*'],
 //     ['zrangebyscore','bitcoin:stat:global:hourly','-inf','+inf']
 // ]
-
-
-
-// redisClient.multi(deleteOldPayouts).exec(function(err,res){
-//     console.log(res);
-//     console.log(err);
+// ).exec(function(err,res){
+//     if(err){
+//         //TODO
+//     }else{
+//         var globalHourly = res[1];
+//         var workersKeys = res[0];
+//         var workersResultKeys={};
+//         var getCommandsQuery=[];
+//         for(var i=0;i<workersKeys.length;i++){
+//             getCommandsQuery.push(['zrangebyscore',workersKeys[i],'-inf','+inf']);
+//         }
+//         redisClient.multi(getCommandsQuery).exec(function(err,res){
+//             console.log(res[0].length);
+//         })
+//     }
 // });
-// redisClient.ZRANGEBYSCORE('bitcoin:lastPayouts',(Date.now()-600*1000)/1000,Date.now(),function(err,res){
-//     console.log(res);
-// });
+
+
+
+// // redisClient.multi(deleteOldPayouts).exec(function(err,res){
+// //     console.log(res);
+// //     console.log(err);
+// // });
+// // redisClient.ZRANGEBYSCORE('bitcoin:lastPayouts',(Date.now()-600*1000)/1000,Date.now(),function(err,res){
+// //     console.log(res);
+// // });
 
    
  

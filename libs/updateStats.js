@@ -103,6 +103,7 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
    
     var statGatherTime = Date.now() / 1000 | 0;
     var allCoinStats = {};
+    var existingWorkers = [];
     var globalOneHourCommands = [], workersOneHourCommands = [], deleteGlobalOneHourCommands = [], deleteWorkerOneHourCommands = [];
     async.each(redisClients, function(client, callback){
         var windowTime = (( statGatherTime - (configHelper.hashRateStatTime)/1000 ) | 0).toString();
@@ -113,7 +114,8 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
             ['hgetall', ':stats'],
             ['scard', ':blocksPending'],
             ['scard', ':blocksConfirmed'],
-            ['scard', ':blocksKicked']
+            ['scard', ':blocksKicked'],
+            ['smembers',':existingWorkers']
         ];
 
         
@@ -133,8 +135,10 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
                 callback(err);
             }
             else{
+                
                 for(var i = 0; i < replies.length; i += commandsPerCoin){
                     var coinName = client.coins[i / commandsPerCoin | 0];
+                    existingWorkers[coinName] = replies[i+6];
                     var coinStats = {
                         name: coinName,
                         symbol: poolConfigs[coinName].coin.symbol.toUpperCase(),
@@ -242,20 +246,42 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
                 portalStats.algos[algo].hashrate += coinStats.hashrate;
                 portalStats.algos[algo].workers += Object.keys(coinStats.workers).length;
                 
-                for (var worker in coinStats.workers) {
-                    var hashrate = shareMultiplier * coinStats.workers[worker].shares / (configHelper.hashRateStatTime/1000);
-                    var hashrateString = configHelper.getReadableHashRateString(hashrate);
-                    var workerData = {
-                        shares:coinStats.workers[worker].shares,
-                        invalidShares:coinStats.workers[worker].invalidshares,
-                        hashrateString:hashrateString,
-                        hashrate:hashrate,
-                        date:statGatherTime
+                
+                var workersExisting = existingWorkers[coinStats.name];
+                for(var i=0;i<workersExisting.length;i++){
+                    var workerData;
+                    if(coinStats.workers[workersExisting[i]]){
+                        var hashrate = shareMultiplier * coinStats.workers[workersExisting[i]].shares / (configHelper.hashRateStatTime/1000);
+                        var hashrateString = configHelper.getReadableHashRateString(hashrate);
+                        workerData = {
+                            shares:coinStats.workers[workersExisting[i]].shares,
+                            invalidShares:coinStats.workers[workersExisting[i]].invalidshares,
+                            hashrateString:hashrateString,
+                            hashrate:hashrate,
+                            date:statGatherTime
+                        }
+                        coinStats.workers[workersExisting[i]].hashrateString = hashrateString;
+                    }else{
+                        workerData = {
+                            shares:0,
+                            invalidShares:0,
+                            hashrateString:"0",
+                            hashrate:0,
+                            date:statGatherTime
+                        }
+                        coinStats.workers[workersExisting[i]].hashrateString = "0";
                     }
-                    workersOneHourCommands.push(['zadd',coinStats.name+":stat:workers:hourly:"+worker,statGatherTime,JSON.stringify(workerData)])
-                    deleteWorkerOneHourCommands.push(['zremrangebyscore',coinStats.name+":stat:workers:hourly:"+worker,'-inf','('+(statGatherTime - configHelper.deleteHourlyRange)/1000]);
-                    coinStats.workers[worker].hashrateString = hashrateString
+                    
+                    workersOneHourCommands.push(['zadd',coinStats.name+":stat:workers:hourly:"+workersExisting[i],statGatherTime,JSON.stringify(workerData)])
+                    deleteWorkerOneHourCommands.push(['zremrangebyscore',coinStats.name+":stat:workers:hourly:"+workersExisting[i],'-inf','('+(statGatherTime - configHelper.deleteHourlyRange)/1000]);
+                    
+                    
                 }
+
+
+                
+
+
 
 
                 delete coinStats.hashrates;
