@@ -248,6 +248,7 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
                 
                 
                 var workersExisting = existingWorkers[coinStats.name];
+                console.log(workersExisting);
                 for(var i=0;i<workersExisting.length;i++){
                     var workerData;
                     if(coinStats.workers[workersExisting[i]]){
