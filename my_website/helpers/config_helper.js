@@ -77,11 +77,11 @@ module.exports = {
         for(var i=0;i<Object.keys(data).length;i++){
             var coin_name  = Object.keys(data)[i]; // bitcoin
             var tabStatsCommand = [
-                ['zrangebyscore', coin_name+':hashrate', (Date.now() -  statTime)/1000, '+inf'],
                 ['hgetall', coin_name+':stats'],
                 ['scard', coin_name+':blocksPending'],
                 ['scard', coin_name+':blocksConfirmed'],
-                ['scard', coin_name+':blocksKicked']
+                ['scard', coin_name+':blocksKicked'],
+                ['scard', coin_name+':blocksOrphaned'],
             ];
             redisCommands = redisCommands.concat(tabStatsCommand);
         }
@@ -96,41 +96,23 @@ module.exports = {
                 for(var i=0;i<Object.keys(data).length;i++){
                     var coin_name  = Object.keys(data)[i];
                     var algorithm = data[coin_name].coin.algorithm;
-                    var hashratesPerCoin = res[i*commandsPerCoin];
-                    var workersSet = new Set;
-                    var shares = 0;
-                    hashratesPerCoin.forEach(minerRate => {
-                        var miner_address = minerRate.split(":")[1];
-                        var difficulty = parseFloat(minerRate.split(":")[0]);
-                        if(difficulty > 0) shares+=difficulty;
-                        workersSet.add(miner_address);
-                    });
-
-                    var workersCount = workersSet.size;
-                    delete workersSet;
-
-                    var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
-                    var hashrate = shareMultiplier * shares / (statTime / 1000);
-                    // var hashrate = 1412122;
                     coinStats[coin_name] = {
                         blocks:{
-                            pendingCount:res[i*commandsPerCoin+2],
-                            confirmedCount: res[i*commandsPerCoin+3],
-                            orphanedOrKicked:res[i*commandsPerCoin+4],
+                            pendingCount:res[i*commandsPerCoin+1],
+                            confirmedCount: res[i*commandsPerCoin+2],
+                            kickedCount:res[i*commandsPerCoin+3],
+                            orphanedCount:res[i*commandsPerCoin+4]
                         },
                         
                         stats:{
-                            validShares:res[i*commandsPerCoin+1] ? (res[i*commandsPerCoin+1].validShares || 0) :0,
-                            invalidShares:res[i*commandsPerCoin+1] ? (res[i*commandsPerCoin+1].invalidShares || 0) :0,
-                            validBlocks:res[i*commandsPerCoin+1] ? (res[i*commandsPerCoin+1].validBlocks || 0) :0,
-                            totalPaid:res[i*commandsPerCoin+1] ? (res[i*commandsPerCoin+1].totalPaid || 0) :0,
+                            validShares:res[i*commandsPerCoin] ? (res[i*commandsPerCoin].validShares || 0) :0,
+                            invalidShares:res[i*commandsPerCoin] ? (res[i*commandsPerCoin].invalidShares || 0) :0,
+                            validBlocks:res[i*commandsPerCoin] ? (res[i*commandsPerCoin].validBlocks || 0) :0,
+                            totalPaid:res[i*commandsPerCoin] ? (res[i*commandsPerCoin].totalPaid || 0) :0,
                         },
                         algorithm:algorithm,
                         symbol:data[coin_name].coin.symbol.toUpperCase(),
-                        hashrate:hashrate,
-                        hashrates:hashratesPerCoin,
-                        algorithm:algorithm,
-                        workersCount:workersCount,
+                        
                     }
                 }
 
