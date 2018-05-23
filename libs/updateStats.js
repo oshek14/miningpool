@@ -250,12 +250,11 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
                 var workersExisting = existingWorkers[coinStats.name];
                 for(var i=0;i<workersExisting.length;i++){
                     var workerData;
-                    console.log(coinStats.workers);
                     if(coinStats.workers[workersExisting[i]]){
                         var hashrate = shareMultiplier * coinStats.workers[workersExisting[i]].shares / (configHelper.hashRateStatTime/1000);
                         var hashrateString = configHelper.getReadableHashRateString(hashrate);
                         workerData = {
-                            shares:1,
+                            shares:coinStats.workers[workersExisting[i]].shares,
                             invalidShares:coinStats.workers[workersExisting[i]].invalidshares,
                             hashrateString:hashrateString,
                             hashrate:hashrate,
