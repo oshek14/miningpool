@@ -23,32 +23,61 @@ module.exports = function(logger){
             client: redis.createClient(redisConfig.port, redisConfig.host)
         });
     });
-    calculateStatsForDay(portalConfig,poolConfigs,redisClients);
-    // setInterval(function(){ 
-    //     saveStatsEveryInterval(portalConfig,poolConfigs,redisClients);
-    // }, configHelper.saveStatsTime*1000);
+    // calculateStatsForDay(portalConfig,poolConfigs,redisClients);
+    setInterval(function(){ 
+        saveStatsEveryInterval(portalConfig,poolConfigs,redisClients);
+    }, configHelper.saveStatsTime*1000);
 }
 
 
 
-
+/* every 24 hour ,dear cronjob, come to this function,
+    get data from statHistoryOneHour, which must be approximatelly
+    24 records and calculate average from them and save */
 function calculateStatsForDay(portalConfig,poolConfigs,redisClients){
     var redisStats = redis.createClient(portalConfig.redis.port, portalConfig.redis.host);
-    redisStats.zrangebyscore('statHistoryOneHour',(Date.now()-24*3600*1000)/1000,'+inf',function(err,res){
-        console.log(res.length);
+    var oneDayStats = {};
+    redisStats.zrangebyscore('statHistoryByHour',(Date.now()-24*3600*1000)/1000,'+inf',function(err,res){
         if(!err && res!=null){
+            var gatherTime = Date.now() / 1000 | 0;
+            var howManyHours = res.length;
             for(var i=0;i<res.length;i++){
-                console.log(res[i]);
+                var stats = JSON.parse(res[i]);
+                for(var j=0;j<Object.keys(stats.pools).length;j++){
+                    var coin_name = Object.keys(stats.pools)[j];
+                    var workerStats = stats.pools[coin_name];
+                    var workerCount = workerStats.workerCount;
+                    var hashrate  = workerStats.hashrateString;
+                    if(coin_name in oneDayStats){ 
+                        oneDayStats[coin_name].workersCount+=(workerCount / howManyHours);
+                        oneDayStats[coin_name].hashrate+=(hashrate / howManyHours);
+                    }else{
+                        oneDayStats[coin_name] = {
+                            workersCount:(workerCount / howManyHours),
+                            hashrate:(hashrate / howManyHours),
+                        }
+                    }
+                }
             }
+            oneDayStats = JSON.stringify(oneDayStats);
+
+            redisStats.zadd('statHistoryByMonth',gatherTime,oneDayStats,function(err,res){
+                //TODO LOGGER 
+            })
         }
     })
 }
 
-function saveStatsEveryInterval(portalConfig,poolConfigs,redisClients){
+
+/* every 1 hour ,dear cronjob, come to this function,
+    get last 1 hour data from hashrates, more than 1 hour data must be deleted
+    then get all the statistics and save it in statsHistoryByHour */
+
+function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
    
     var statGatherTime = Date.now() / 1000 | 0;
     var allCoinStats = {};
-
+    var oneHourStats = {};
     async.each(redisClients, function(client, callback){
         var windowTime = (( (Date.now() / 1000) - (configHelper.hashRateStatTime)/1000) | 0).toString();
         var redisCommands = [];
@@ -120,6 +149,7 @@ function saveStatsEveryInterval(portalConfig,poolConfigs,redisClients){
             };
 
             Object.keys(allCoinStats).forEach(function(coin){
+                console.log(coin);
                 var coinStats = allCoinStats[coin];
                 coinStats.workers = {};
                 coinStats.shares = 0;
@@ -182,8 +212,7 @@ function saveStatsEveryInterval(portalConfig,poolConfigs,redisClients){
                 algoStats.hashrateString = configHelper.getReadableHashRateString(algoStats.hashrate);
             });
 
-            console.log(portalStats);
-
+            
             
             var statString = JSON.stringify(portalStats);
             
