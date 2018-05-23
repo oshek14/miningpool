@@ -1,7 +1,7 @@
 const configHelper = require('../my_website/helpers/config_helper');
 var algos = require('stratum-pool/lib/algoProperties.js');
 var redis = require('redis');
-var async = require('async');
+var async = require('async')
 module.exports = function(logger){
     var portalConfig = JSON.parse(process.env.portalConfig);
     var poolConfigs = JSON.parse(process.env.pools);
@@ -10,7 +10,7 @@ module.exports = function(logger){
 
     var logSystem = 'Stats';
 
-    this.redisClients = [];
+    var redisClients = [];
     var redisStats;
 
     
@@ -18,33 +18,33 @@ module.exports = function(logger){
         var poolConfig = poolConfigs[coin];
         var redisConfig = poolConfig.redis;
 
-        for (var i = 0; i < this.redisClients.length; i++){
-            var client = this.this.redisClients[i];
+        for (var i = 0; i < redisClients.length; i++){
+            var client = redisClients[i];
             if (client.client.port === redisConfig.port && client.client.host === redisConfig.host){
                 client.coins.push(coin);
                 return;
             }
         }
-        this.redisClients.push({
+        redisClients.push({
             coins: [coin],
             client: redis.createClient(redisConfig.port, redisConfig.host)
         });
     });
     
     setInterval(function(){ 
-        saveStatsEveryInterval(portalConfig,poolConfigs);
+        saveStatsEveryInterval(portalConfig,poolConfigs,redisClients);
     }, configHelper.saveStatsTime*1000);
 }
 
 
 
 
-function saveStatsEveryInterval(portalConfig,poolConfigs){
+function saveStatsEveryInterval(portalConfig,poolConfigs,redisClients){
    
     var statGatherTime = Date.now() / 1000 | 0;
     var allCoinStats = {};
 
-    async.each(this.redisClients, function(client, callback){
+    async.each(redisClients, function(client, callback){
         var windowTime = (( (Date.now() / 1000) - (configHelper.hashRateStatTime)/1000) | 0).toString();
         var redisCommands = [];
         var redisCommandTemplates = [
