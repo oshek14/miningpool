@@ -164,7 +164,7 @@ module.exports = function(logger){
                                     var isValid = results.filter(function (r) {
                                         return r.response.isvalid
                                     }).length > 0;
-                                    console.log("nice hehehe");
+                                    
                                     authCallback(isValid);
                                 });
                             }
@@ -196,8 +196,7 @@ module.exports = function(logger){
         pool.on('share', function(isValidShare, isValidBlock, data){
 
             var shareData = JSON.stringify(data);
-            console.log(shareData);
-            
+           
             if (data.blockHash && !isValidBlock)
                 logger.debug(logSystem, logComponent, logSubCat, 'We thought a block was found but it was rejected by the daemon, share data: ' + shareData);
 

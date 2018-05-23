@@ -1,7 +1,7 @@
 const configHelper = require('../my_website/helpers/config_helper');
 var algos = require('stratum-pool/lib/algoProperties.js');
 var redis = require('redis');
-
+var async = require('async');
 module.exports = function(logger){
     var portalConfig = JSON.parse(process.env.portalConfig);
     var poolConfigs = JSON.parse(process.env.pools);
