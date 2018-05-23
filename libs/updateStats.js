@@ -23,7 +23,7 @@ module.exports = function(logger){
             client: redis.createClient(redisConfig.port, redisConfig.host)
         });
     });
-    calculateStatsForDay();
+    calculateStatsForDay(portalConfig,poolConfigs,redisClients);
     setInterval(function(){ 
         saveStatsEveryInterval(portalConfig,poolConfigs,redisClients);
     }, configHelper.saveStatsTime*1000);
