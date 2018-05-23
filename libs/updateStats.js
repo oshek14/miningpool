@@ -197,7 +197,8 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
 
                 oneHourStats[coinStats.name] = {
                     workersCount:coinStats.workerCount,
-                    hashrate:configHelper.getReadableHashRateString(coinStats.hashrate),
+                    hashrateString:configHelper.getReadableHashRateString(coinStats.hashrate),
+                    hashrate:coinStats.hashrate,
                     blocksPending:coinStats.blocks.pending,
                     blocksOrphaned:coinStats.blocks.orphaned,
                     blocksConfirmed:coinStats.blocks.confirmed,
