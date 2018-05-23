@@ -269,7 +269,7 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
                             hashrate:0,
                             date:statGatherTime
                         }
-                        coinStats.workers[workersExisting[i]].hashrateString = "0";
+                        
                     }
                     
                     workersOneHourCommands.push(['zadd',coinStats.name+":stat:workers:hourly:"+workersExisting[i],statGatherTime,JSON.stringify(workerData)])
