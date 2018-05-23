@@ -6,16 +6,11 @@ module.exports = function(logger){
     var portalConfig = JSON.parse(process.env.portalConfig);
     var poolConfigs = JSON.parse(process.env.pools);
 
-    var _this = this;
-
-    var logSystem = 'Stats';
-
+   
     var redisClients = [];
-    
     Object.keys(poolConfigs).forEach(function(coin){
         var poolConfig = poolConfigs[coin];
         var redisConfig = poolConfig.redis;
-
         for (var i = 0; i < redisClients.length; i++){
             var client = redisClients[i];
             if (client.client.port === redisConfig.port && client.client.host === redisConfig.host){
@@ -67,7 +62,7 @@ function saveStatsEveryInterval(portalConfig,poolConfigs,redisClients){
 
         client.client.multi(redisCommands).exec(function(err, replies){
             if (err){
-                logger.error(logSystem, 'Global', 'error with getting global stats ' + JSON.stringify(err));
+                //logger.error(logSystem, 'Global', 'error with getting global stats ' + JSON.stringify(err));
                 callback(err);
             }
             else{
@@ -97,7 +92,7 @@ function saveStatsEveryInterval(portalConfig,poolConfigs,redisClients){
         });
     }, function(err){
             if (err){
-                logger.error(logSystem, 'Global', 'error getting all stats' + JSON.stringify(err));
+                //logger.error(logSystem, 'Global', 'error getting all stats' + JSON.stringify(err));
                 callback();
                 return;
             }
@@ -175,21 +170,23 @@ function saveStatsEveryInterval(portalConfig,poolConfigs,redisClients){
                 algoStats.hashrateString = configHelper.getReadableHashRateString(algoStats.hashrate);
             });
 
+            console.log(portalStats);
             var statString = JSON.stringify(portalStats);
             
             var redisStats = redis.createClient(portalConfig.redis.port, portalConfig.redis.host);
 
     
-            redisStats.multi([
-                ['zadd', 'statHistory', statGatherTime, statString],
-                ['zremrangebyscore', 'statHistory', '-inf', '(' + (configHelper.statHistoryLifetime)/1000]
-            ]).exec(function(err, replies){
-                if (err)
-                    logger.error(logSystem, 'Historics', 'Error adding stats to historics ' + JSON.stringify(err));
-                else{
-                    console.log("done");
-                }
-            });
+            // redisStats.multi([
+            //     ['zadd', 'statHistory', statGatherTime, statString],
+            //     ['zremrangebyscore', 'statHistory', '-inf', '(' + (configHelper.statHistoryLifetime)/1000]
+            // ]).exec(function(err, replies){
+            //     if (err){
+            //         //logger.error(logSystem, 'Historics', 'Error adding stats to historics ' + JSON.stringify(err));
+            //     }
+            //     else
+            //         console.log("done");
+                
+            // });
             
         });
     };
