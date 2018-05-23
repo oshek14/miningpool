@@ -171,22 +171,24 @@ function saveStatsEveryInterval(portalConfig,poolConfigs,redisClients){
             });
 
             console.log(portalStats);
+
+            
             var statString = JSON.stringify(portalStats);
             
             var redisStats = redis.createClient(portalConfig.redis.port, portalConfig.redis.host);
 
     
-            // redisStats.multi([
-            //     ['zadd', 'statHistory', statGatherTime, statString],
-            //     ['zremrangebyscore', 'statHistory', '-inf', '(' + (configHelper.statHistoryLifetime)/1000]
-            // ]).exec(function(err, replies){
-            //     if (err){
-            //         //logger.error(logSystem, 'Historics', 'Error adding stats to historics ' + JSON.stringify(err));
-            //     }
-            //     else
-            //         console.log("done");
+            redisStats.multi([
+                ['zadd', 'statHistoryOneHour', statGatherTime, statString],
+                ['zremrangebyscore', 'statHistory', '-inf', '(' + (configHelper.statHistoryLifetime)/1000]
+            ]).exec(function(err, replies){
+                if (err){
+                    //logger.error(logSystem, 'Historics', 'Error adding stats to historics ' + JSON.stringify(err));
+                }
+                else
+                    console.log("done");
                 
-            // });
+            });
             
         });
     };
