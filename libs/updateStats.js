@@ -23,8 +23,8 @@ module.exports = function(logger){
             client: redis.createClient(redisConfig.port, redisConfig.host)
         });
     });
-    calculateStatsForDay(portalConfig,poolConfigs,redisClients);
-    saveStatsEveryHour(portalConfig,poolConfigs,redisClients);
+    //calculateStatsForDay(portalConfig,poolConfigs,redisClients);
+    //saveStatsEveryHour(portalConfig,poolConfigs,redisClients);
     // setInterval(function(){ 
     //     saveStatsEveryHour(portalConfig,poolConfigs,redisClients);
     // }, configHelper.saveStatsTime*1000);
@@ -45,19 +45,23 @@ function calculateStatsForDay(portalConfig,poolConfigs,redisClients){
             var howManyHours = res.length;
             for(var i=0;i<res.length;i++){
                 var stats = JSON.parse(res[i]);
-                var time = new Date(stats);
-                for(var j=0;j<Object.keys(stats.pools).length;j++){
-                    var coin_name = Object.keys(stats.pools)[j];
-                    var workerStats = stats.pools[coin_name];
-                    var workerCount = workerStats.workerCount;
-                    var hashrate  = workerStats.hashrateString;
+                for(var j=0;j<Object.keys(stats).length;j++){
+                    var coin_name = Object.keys(stats)[j];
+                    var workerCount =stats[coin_name].workersCount;
+                    var hashrate  = stats[coin_name].hashrate;
                     if(coin_name in oneDayStats){ 
                         oneDayStats[coin_name].workersCount+=(workerCount / howManyHours);
                         oneDayStats[coin_name].hashrate+=(hashrate / howManyHours);
+                        oneDayStats[coin_name].blocksPending+= (oneDayStats[coin_name].blocksPending)/howManyHours;
+                        oneDayStats[coin_name].blocksConfirmed+= (oneDayStats[coin_name].blocksConfirmed)/howManyHours;
+                        oneDayStats[coin_name].blocksOrphaned+= (oneDayStats[coin_name].blocksOrphaned)/howManyHours;
                     }else{
                         oneDayStats[coin_name] = {
                             workersCount:(workerCount / howManyHours),
                             hashrate:(hashrate / howManyHours),
+                            blocksPending:(stats[coin_name].blocksPending / howManyHours),
+                            blocksOrphaned:(stats[coin_name].blocksOrphaned/ howManyHours),
+                            blocksConfirmed:(stats[coin_name].blocksConfirmed / howManyHours),
                         }
                     }
                 }
