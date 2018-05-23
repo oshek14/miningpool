@@ -27,7 +27,9 @@ module.exports = function(logger){
     //setInterval(calculateStatsForDay(portalConfig,poolConfigs,redisClients),1000);
     //saveStatsEveryHour(portalConfig,poolConfigs,redisClients);
 
-    setInterval(saveStatsEveryHour(portalConfig,poolConfigs,redisClients), 2000);
+    setInterval(function(){
+        saveStatsEveryHour(portalConfig,poolConfigs,redisClients)   
+    }, 2000);
     
 }
 
