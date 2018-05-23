@@ -66,6 +66,7 @@ function calculateStatsForDay(portalConfig,poolConfigs,redisClients){
                     }
                 }
             }
+            if(Object.keys(oneDayStats).length == 0) return;
             oneDayStats = JSON.stringify(oneDayStats);
             var redisCommands = [
                 ['zadd','stats:admin:eachDay',gatherTime,oneDayStats],
