@@ -10,10 +10,15 @@ JSON.minify = JSON.minify || require("node-json-minify");
 
 var configDir = "pool_configs/";
 var coinDir = "coins/";
-var hashRateStatTime = 3600*1000;  //how many days worth of share to show for each pool
-var saveStatsTime = 5; //howmany seconds worth of stats to save in statHistory
-var deleteOldPayouts = 14*24*3600*1000; //howmany days data we save for last payouts.
+//every one hour data from hashrates moves to statHistory
+var hashRateStatTime = 3600*1000;
+//every this second function gets executed to move from hashrate to statHistory
+var saveStatsTime = 5; 
+//payouts older than 14 days are deleted
+var deleteOldPayouts = 14*24*3600*1000; 
+//statHistoris older than 30 days get deleted;
 var statHistoryLifetime = 30*24*3600*1000;
+
 var portalConfig = JSON.parse(JSON.minify(fs.readFileSync("config.json", {encoding: 'utf8'})));
 
 module.exports = {
