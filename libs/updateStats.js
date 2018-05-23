@@ -23,7 +23,7 @@ module.exports = function(logger){
             client: redis.createClient(redisConfig.port, redisConfig.host)
         });
     });
-    
+    calculateStatsForDay();
     setInterval(function(){ 
         saveStatsEveryInterval(portalConfig,poolConfigs,redisClients);
     }, configHelper.saveStatsTime*1000);
@@ -31,6 +31,13 @@ module.exports = function(logger){
 
 
 
+
+function calculateStatsForDay(portalConfig,poolConfigs,redisClients){
+    var redisStats = redis.createClient(portalConfig.redis.port, portalConfig.redis.host);
+    redisStats.zrangebyscore('statHistoryOneHour',(Date.now()-24*3600*1000)/1000,'+inf',function(err,res){
+        console.log(res);
+    })
+}
 
 function saveStatsEveryInterval(portalConfig,poolConfigs,redisClients){
    
@@ -180,6 +187,7 @@ function saveStatsEveryInterval(portalConfig,poolConfigs,redisClients){
     
             redisStats.multi([
                 ['zadd', 'statHistoryOneHour', statGatherTime, statString],
+                ['zadd', 'statHistory', statGatherTime, statString],
                 ['zremrangebyscore', 'statHistory', '-inf', '(' + (configHelper.statHistoryLifetime)/1000]
             ]).exec(function(err, replies){
                 if (err){
