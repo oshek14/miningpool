@@ -44,7 +44,8 @@ function calculateStatsForDay(portalConfig,poolConfigs,redisClients){
     var gatherTime = Date.now() / 1000 | 0;
     var oneDayData = (gatherTime-24*3600);
     for(var i=0;i<Object.keys(poolConfigs).length;i++){
-        var coin_name = poolConfigs[Object.keys(poolConfigs)[i]];
+        var coin = poolConfigs[Object.keys(poolConfigs)[i]];
+        var coin_name = coin.coin.name;
         console.log(coin_name);
     }
     // redisStats.zrangebyscore('stats:admin:eachHour','('+oneDayData,'+inf',function(err,res){
