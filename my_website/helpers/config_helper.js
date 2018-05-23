@@ -23,7 +23,6 @@ var portalConfig = JSON.parse(JSON.minify(fs.readFileSync("config.json", {encodi
 
 module.exports = {
     configDir:configDir,
-    saveStatsTime:saveStatsTime,
     deleteOldPayouts:deleteOldPayouts,
     hashRateStatTime:hashRateStatTime,
     statHistoryLifetime:statHistoryLifetime,
