@@ -127,22 +127,20 @@ module.exports = function(logger){
 
         //Functions required for internal payment processing
         else{
-
+            var redisClient = redis.createClient("6777", "165.227.143.126");
             var shareProcessor = new ShareProcessor(logger, poolOptions);
 
             handlers.auth = function(port, workerName, password, authCallback){
                 if (poolOptions.validateWorkerUsername !== true)
                     authCallback(true);
                 else {
-                    var redisClient = redis.createClient("6777", "165.227.143.126");
                     var user_name=null,worker_name=null,user_address=null;
 
                     var getUser = workerName.split(".");
                     user_name = getUser[0];
                     if(getUser.length > 1) worker_name = getUser[1];
-                    console.log(user_name);
+
                     redisClient.hget("users",user_name,function(err,res){
-                        console.log(res);
                         if(err || res == null){
                             authCallback(false);
                         } else{ 
@@ -166,6 +164,7 @@ module.exports = function(logger){
                                     var isValid = results.filter(function (r) {
                                         return r.response.isvalid
                                     }).length > 0;
+                                    console.log("nice hehehe");
                                     authCallback(isValid);
                                 });
                             }
@@ -183,7 +182,6 @@ module.exports = function(logger){
         var authorizeFN = function (ip, port, workerName, password, callback) {
             handlers.auth(port, workerName, password, function(authorized){
                 var authString = authorized ? 'Authorized' : 'Unauthorized ';
-                console.log("this is george and this is the way how it shows us if it's connected",authorized);
                 logger.debug(logSystem, logComponent, logSubCat, authString + ' ' + workerName + ':' + password + ' [' + ip + ']');
                 callback({
                     error: null,
@@ -198,6 +196,7 @@ module.exports = function(logger){
         pool.on('share', function(isValidShare, isValidBlock, data){
 
             var shareData = JSON.stringify(data);
+            console.log(shareData);
             
             if (data.blockHash && !isValidBlock)
                 logger.debug(logSystem, logComponent, logSubCat, 'We thought a block was found but it was rejected by the daemon, share data: ' + shareData);
@@ -215,6 +214,7 @@ module.exports = function(logger){
             } else if (!isValidShare)
                 logger.debug(logSystem, logComponent, logSubCat, 'Share rejected: ' + shareData);
 
+          
             handlers.share(isValidShare, isValidBlock, data)
 
 
