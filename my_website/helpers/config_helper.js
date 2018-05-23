@@ -67,7 +67,7 @@ module.exports = {
         return hashrate.toFixed(2) + byteUnits[i];
     },
 
-    getCoinStats:function(pool_configs,statTime,callback){
+    getCoinStats:function(pool_configs,callback){
         var poolConfigsData = {};
         var coinStats = {};
         var redisClient = redis.createClient("6777",'165.227.143.126');

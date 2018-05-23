@@ -24,8 +24,7 @@ router.get('/active_coins',(req,res)=>{
 
 router.get('/tab_stats',(req,res)=>{
     configHelper.getPoolConfigs(function(data) {
-        var timeStats = req.query.time_stats;
-        configHelper.getCoinStats(data,timeStats,function(coinsStats){
+        configHelper.getCoinStats(data,function(coinsStats){
             if(coinsStats === false){
                 res.send({status:404})
             }else if(coinsStats == 500){
