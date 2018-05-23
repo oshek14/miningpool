@@ -140,8 +140,9 @@ module.exports = function(logger){
                     var getUser = workerName.split(".");
                     user_name = getUser[0];
                     if(getUser.length > 1) worker_name = getUser[1];
-                    
+                    console.log(user_name);
                     redisClient.hget("users",user_name,function(err,res){
+                        console.log(res);
                         if(err || res == null){
                             authCallback(false);
                         } else{ 
@@ -150,7 +151,7 @@ module.exports = function(logger){
                             if(worker_name == null || !parsedData.workers.includes(worker_name)){
                                 //default
                             }
-                            
+
                             if (user_address.length === 40) {
                                 try {
                                     new Buffer(user_address, 'hex');
