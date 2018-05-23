@@ -10,12 +10,12 @@ JSON.minify = JSON.minify || require("node-json-minify");
 
 var configDir = "pool_configs/";
 var coinDir = "coins/";
-//every one hour data from hashrates moves to statHistory
+
+//every one hour data from hashrates moves to stat:admin:eachHour
 var hashRateStatTime = 3600*1000;
-//every this second function gets executed to move from hashrate to statHistory
-var saveStatsTime = 5; 
 //payouts older than 14 days are deleted
 var deleteOldPayouts = 14*24*3600*1000; 
+
 //statHistoris older than 30 days get deleted;
 var statHistoryLifetime = 30*24*3600*1000;
 
@@ -205,6 +205,12 @@ module.exports = {
                 for (let i = 0; i < dates.length; i++) {
                     const upperDate = Math.floor((Date.now() - dates[i]) / 1000)
                     const lowerDate = Math.floor((Date.now() - dates[i] - diff) / 1000)
+                    
+
+
+                    
+
+
                     const resultItem = {
                         workersSum: 0,
                         count: 0

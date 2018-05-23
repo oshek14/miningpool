@@ -23,10 +23,11 @@ module.exports = function(logger){
             client: redis.createClient(redisConfig.port, redisConfig.host)
         });
     });
-    // calculateStatsForDay(portalConfig,poolConfigs,redisClients);
-    setInterval(function(){ 
-        saveStatsEveryHour(portalConfig,poolConfigs,redisClients);
-    }, configHelper.saveStatsTime*1000);
+    calculateStatsForDay(portalConfig,poolConfigs,redisClients);
+    saveStatsEveryHour(portalConfig,poolConfigs,redisClients);
+    // setInterval(function(){ 
+    //     saveStatsEveryHour(portalConfig,poolConfigs,redisClients);
+    // }, configHelper.saveStatsTime*1000);
 }
 
 
@@ -37,12 +38,14 @@ module.exports = function(logger){
 function calculateStatsForDay(portalConfig,poolConfigs,redisClients){
     var redisStats = redis.createClient(portalConfig.redis.port, portalConfig.redis.host);
     var oneDayStats = {};
-    redisStats.zrangebyscore('statHistoryByHour',(Date.now()-24*3600*1000)/1000,'+inf',function(err,res){
+    var gatherTime = Date.now() / 1000 | 0;
+    var oneDayData = (gatherTime-24*3600);
+    redisStats.zrangebyscore('stats:admin:eachHour','('+oneDayData,'+inf',function(err,res){
         if(!err && res!=null){
-            var gatherTime = Date.now() / 1000 | 0;
             var howManyHours = res.length;
             for(var i=0;i<res.length;i++){
                 var stats = JSON.parse(res[i]);
+                var time = new Date(stats);
                 for(var j=0;j<Object.keys(stats.pools).length;j++){
                     var coin_name = Object.keys(stats.pools)[j];
                     var workerStats = stats.pools[coin_name];
@@ -60,8 +63,11 @@ function calculateStatsForDay(portalConfig,poolConfigs,redisClients){
                 }
             }
             oneDayStats = JSON.stringify(oneDayStats);
-
-            redisStats.zadd('statHistoryByMonth',gatherTime,oneDayStats,function(err,res){
+            var redisCommands = [
+                ['zadd','stats:admin:eachDay',gatherTime,oneDayStats],
+                ['zremrangebyscore', 'stats:admin:eachHour', '-inf', '(' +oneDayData],
+            ]
+            redisStats.zadd('stats:admin:eachDay',gatherTime,oneDayStats,function(err,res){
                 //TODO LOGGER 
             })
         }
@@ -99,7 +105,6 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
                 redisCommands.push(clonedTemplates);
             });
         });
-
 
         client.client.multi(redisCommands).exec(function(err, replies){
             if (err){
@@ -149,7 +154,6 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
             };
 
             Object.keys(allCoinStats).forEach(function(coin){
-                console.log(coin);
                 var coinStats = allCoinStats[coin];
                 coinStats.workers = {};
                 coinStats.shares = 0;
@@ -185,7 +189,17 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
 
                 coinStats.workerCount = Object.keys(coinStats.workers).length;
                 portalStats.global.workers += coinStats.workerCount;
+                
 
+                oneHourStats[coinStats.name] = {
+                    workersCount:coinStats.workerCount,
+                    hashrate:configHelper.getReadableHashRateString(coinStats.hashrate),
+                    blocksPending:coinStats.blocks.pending,
+                    blocksOrphaned:coinStats.blocks.orphaned,
+                    blocksConfirmed:coinStats.blocks.confirmed,
+                }
+                
+                
                 /* algorithm specific global stats */
                 var algo = coinStats.algorithm;
                 if (!portalStats.algos.hasOwnProperty(algo)){
@@ -220,7 +234,7 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
 
     
             redisStats.multi([
-                ['zadd', 'statHistoryOneHour', statGatherTime, statString],
+                ['zadd', 'stats:admin:eachHour', statGatherTime, JSON.stringify(oneHourStats)],
                 ['zadd', 'statHistory', statGatherTime, statString],
                 ['zremrangebyscore', 'statHistory', '-inf', '(' + (configHelper.statHistoryLifetime)/1000]
             ]).exec(function(err, replies){
@@ -236,4 +250,6 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
     };
     
 
-    
+
+
+
