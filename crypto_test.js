@@ -11,7 +11,7 @@ const m = new jm({isPrint, isMs, isKb})
 
 
 var c = [];
-for(var j=0;j<1000000;j++){
+for(var j=0;j<300000;j++){
     c.push(['zadd','bitcoin:stat:workers:hourly:'+j,Date.now()/1000,'1']);
     
 }
@@ -24,6 +24,7 @@ redisClient.multi(c).exec(function(err,res){
         if(err){
             //TODO
         }else{
+            console.log("movida");
             var globalHourly = res[1];
             var workersKeys = res[0];
             var workersResultKeys={};
@@ -31,6 +32,7 @@ redisClient.multi(c).exec(function(err,res){
             for(var i=0;i<workersKeys.length;i++){
                 getCommandsQuery.push(['zrangebyscore',workersKeys[i],'-inf','+inf']);
             }
+            console.log("morcha");
             redisClient.multi(getCommandsQuery).exec(function(err,res){
                 for(var j=0;j<res.length;j++){
                     var data = res[j];
