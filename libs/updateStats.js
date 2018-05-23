@@ -261,15 +261,16 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
             
             if(globalOneHourCommands.length>0) statHistoryCommands = statHistoryCommands.concat(globalOneHourCommands);
             if(workersOneHourCommands.length>0) statHistoryCommands = statHistoryCommands.concat(workersOneHourCommands);
-            console.log(statHistoryCommands);
-            // redisStats.multi(statHistoryCommands).exec(function(err, replies){
-            //     if (err){
-            //         //logger.error(logSystem, 'Historics', 'Error adding stats to historics ' + JSON.stringify(err));
-            //     }
-            //     else
-            //         console.log("done");
+            
+            redisStats.multi(statHistoryCommands).exec(function(err, replies){
+                if (err){
+                    //TODO
+                    //logger.error(logSystem, 'Historics', 'Error adding stats to historics ' + JSON.stringify(err));
+                }
+                else
+                    console.log("done");
                 
-            // });
+            });
             
         });
     };
