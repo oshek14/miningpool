@@ -16,7 +16,7 @@ for(var i=0;i<200000;i++){
 redisClient.multi(array).exec(function(err,res){
     redisClient.keys('bitcoin:blaxblux:*',function(err,res){
         for(var j=0;j<res.length;j++){
-            getCommands.push(res[j]);
+            getCommands.push(['zrangebyscore',res[j],'-inf','+inf']);
         }
         redisClient.multi(getCommands).exec(function(err,res){
             console.log("done");
