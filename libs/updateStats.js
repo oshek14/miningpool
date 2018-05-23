@@ -26,10 +26,10 @@ module.exports = function(logger){
     
     //setInterval(calculateStatsForDay(portalConfig,poolConfigs,redisClients),1000);
     //saveStatsEveryHour(portalConfig,poolConfigs,redisClients);
-
-    setInterval(function(){
-        saveStatsEveryHour(portalConfig,poolConfigs,redisClients)   
-    }, 2000);
+    calculateStatsForDay(portalConfig,poolConfigs,redisClients);
+    // setInterval(function(){
+    //     saveStatsEveryHour(portalConfig,poolConfigs,redisClients)   
+    // }, 2000);
     
 }
 
@@ -43,43 +43,50 @@ function calculateStatsForDay(portalConfig,poolConfigs,redisClients){
     var oneDayStats = {};
     var gatherTime = Date.now() / 1000 | 0;
     var oneDayData = (gatherTime-24*3600);
-    redisStats.zrangebyscore('stats:admin:eachHour','('+oneDayData,'+inf',function(err,res){
-        if(!err && res!=null){
-            var howManyHours = res.length;
-            for(var i=0;i<res.length;i++){
-                var stats = JSON.parse(res[i]);
-                for(var j=0;j<Object.keys(stats).length;j++){
-                    var coin_name = Object.keys(stats)[j];
-                    var workerCount =stats[coin_name].workersCount;
-                    var hashrate  = stats[coin_name].hashrate;
-                    if(coin_name in oneDayStats){ 
-                        oneDayStats[coin_name].workersCount+=(workerCount / howManyHours);
-                        oneDayStats[coin_name].hashrate+=(hashrate / howManyHours);
-                        oneDayStats[coin_name].blocksPending+= (oneDayStats[coin_name].blocksPending)/howManyHours;
-                        oneDayStats[coin_name].blocksConfirmed+= (oneDayStats[coin_name].blocksConfirmed)/howManyHours;
-                        oneDayStats[coin_name].blocksOrphaned+= (oneDayStats[coin_name].blocksOrphaned)/howManyHours;
-                    }else{
-                        oneDayStats[coin_name] = {
-                            workersCount:(workerCount / howManyHours),
-                            hashrate:(hashrate / howManyHours),
-                            blocksPending:(stats[coin_name].blocksPending / howManyHours),
-                            blocksOrphaned:(stats[coin_name].blocksOrphaned/ howManyHours),
-                            blocksConfirmed:(stats[coin_name].blocksConfirmed / howManyHours),
-                        }
-                    }
-                }
-            }
-            if(Object.keys(oneDayStats).length == 0) return;
-            oneDayStats = JSON.stringify(oneDayStats);
-            var redisCommands = [
-                ['zadd','stats:admin:eachDay',gatherTime,oneDayStats],
-                ['zremrangebyscore', 'stats:admin:eachHour', '-inf', '(' +oneDayData],
-            ]
-            redisStats.zadd('stats:admin:eachDay',gatherTime,oneDayStats,function(err,res){
-                //TODO LOGGER 
-            })
-        }
-    })
+    for(var i=0;i<Object.keys(poolConfigs).length;i++){
+        var coin_name = poolConfigs[Object.keys(poolConfigs)[i]];
+        console.log(coin_name);
+    }
+    // redisStats.zrangebyscore('stats:admin:eachHour','('+oneDayData,'+inf',function(err,res){
+    //     for(var i=0;i<Object.keys(poolConfigs).length;i++){
+
+    //     }
+        // if(!err && res!=null){
+        //     var howManyHours = res.length;
+        //     for(var i=0;i<res.length;i++){
+        //         var stats = JSON.parse(res[i]);
+        //         for(var j=0;j<Object.keys(stats).length;j++){
+        //             var coin_name = Object.keys(stats)[j];
+        //             var workerCount =stats[coin_name].workersCount;
+        //             var hashrate  = stats[coin_name].hashrate;
+        //             if(coin_name in oneDayStats){ 
+        //                 oneDayStats[coin_name].workersCount+=(workerCount / howManyHours);
+        //                 oneDayStats[coin_name].hashrate+=(hashrate / howManyHours);
+        //                 oneDayStats[coin_name].blocksPending+= (oneDayStats[coin_name].blocksPending)/howManyHours;
+        //                 oneDayStats[coin_name].blocksConfirmed+= (oneDayStats[coin_name].blocksConfirmed)/howManyHours;
+        //                 oneDayStats[coin_name].blocksOrphaned+= (oneDayStats[coin_name].blocksOrphaned)/howManyHours;
+        //             }else{
+        //                 oneDayStats[coin_name] = {
+        //                     workersCount:(workerCount / howManyHours),
+        //                     hashrate:(hashrate / howManyHours),
+        //                     blocksPending:(stats[coin_name].blocksPending / howManyHours),
+        //                     blocksOrphaned:(stats[coin_name].blocksOrphaned/ howManyHours),
+        //                     blocksConfirmed:(stats[coin_name].blocksConfirmed / howManyHours),
+        //                 }
+        //             }
+        //         }
+        //     }
+        //     if(Object.keys(oneDayStats).length == 0) return;
+        //     oneDayStats = JSON.stringify(oneDayStats);
+        //     var redisCommands = [
+        //         ['zadd','stats:admin:eachDay',gatherTime,oneDayStats],
+        //         ['zremrangebyscore', 'stats:admin:eachHour', '-inf', '(' +oneDayData],
+        //     ]
+        //     redisStats.zadd('stats:admin:eachDay',gatherTime,oneDayStats,function(err,res){
+        //         //TODO LOGGER 
+        //     })
+    //     // }
+    // })
 }
 
 
