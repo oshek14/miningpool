@@ -23,8 +23,9 @@ module.exports = function(logger){
             client: redis.createClient(redisConfig.port, redisConfig.host)
         });
     });
-    setInterval(calculateStatsForDay(portalConfig,poolConfigs,redisClients),1000);
-    setInterval(saveStatsEveryHour(portalConfig,poolConfigs,redisClients),1000);
+    
+    //setInterval(calculateStatsForDay(portalConfig,poolConfigs,redisClients),1000);
+    saveStatsEveryHour(portalConfig,poolConfigs,redisClients);
     
 }
 
@@ -86,9 +87,9 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
    
     var statGatherTime = Date.now() / 1000 | 0;
     var allCoinStats = {};
-    var oneHourStats = {};
+    var globalOneHourCommands = [], workersOneHourCommands = [];
     async.each(redisClients, function(client, callback){
-        var windowTime = (( (Date.now() / 1000) - (configHelper.hashRateStatTime)/1000) | 0).toString();
+        var windowTime = (( statGatherTime - (configHelper.hashRateStatTime)/1000 ) | 0).toString();
         var redisCommands = [];
         var redisCommandTemplates = [
             ['zremrangebyscore', ':hashrate', '-inf', '(' + windowTime],
@@ -111,6 +112,7 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
 
         client.client.multi(redisCommands).exec(function(err, replies){
             if (err){
+                //TODO
                 //logger.error(logSystem, 'Global', 'error with getting global stats ' + JSON.stringify(err));
                 callback(err);
             }
@@ -141,6 +143,7 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
         });
     }, function(err){
             if (err){
+                //TODO 
                 //logger.error(logSystem, 'Global', 'error getting all stats' + JSON.stringify(err));
                 callback();
                 return;
@@ -160,6 +163,7 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
                 var coinStats = allCoinStats[coin];
                 coinStats.workers = {};
                 coinStats.shares = 0;
+                coinStats.invalidShares=0;
                 coinStats.hashrates.forEach(function(ins){
                     var parts = ins.split(':');
                     var workerShares = parseFloat(parts[0]);
@@ -176,6 +180,7 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
                             };
                     }
                     else {
+                        coinStats.invalidShares += workerShares;
                         if (worker in coinStats.workers)
                             coinStats.workers[worker].invalidshares -= workerShares; // workerShares is negative number!
                         else
@@ -188,20 +193,24 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
                 });
 
                 var shareMultiplier = Math.pow(2, 32) / algos[coinStats.algorithm].multiplier;
-                coinStats.hashrate = shareMultiplier * coinStats.shares / configHelper.hashRateStatTime;
+                coinStats.hashrate = shareMultiplier * coinStats.shares / (configHelper.hashRateStatTime/1000)
 
                 coinStats.workerCount = Object.keys(coinStats.workers).length;
                 portalStats.global.workers += coinStats.workerCount;
                 
 
-                oneHourStats[coinStats.name] = {
+                var oneHourStat = {
                     workersCount:coinStats.workerCount,
                     hashrateString:configHelper.getReadableHashRateString(coinStats.hashrate),
                     hashrate:coinStats.hashrate,
+                    shares:coinStats.shares,
+                    invalidShares:coinStats.invalidShares,
                     blocksPending:coinStats.blocks.pending,
                     blocksOrphaned:coinStats.blocks.orphaned,
                     blocksConfirmed:coinStats.blocks.confirmed,
                 }
+                globalOneHourCommands.push(['zadd',coinStats.name+':stat:global:hourly',statGatherTime,JSON.stringify(oneHourStat)]);
+                
                 
                 
                 /* algorithm specific global stats */
@@ -215,10 +224,20 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
                 }
                 portalStats.algos[algo].hashrate += coinStats.hashrate;
                 portalStats.algos[algo].workers += Object.keys(coinStats.workers).length;
-
+                
                 for (var worker in coinStats.workers) {
-                    coinStats.workers[worker].hashrateString = configHelper.getReadableHashRateString(shareMultiplier * coinStats.workers[worker].shares / portalConfig.website.stats.hashrateWindow);
+                    var hashrate = shareMultiplier * coinStats.workers[worker].shares / (configHelper.hashRateStatTime/1000);
+                    var hashrateString = configHelper.getReadableHashRateString(hashrate);
+                    var workerData = {
+                        shares:coinStats.workers[worker].shares,
+                        invalidShares:coinStats.workers[worker].invalidShares,
+                        hashrateString:hashrateString,
+                        hashrate:hashrate
+                    }
+                    workersOneHourCommands.push(['zadd',coinStats.name+":workers:hourly"+worker,statGatherTime,JSON.stringify(workerData)])
+                    coinStats.workers[worker].hashrateString = hashrateString
                 }
+
 
                 delete coinStats.hashrates;
                 delete coinStats.shares;
@@ -236,19 +255,21 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
             
             var redisStats = redis.createClient(portalConfig.redis.port, portalConfig.redis.host);
 
-    
-            redisStats.multi([
-                ['zadd', 'stats:admin:eachHour', statGatherTime, JSON.stringify(oneHourStats)],
-                ['zadd', 'statHistory', statGatherTime, statString],
-                ['zremrangebyscore', 'statHistory', '-inf', '(' + (configHelper.statHistoryLifetime)/1000]
-            ]).exec(function(err, replies){
-                if (err){
-                    //logger.error(logSystem, 'Historics', 'Error adding stats to historics ' + JSON.stringify(err));
-                }
-                else
-                    console.log("done");
+            var statHistoryCommands = [];
+            statHistoryCommands.push(['zadd', 'statHistory', statGatherTime, statString]);
+            statHistoryCommands.push(['zremrangebyscore', 'statHistory', '-inf', '(' + (configHelper.statHistoryLifetime)/1000]);
+            
+            if(globalOneHourCommands.length>0) statHistoryCommands = statHistoryCommands.concat(globalOneHourCommands);
+            if(workersOneHourCommands.length>0) statHistoryCommands = statHistoryCommands.concat(workersOneHourCommands);
+            console.log(statHistoryCommands);
+            // redisStats.multi(statHistoryCommands).exec(function(err, replies){
+            //     if (err){
+            //         //logger.error(logSystem, 'Historics', 'Error adding stats to historics ' + JSON.stringify(err));
+            //     }
+            //     else
+            //         console.log("done");
                 
-            });
+            // });
             
         });
     };
