@@ -212,6 +212,7 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
                     blocksPending:coinStats.blocks.pending,
                     blocksOrphaned:coinStats.blocks.orphaned,
                     blocksConfirmed:coinStats.blocks.confirmed,
+                    date:statGatherTime
                 }
                 globalOneHourCommands.push(['zadd',coinStats.name+':stat:global:hourly',statGatherTime,JSON.stringify(oneHourStat)]);
                 
@@ -236,7 +237,8 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
                         shares:coinStats.workers[worker].shares,
                         invalidShares:coinStats.workers[worker].invalidShares,
                         hashrateString:hashrateString,
-                        hashrate:hashrate
+                        hashrate:hashrate,
+                        date:statGatherTime
                     }
                     workersOneHourCommands.push(['zadd',coinStats.name+":workers:hourly"+worker,statGatherTime,JSON.stringify(workerData)])
                     coinStats.workers[worker].hashrateString = hashrateString
