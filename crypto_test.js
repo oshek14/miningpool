@@ -1,29 +1,42 @@
 var redis = require('redis');
 
-
+const jm = require('js-meter')
 var redisClient = redis.createClient("6777", "165.227.143.126");
+const isPrint = true
+const isMs = true       // or Second
+const isKb = true       // or Mb
+const m = new jm({isPrint, isMs, isKb})
+var array=[];
 
-var ob ={
-    workersCount:1,hashrateString:"6.11 GH",
-    hashrate:6108397932.088889,
-    shares:5120,
-    invalidShares:-34816,
-    blocksPending:2,
-    blocksOrphaned:11,
-    blocksConfirmed:302
+
+for(var i=0;i<200000;i++){
+    array.push(['zadd','bitcoin:blaxblux',Date.now(),i]);
 }
-var commands = [];
-redisClient.multi([
-    ['keys','bitcoin:stat:workers*'],
-]
-).exec(function(err,res){
-    for(var i=0;i<res[0].length;i++){
-        commands.push(['zrangebyscore',res[0][i],'-inf','+inf']);
-    }
-    redisClient.multi(commands).exec(function(err,res){
-        console.log(res);
-    })
+
+redisClient.multi(array).exec(function(err,res){
+    console.log("chavdevi");
+    const meter = m.stop()
 });
+
+
+
+
+// var redisClient = redis.createClient("6777", "165.227.143.126");
+
+// var ob ={
+//     workersCount:1,hashrateString:"6.11 GH",
+//     hashrate:6108397932.088889,
+//     shares:5120,
+//     invalidShares:-34816,
+//     blocksPending:2,
+//     blocksOrphaned:11,
+//     blocksConfirmed:302
+// }
+// var commands = [];
+// redisClient.multi([
+//     ['keys','bitcoin:stat:workers:hourly:*'],
+//     ['zrangebyscore','bitcoin:stat:global:hourly','-inf','+inf']
+// ]
 
 
 

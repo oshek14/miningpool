@@ -41,6 +41,7 @@
         "express": "^4.16.3",
         "express-handlebars": "^3.0.0",
         "extend": "*",
+        "js-meter": "^1.1.2",
         "mysql": "*",
         "node-json-minify": "*",
         "node-watch": "*",
