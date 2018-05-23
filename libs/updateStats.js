@@ -11,7 +11,7 @@ module.exports = function(logger){
     var logSystem = 'Stats';
 
     var redisClients = [];
-    var redisStats;
+    var redisStats = redis.createClient(portalConfig.redis.port, portalConfig.redis.host);
 
     
     Object.keys(poolConfigs).forEach(function(coin){
@@ -178,6 +178,7 @@ function saveStatsEveryInterval(portalConfig,poolConfigs,redisClients){
             });
 
             var statString = JSON.stringify(portalStats);
+            
             
             redisStats.multi([
                 ['zadd', 'statHistory', statGatherTime, statString],
