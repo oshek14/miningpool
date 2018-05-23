@@ -49,7 +49,6 @@ function calculateStatsForDay(portalConfig,poolConfigs,redisClients){
         redisStats.multi([
             ['zrangebyscore',coin_name+':stat:global:hourly','-inf','+inf'],
             ['zrangebyscore',coin_name+':stat:workers:hourly','-inf','+inf'],
-
         ])
     }
     // redisStats.zrangebyscore('stats:admin:eachHour','('+oneDayData,'+inf',function(err,res){
