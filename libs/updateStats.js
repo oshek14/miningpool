@@ -25,7 +25,7 @@ module.exports = function(logger){
     });
     // calculateStatsForDay(portalConfig,poolConfigs,redisClients);
     setInterval(function(){ 
-        saveStatsEveryInterval(portalConfig,poolConfigs,redisClients);
+        saveStatsEveryHour(portalConfig,poolConfigs,redisClients);
     }, configHelper.saveStatsTime*1000);
 }
 
