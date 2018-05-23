@@ -8,14 +8,23 @@ const isKb = true       // or Mb
 const m = new jm({isPrint, isMs, isKb})
 var array=[];
 
-
+var getCommands =[];
 for(var i=0;i<200000;i++){
-    array.push(['zadd','bitcoin:blaxblux',Date.now(),i]);
+    array.push(['zadd','bitcoin:blaxblux:'+i,Date.now(),i]);
 }
 
 redisClient.multi(array).exec(function(err,res){
-    console.log("chavdevi");
-    const meter = m.stop()
+    redisClient.keys('bitcoin:blaxblux:*',function(err,res){
+        for(var j=0;j<res.length;j++){
+            getCommands.push(res[j]);
+        }
+        redisClient.multi(getCommands).exec(function(err,res){
+            console.log("done");
+            const meter = m.stop()
+        })
+
+    })
+   
 });
 
 
