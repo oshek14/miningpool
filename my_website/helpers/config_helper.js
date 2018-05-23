@@ -11,8 +11,10 @@ JSON.minify = JSON.minify || require("node-json-minify");
 var configDir = "pool_configs/";
 var coinDir = "coins/";
 
-//every one hour data from hashrates moves to stat:admin:eachHour
+//every one hour data from hashrates moves to bitcoin:stat:global:hourly
 var hashRateStatTime = 3600*1000;
+var deleteHourlyRange = 24*3600*1000;
+
 //payouts older than 14 days are deleted
 var deleteOldPayouts = 14*24*3600*1000; 
 
@@ -26,6 +28,7 @@ module.exports = {
     deleteOldPayouts:deleteOldPayouts,
     hashRateStatTime:hashRateStatTime,
     statHistoryLifetime:statHistoryLifetime,
+    deleteHourlyRange:deleteHourlyRange,
     getPoolConfigs : function(callback){
         var poolConfigFiles=[];
         var configs=[];

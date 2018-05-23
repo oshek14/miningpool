@@ -12,13 +12,17 @@ var ob ={
     blocksOrphaned:11,
     blocksConfirmed:302
 }
-
+var commands = [];
 redisClient.multi([
-    ['zadd','bitcoin:stat:global:hourly',Date.now() / 1000 | 0, JSON.stringify(ob)],
+    ['keys','bitcoin:stat:workers*'],
 ]
 ).exec(function(err,res){
-    console.log(err);
-    console.log(res);
+    for(var i=0;i<res[0].length;i++){
+        commands.push(['zrangebyscore',res[0][i],'-inf','+inf']);
+    }
+    redisClient.multi(commands).exec(function(err,res){
+        console.log(res);
+    })
 });
 
 
