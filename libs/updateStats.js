@@ -83,9 +83,9 @@ function calculateStatsForDay(portalConfig,poolConfigs){
                             averageData.sharesCount += parsedData.sharesCount;
                         }
                        
-                        averageData.hashrate = Math.floor(averageData.hashrate,2);
+                        averageData.hashrate = Math.round(averageData.hashrate * 100) / 100
                         averageData.hashrateString = configHelper.getReadableHashRateString(averageData.hashrate);
-                        console.log(JSON.stringify(averageData));
+                        
                         workersGlobalCommands.push(['zadd',coin+':stat:workers:daily:'+worker,gatherTime,JSON.stringify(averageData)]);
                     }
                     redisClient.multi(workersGlobalCommands).exec(function(err,res){
@@ -224,33 +224,42 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
                 coinStats.workers = {};
                 coinStats.shares = 0;
                 coinStats.invalidShares=0;
-                coinStats.shareCount = 0;
+                coinStats.sharesCount = 0;
                 coinStats.invalidSharesCount = 0;
+
                 coinStats.hashrates.forEach(function(ins){
                     var parts = ins.split(':');
                     var workerShares = parseFloat(parts[0]);
                     var worker = parts[1];
                     if (workerShares > 0) {
                         coinStats.shares += workerShares;
-                        coinStats.shareCount++;
-                        if (worker in coinStats.workers)
+                        coinStats.sharesCount++;
+                        if (worker in coinStats.workers){
                             coinStats.workers[worker].shares += workerShares;
+                            coinStats.workers[worker].sharesCount++;
+                        }
                         else
                             coinStats.workers[worker] = {
                                 shares: workerShares,
-                                invalidshares: 0,
+                                sharesCount:1,
+                                invalidSharesCount:0,
+                                invalidShares: 0,
                                 hashrateString: null
                             };
                     }
                     else {
-                        coinStats.invalidShares += workerShares;
+                        coinStats.invalidShares -= workerShares;
                         coinStats.invalidSharesCount++;
-                        if (worker in coinStats.workers)
-                            coinStats.workers[worker].invalidshares -= workerShares; // workerShares is negative number!
+                        if (worker in coinStats.workers){
+                            coinStats.workers[worker].invalidShares -= workerShares;
+                            coinStats.workers[worker].invalidSharesCount++;
+                        }
                         else
                             coinStats.workers[worker] = {
                                 shares: 0,
-                                invalidshares: -workerShares,
+                                sharesCount:0,
+                                invalidSharesCount:1,
+                                invalidShares: -workerShares,
                                 hashrateString: null
                             };
                     }
@@ -266,9 +275,9 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
                 var oneHourStat = {
                     workersCount:coinStats.workerCount,
                     hashrateString:configHelper.getReadableHashRateString(coinStats.hashrate),
-                    hashrate:Math.floor(coinStats.hashrate,2),
+                    hashrate:Math.round(coinStats.hashrate * 100) / 100,
                     shares:coinStats.shares,
-                    sharesCount:coinStats.shareCount,
+                    sharesCount:coinStats.sharesCount,
                     invalidSharesCount:coinStats.invalidSharesCount,
                     invalidShares:coinStats.invalidShares,
                     blocksPending:coinStats.blocks.pending,
@@ -302,15 +311,19 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
                         workerData = {
                             shares:coinStats.workers[workersExisting[i]].shares,
                             invalidShares:coinStats.workers[workersExisting[i]].invalidshares,
+                            sharesCount:coinStats.workers[workersExisting[i]].sharesCount,
+                            invalidSharesCount:coinStats.workers[workersExisting[i]].invalidSharesCount,
                             hashrateString:hashrateString,
-                            hashrate:hashrate,
+                            hashrate:Math.round(hashrate * 100) / 100,
                             date:statGatherTime
                         }
                         coinStats.workers[workersExisting[i]].hashrateString = hashrateString;
                     }else{
                         workerData = {
                             shares:0,
+                            sharesCount:0,
                             invalidShares:0,
+                            invalidSharesCount:0,
                             hashrateString:"0",
                             hashrate:0,
                             date:statGatherTime
@@ -324,14 +337,11 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
                     
                 }
 
-
-                
-
-
-
-
                 delete coinStats.hashrates;
                 delete coinStats.shares;
+                delete coinStats.sharesCount;
+                delete coinStats.invalidSharesCount;
+                delete coinStats.invalidShares;
                 coinStats.hashrateString = configHelper.getReadableHashRateString(coinStats.hashrate);
             });
 
