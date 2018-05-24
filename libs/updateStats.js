@@ -45,90 +45,90 @@ function calculateStatsForDay(portalConfig,poolConfigs){
     var gatherTime = Date.now() / 1000 | 0;
     for(var j=0;j<Object.keys(poolConfigs).length;j++){
         var coin =Object.keys(poolConfigs)[j];
-        console.log(coin);
-    }
-    redisClient.multi([
-        ['smembers','bitcoin:existingWorkers'],
-        ['zrevrangebyscore','bitcoin:stat:global:hourly','+inf','-inf','limit', 0, 24]
-    ]
-    ).exec(function(err,res){
-            if(err){
-                //TODO
-            }else{
-            var globalHourly = res[1]
-            var workersKeys = res[0]
-    
-            var getCommandsQuery= []
-            for(var i=0;i<workersKeys.length;i++){
-                getCommandsQuery.push(['zrevrangebyscore', "bitcoin:stat:workers:hourly:"+workersKeys[i],'+inf','-inf', 'limit', 0, 24]);
-            }
-    
-            var workersGlobalCommands = [];
-            redisClient.multi(getCommandsQuery).exec(function(err,res){
-                for(var i=0; i<res.length; i++){
-                    var data = res[i];
-                    var worker = workersKeys[i]
-                    var averageData = {
-                        shares: 0,
-                        sharesCount:0,
-                        invalidSharesCount:0,
-                        invalidShares: 0,
-                        hashrate: 0,
-                        hashrateString:'0',
-                    }
-                    for (var j = 0; j < data.length; j++) {
-                        var parsedData = JSON.parse(data[j])
-                        averageData.shares += parsedData.shares;
-                        averageData.invalidShares += parsedData.invalidShares;
-                        averageData.hashrate += parsedData.hashrate / 24
-                        averageData.invalidSharesCount += parsedData.invalidSharesCount;
-                        averageData.sharesCount += parsedData.sharesCount;
-                    }
-                    averageData.hashrateString = configHelper.getReadableHashRateString(averageData.hashrate);
-                    workersGlobalCommands.push(['zadd','bitcoin:stat:workers:daily:'+worker,gatherTime,JSON.stringify(averageData)]);
+        redisClient.multi([
+            ['smembers',coin+':existingWorkers'],
+            ['zrevrangebyscore',coin+':stat:global:hourly','+inf','-inf','limit', 0, 24]
+        ]
+        ).exec(function(err,res){
+                if(err){
+                    //TODO
+                }else{
+                var globalHourly = res[1]
+                var workersKeys = res[0]
+        
+                var getCommandsQuery= []
+                for(var i=0;i<workersKeys.length;i++){
+                    getCommandsQuery.push(['zrevrangebyscore', coin+":stat:workers:hourly:"+workersKeys[i],'+inf','-inf', 'limit', 0, 24]);
                 }
-                redisClient.multi(workersGlobalCommands).exec(function(err,res){
-                    if(err){
-                        //TODO
+        
+                var workersGlobalCommands = [];
+                redisClient.multi(getCommandsQuery).exec(function(err,res){
+                    for(var i=0; i<res.length; i++){
+                        var data = res[i];
+                        var worker = workersKeys[i]
+                        var averageData = {
+                            shares: 0,
+                            sharesCount:0,
+                            invalidSharesCount:0,
+                            invalidShares: 0,
+                            hashrate: 0,
+                            hashrateString:'0',
+                        }
+                        for (var j = 0; j < data.length; j++) {
+                            var parsedData = JSON.parse(data[j])
+                            averageData.shares += parsedData.shares;
+                            averageData.invalidShares += parsedData.invalidShares;
+                            averageData.hashrate += parsedData.hashrate / 24
+                            averageData.invalidSharesCount += parsedData.invalidSharesCount;
+                            averageData.sharesCount += parsedData.sharesCount;
+                        }
+                        averageData.hashrate = Math.floor(averageData.hashrate,2);
+                        averageData.hashrateString = configHelper.getReadableHashRateString(averageData.hashrate);
+                        workersGlobalCommands.push(['zadd',coin+':stat:workers:daily:'+worker,gatherTime,JSON.stringify(averageData)]);
                     }
+                    redisClient.multi(workersGlobalCommands).exec(function(err,res){
+                        if(err){
+                            //TODO
+                        }
+                    })
                 })
-            })
-            
-            var globalDaily = {
-                workersCount: 0,
-                hashrate: 0,
-                invalidSharesCount:0,
-                sharesCount:0,
-                invalidShares: 0,
-                blocksPending: 0,
-                blocksOrphaned: 0,
-                blocksConfirmed: 0
-            }
+                
+                var globalDaily = {
+                    workersCount: 0,
+                    hashrate: 0,
+                    invalidSharesCount:0,
+                    sharesCount:0,
+                    invalidShares: 0,
+                    blocksPending: 0,
+                    blocksOrphaned: 0,
+                    blocksConfirmed: 0
+                }
 
 
-            for (var i = 0; i < globalHourly.length; i++) {
-                var parsedData = JSON.parse(globalHourly[i])
-                globalDaily.workersCount += parsedData.workersCount / 24
-                globalDaily.hashrate += parsedData.hashrate / 24
-                globalDaily.invalidShares += parsedData.invalidShares;
-                globalDaily.shares+=parsedData.shares;
-                globalDaily.invalidSharesCount += parsedData.invalidSharesCount;
-                globalDaily.sharesCount += parsedData.sharesCount;
-                if(i==globalHourly.length-1){
-                    globalDaily.blocksPending = parsedData.blocksPending;
-                    globalDaily.blocksOrphaned = parsedData.blocksOrphaned;
-                    globalDaily.blocksConfirmed = parsedData.blocksConfirmed;
-                }    
+                for (var i = 0; i < globalHourly.length; i++) {
+                    var parsedData = JSON.parse(globalHourly[i])
+                    globalDaily.workersCount += parsedData.workersCount / 24
+                    globalDaily.hashrate += parsedData.hashrate / 24
+                    globalDaily.invalidShares += parsedData.invalidShares;
+                    globalDaily.shares+=parsedData.shares;
+                    globalDaily.invalidSharesCount += parsedData.invalidSharesCount;
+                    globalDaily.sharesCount += parsedData.sharesCount;
+                    if(i==globalHourly.length-1){
+                        globalDaily.blocksPending = parsedData.blocksPending;
+                        globalDaily.blocksOrphaned = parsedData.blocksOrphaned;
+                        globalDaily.blocksConfirmed = parsedData.blocksConfirmed;
+                    }    
+                }
+                globalDaily.workersCount  = Math.ceil(globalDaily.workersCount);
+                globalDaily.hashrate = Math.floor(globalDaily.hashrate,2);
+                globalDaily.hashrateString = configHelper.getReadableHashRateString(globalDaily.hashrate);
+                var globalDailyCommands = ['zadd',coin+':stat:global:daily',gatherTime,JSON.stringify(globalDaily)];
+                redisClient.zadd(coin+':stat:global:daily',gatherTime,JSON.stringify(globalDaily),function(err,res){
+                    if(err){}//todo
+                });
             }
-            globalDaily.workersCount  = Math.ceil(globalDaily.workersCount);
-            globalDaily.hashrate = Math.floor(globalDaily.hashrate,2);
-            globalDaily.hashrateString = configHelper.getReadableHashRateString(globalDaily.hashrate);
-            var globalDailyCommands = ['zadd','bitcoin:stat:global:daily',gatherTime,JSON.stringify(globalDaily)];
-            redisClient.zadd('bitcoin:stat:global:daily',gatherTime,JSON.stringify(globalDaily),function(err,res){
-                if(err){}//todo
-            });
-        }
-    });
+        });
+    }
     
 }
 
@@ -264,7 +264,7 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
                 var oneHourStat = {
                     workersCount:coinStats.workerCount,
                     hashrateString:configHelper.getReadableHashRateString(coinStats.hashrate),
-                    hashrate:coinStats.hashrate,
+                    hashrate:Math.floor(coinStats.hashrate,2),
                     shares:coinStats.shares,
                     sharesCount:coinStats.shareCount,
                     invalidSharesCount:coinStats.invalidSharesCount,
