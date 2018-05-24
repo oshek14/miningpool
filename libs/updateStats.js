@@ -5,8 +5,6 @@ var async = require('async')
 module.exports = function(logger){
     var portalConfig = JSON.parse(process.env.portalConfig);
     var poolConfigs = JSON.parse(process.env.pools);
-
-   
     var redisClients = [];
     Object.keys(poolConfigs).forEach(function(coin){
         var poolConfig = poolConfigs[coin];
@@ -36,12 +34,11 @@ module.exports = function(logger){
 
 
 
-/* every 24 hour ,dear cronjob, come to this function,
+/*  every 24 hour ,dear cronjob, come to this function,
     get data from statHistoryOneHour, which must be approximatelly
     24 records and calculate average from them and save */
 function calculateStatsForDay(portalConfig,poolConfigs){
     var redisClient = redis.createClient(portalConfig.redis.port, portalConfig.redis.host);
-    
     var gatherTime = Date.now() / 1000 | 0;
     for(var j=0;j<Object.keys(poolConfigs).length;j++){
         var coin =Object.keys(poolConfigs)[j];
@@ -73,6 +70,7 @@ function calculateStatsForDay(portalConfig,poolConfigs){
                             invalidShares: 0,
                             hashrate: 0,
                             hashrateString:'0',
+                            date:gatherTime,
                         }
                         for (var j = 0; j < data.length; j++) {
                             var parsedData = JSON.parse(data[j])

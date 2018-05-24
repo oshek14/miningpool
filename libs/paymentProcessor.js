@@ -500,7 +500,6 @@ function SetupForPool(logger, poolOptions, setupFinished){
                     
                     /* transfer from pool address to users accounts */
                     daemon.cmd('sendmany', [addressAccount || '', addressAmounts], function (result) {
-
                         //Check if payments failed because wallet doesn't have enough coins to pay for tx fees
                         if (result.error && result.error.code === -6) {
                             var higherPercent = withholdPercent + 0.01;
