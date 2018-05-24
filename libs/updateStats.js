@@ -104,7 +104,8 @@ function calculateStatsForDay(portalConfig,poolConfigs){
                     invalidShares: 0,
                     blocksPending: 0,
                     blocksOrphaned: 0,
-                    blocksConfirmed: 0
+                    blocksConfirmed: 0,
+                    date:gatherTime,
                 }
 
 
