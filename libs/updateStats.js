@@ -97,6 +97,7 @@ function calculateStatsForDay(portalConfig,poolConfigs){
                 
                 var globalDaily = {
                     workersCount: 0,
+                    shares:0,
                     hashrate: 0,
                     invalidSharesCount:0,
                     sharesCount:0,
@@ -122,7 +123,7 @@ function calculateStatsForDay(portalConfig,poolConfigs){
                     }    
                 }
                 globalDaily.workersCount  = Math.ceil(globalDaily.workersCount);
-                globalDaily.hashrate = Math.floor(globalDaily.hashrate,2);
+                globalDaily.hashrate = Math.round(globalDaily.hashrate * 100)/100;
                 globalDaily.hashrateString = configHelper.getReadableHashRateString(globalDaily.hashrate);
                 var globalDailyCommands = ['zadd',coin+':stat:global:daily',gatherTime,JSON.stringify(globalDaily)];
                 redisClient.zadd(coin+':stat:global:daily',gatherTime,JSON.stringify(globalDaily),function(err,res){
