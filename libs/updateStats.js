@@ -76,6 +76,7 @@ function calculateStatsForDay(portalConfig,poolConfigs){
                         }
                         for (var j = 0; j < data.length; j++) {
                             var parsedData = JSON.parse(data[j])
+                            console.log(parsedData);
                             averageData.shares += parsedData.shares;
                             averageData.invalidShares += parsedData.invalidShares;
                             averageData.hashrate += parsedData.hashrate / 24
