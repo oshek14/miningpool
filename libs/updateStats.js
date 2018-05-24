@@ -30,6 +30,7 @@ module.exports = function(logger){
     setInterval(function(){
         saveStatsEveryHour(portalConfig,poolConfigs,redisClients);
         calculateStatsForDay(portalConfig,poolConfigs);
+        
         fileLogger.floger(logLevels.error, "something", logFilePath)
     },2000);
 }
