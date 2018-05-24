@@ -13,10 +13,13 @@ router.all("/*",(req,res,next)=>{
 
 router.get('/workers_graph',(req,res)=>{
     console.log(req.query)
-    // configHelper.getWorkersCount(req.query.distance,req.query.diff,req.query.dates,req.query.coins,function(result){
-    //     console.log(result);
-    //     res.send({status:200,data:result});
-    // })
+    var coins = Object.keys(req.query.coins)
+    var timeInterval = req.query.type.name
+    var intervalCounts = req.query.type.intervals
+    configHelper.getWorkersCount(coins, timeInterval, intervalCounts, function(result) {
+        console.log(result)
+        res.send({status:200,data:result});
+    })
 })
 module.exports = router;
 

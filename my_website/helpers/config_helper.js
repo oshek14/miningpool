@@ -196,10 +196,18 @@ module.exports = {
 
   
 
-    getWorkersCount:function(distance, type, coins, callback){
+    getWorkersCount:function(coins, timeInterval, intervalCounts, callback){
         var redisClient = redis.createClient("6777",'165.227.143.126');
-        let result = []
-        
+        console.log(coins)
+        console.log(timeInterval)
+        var redisComands = []
+        for (var i = 0; i < coins.length; i++) {
+            var coin = coins[i]
+            redisComands.push(['zrevrangebyscore', coin + ":stat:global:" + timeInterval, '+inf', '-inf', 'limit', 0, intervalCounts])
+        }
+        redisClient.multi(redisComands).exec(function(err, res) {
+            callback(res)
+        })
     }
 }
 
