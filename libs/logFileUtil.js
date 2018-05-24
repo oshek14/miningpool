@@ -9,7 +9,7 @@ const levels = {
 }
 
 const filePathes = {
-    test: path.join(__dirname, 'testLogs.log'),
+    updateStats: path.join(__dirname, '/../logs/updateStats.log'),
 }
 
 

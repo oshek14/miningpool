@@ -2,6 +2,11 @@ const configHelper = require('../my_website/helpers/config_helper');
 var algos = require('stratum-pool/lib/algoProperties.js');
 var redis = require('redis');
 var async = require('async')
+var fileLogger = require('../libs/logFileUtil')
+
+var logLevels = fileLogger.levels
+var logFilePath = fileLogger.filePathes.updateStats
+
 module.exports = function(logger){
     var portalConfig = JSON.parse(process.env.portalConfig);
     var poolConfigs = JSON.parse(process.env.pools);
@@ -22,14 +27,11 @@ module.exports = function(logger){
         });
     });
     
-    
-    
     setInterval(function(){
         saveStatsEveryHour(portalConfig,poolConfigs,redisClients);
         calculateStatsForDay(portalConfig,poolConfigs);
+        fileLogger.fileLogger(logLevels.error, "something", logFilePath)
     },2000);
-    
-    
 }
 
 
@@ -49,6 +51,7 @@ function calculateStatsForDay(portalConfig,poolConfigs){
         ).exec(function(err,res){
                 if(err){
                     //TODO
+                    
                 }else{
                 var globalHourly = res[1]
                 var workersKeys = res[0]
@@ -126,7 +129,9 @@ function calculateStatsForDay(portalConfig,poolConfigs){
                 globalDaily.hashrateString = configHelper.getReadableHashRateString(globalDaily.hashrate);
                 var globalDailyCommands = ['zadd',coin+':stat:global:daily',gatherTime,JSON.stringify(globalDaily)];
                 redisClient.zadd(coin+':stat:global:daily',gatherTime,JSON.stringify(globalDaily),function(err,res){
-                    if(err){}//todo
+                    if(err){
+
+                    }
                 });
             }
         });
@@ -171,7 +176,7 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
         client.client.multi(redisCommands).exec(function(err, replies){
             if (err){
                 //TODO
-                //logger.error(logSystem, 'Global', 'error with getting global stats ' + JSON.stringify(err));
+                logger.error(logSystem, 'Global', 'error with getting global stats ' + JSON.stringify(err));
                 callback(err);
             }
             else{
@@ -204,7 +209,7 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
     }, function(err){
             if (err){
                 //TODO 
-                //logger.error(logSystem, 'Global', 'error getting all stats' + JSON.stringify(err));
+                logger.error(logSystem, 'Global', 'error getting all stats' + JSON.stringify(err));
                 callback();
                 return;
             }
