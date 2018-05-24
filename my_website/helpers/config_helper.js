@@ -10,18 +10,25 @@ JSON.minify = JSON.minify || require("node-json-minify");
 
 var configDir = "pool_configs/";
 var coinDir = "coins/";
-var hashRateStatTime = 3600*1000;  //how many days worth of share to show for each pool
-var saveStatsTime = 5; //howmany seconds worth of stats to save in statHistory
-var deleteOldPayouts = 14*24*3600*1000; //howmany days data we save for last payouts.
+
+//every one hour data from hashrates moves to bitcoin:stat:global:hourly
+var hashRateStatTime = 3600*1000;
+var deleteHourlyRange = 24*3600*1000;
+
+//payouts older than 14 days are deleted
+var deleteOldPayouts = 14*24*3600*1000; 
+
+//statHistoris older than 30 days get deleted;
 var statHistoryLifetime = 30*24*3600*1000;
+
 var portalConfig = JSON.parse(JSON.minify(fs.readFileSync("config.json", {encoding: 'utf8'})));
 
 module.exports = {
     configDir:configDir,
-    saveStatsTime:saveStatsTime,
     deleteOldPayouts:deleteOldPayouts,
     hashRateStatTime:hashRateStatTime,
     statHistoryLifetime:statHistoryLifetime,
+    deleteHourlyRange:deleteHourlyRange,
     getPoolConfigs : function(callback){
         var poolConfigFiles=[];
         var configs=[];
@@ -67,7 +74,7 @@ module.exports = {
         return hashrate.toFixed(2) + byteUnits[i];
     },
 
-    getCoinStats:function(pool_configs,statTime,callback){
+    getCoinStats:function(pool_configs,callback){
         var poolConfigsData = {};
         var coinStats = {};
         var redisClient = redis.createClient("6777",'165.227.143.126');
@@ -77,11 +84,11 @@ module.exports = {
         for(var i=0;i<Object.keys(data).length;i++){
             var coin_name  = Object.keys(data)[i]; // bitcoin
             var tabStatsCommand = [
-                ['zrangebyscore', coin_name+':hashrate', (Date.now() -  statTime)/1000, '+inf'],
                 ['hgetall', coin_name+':stats'],
                 ['scard', coin_name+':blocksPending'],
                 ['scard', coin_name+':blocksConfirmed'],
-                ['scard', coin_name+':blocksKicked']
+                ['scard', coin_name+':blocksKicked'],
+                ['scard', coin_name+':blocksOrphaned'],
             ];
             redisCommands = redisCommands.concat(tabStatsCommand);
         }
@@ -96,42 +103,23 @@ module.exports = {
                 for(var i=0;i<Object.keys(data).length;i++){
                     var coin_name  = Object.keys(data)[i];
                     var algorithm = data[coin_name].coin.algorithm;
-                    var hashratesPerCoin = res[i*commandsPerCoin];
-                    var workersSet = new Set;
-                    var shares = 0;
-                    hashratesPerCoin.forEach(minerRate => {
-                        var miner_address = minerRate.split(":")[1];
-                        var difficulty = parseFloat(minerRate.split(":")[0]);
-                        if(difficulty > 0) shares+=difficulty;
-                        workersSet.add(miner_address);
-                    });
-
-                    var workersCount = workersSet.size;
-                    delete workersSet;
-
-                    //var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
-                    var shareMultiplier = 12123;
-                    var hashrate = shareMultiplier * shares / (statTime / 1000);
-                    // var hashrate = 1412122;
                     coinStats[coin_name] = {
                         blocks:{
-                            pendingCount:res[i*commandsPerCoin+2],
-                            confirmedCount: res[i*commandsPerCoin+3],
-                            orphanedOrKicked:res[i*commandsPerCoin+4],
+                            pendingCount:res[i*commandsPerCoin+1],
+                            confirmedCount: res[i*commandsPerCoin+2],
+                            kickedCount:res[i*commandsPerCoin+3],
+                            orphanedCount:res[i*commandsPerCoin+4]
                         },
                         
                         stats:{
-                            validShares:res[i*commandsPerCoin+1] ? (res[i*commandsPerCoin+1].validShares || 0) :0,
-                            invalidShares:res[i*commandsPerCoin+1] ? (res[i*commandsPerCoin+1].invalidShares || 0) :0,
-                            validBlocks:res[i*commandsPerCoin+1] ? (res[i*commandsPerCoin+1].validBlocks || 0) :0,
-                            totalPaid:res[i*commandsPerCoin+1] ? (res[i*commandsPerCoin+1].totalPaid || 0) :0,
+                            validShares:res[i*commandsPerCoin] ? (res[i*commandsPerCoin].validShares || 0) :0,
+                            invalidShares:res[i*commandsPerCoin] ? (res[i*commandsPerCoin].invalidShares || 0) :0,
+                            validBlocks:res[i*commandsPerCoin] ? (res[i*commandsPerCoin].validBlocks || 0) :0,
+                            totalPaid:res[i*commandsPerCoin] ? (res[i*commandsPerCoin].totalPaid || 0) :0,
                         },
                         algorithm:algorithm,
                         symbol:data[coin_name].coin.symbol.toUpperCase(),
-                        hashrate:hashrate,
-                        hashrates:hashratesPerCoin,
-                        algorithm:algorithm,
-                        workersCount:workersCount,
+                        
                     }
                 }
 
@@ -209,44 +197,10 @@ module.exports = {
 
   
 
-    getWorkersCount:function(distance,diff, dates, coins,callback){
+    getWorkersCount:function(distance, type, coins, callback){
         var redisClient = redis.createClient("6777",'165.227.143.126');
         let result = []
-        redisClient.ZRANGEBYSCORE('statHistory', (Date.now() -distance) / 1000, Date.now()/1000, function(err, res) {
-            let dataRet = {}
-            for (let k = 0; k < Object.keys(coins).length; k++) {
-                const coinName = Object.keys(coins)[k]
-                let result = []
-                for (let i = 0; i < dates.length; i++) {
-                    const upperDate = Math.floor((Date.now() - dates[i]) / 1000)
-                    const lowerDate = Math.floor((Date.now() - dates[i] - diff) / 1000)
-                    const resultItem = {
-                        workersSum: 0,
-                        count: 0
-                    }
-                    for (let j = 0; j < res.length; j++) {
-                        const itemParsed = JSON.parse(res[j])
-                        const itemTime = itemParsed.time
-                        if (itemTime >= lowerDate && itemTime <= upperDate) {
-                            if (itemParsed.pools[coinName]) {
-                                resultItem.workersSum += itemParsed.pools[coinName].workerCount
-                                resultItem.count ++
-                            }
-                        }
-                    }
-                    result.push(resultItem)
-                }
-                
-                let finalResult = []
-                for (let i = 0; i < result.length; i++) {
-                    finalResult.push(Math.ceil(result[i].workersSum / (result[i].count | 1)))
-                }
-                dataRet[coinName] = finalResult
-            }
-            callback(dataRet);
-       
-        });
-
+        
     }
 }
 

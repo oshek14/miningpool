@@ -12,10 +12,11 @@ router.all("/*",(req,res,next)=>{
 })
 
 router.get('/workers_graph',(req,res)=>{
-    configHelper.getWorkersCount(req.query.distance,req.query.diff,req.query.dates,req.query.coins,function(result){
-        console.log(result);
-        res.send({status:200,data:result});
-    })
+    console.log(req.query)
+    // configHelper.getWorkersCount(req.query.distance,req.query.diff,req.query.dates,req.query.coins,function(result){
+    //     console.log(result);
+    //     res.send({status:200,data:result});
+    // })
 })
 module.exports = router;
 

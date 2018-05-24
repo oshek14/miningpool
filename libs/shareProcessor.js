@@ -80,7 +80,7 @@ module.exports = function(logger, poolConfig){
             blockHash: undefined,
             blockHashInvalid: undefined 
         } */
-
+        
         var redisCommands = [];
         
         if (isValidShare){

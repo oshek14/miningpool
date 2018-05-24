@@ -23,7 +23,6 @@ module.exports = function(logger){
     //Handle messages from master process sent via IPC
     process.on('message', function(message) {
         switch(message.type){
-
             case 'banIP':
                 for (var p in pools){
                     if (pools[p].stratumServer)
@@ -127,77 +126,54 @@ module.exports = function(logger){
 
         //Functions required for internal payment processing
         else{
-
+            var redisClient = redis.createClient("6777", "165.227.143.126");
             var shareProcessor = new ShareProcessor(logger, poolOptions);
 
             handlers.auth = function(port, workerName, password, authCallback){
                 if (poolOptions.validateWorkerUsername !== true)
                     authCallback(true);
                 else {
-                    var getUser = workerName.split(".");
-                    var userAddress;
-                    var redisClient = redis.createClient("6777", "165.227.143.126");
-                    if(getUser.length == 1) {
-
-                        redisClient.hget("users",getUser[0],function(err,res){
-
-                            if(err || res == null){
-                  
-                                authCallback(false);
-                            } else{
+                    var user_name=null,worker_name=null,user_address=null;
                     
-                                var parsedData = JSON.parse(res);
-                                // if(password != parsedData.password){
-                                //     authCallback(false);
-                                // }
-                                // else{
-                                userAddress = parsedData.address;
-                                    //default
-                                // }
-                            }
-                        })
-                       
-                    }else{
-                        var userName = getUser[0];
-                        var workerName = getUser[1];
-              
-                        redisClient.hget("users",userName,function(err,res){
-                            if(err || res == null){
-                     
+                    var getUser = workerName.split(".");
+                    user_name = getUser[0];
+                    if(getUser.length > 1) worker_name = getUser[1];
+
+                    redisClient.hget("users",user_name,function(err,res){
+                        if(err || res == null){
+                            authCallback(false);
+                        } else{ 
+                            var parsedData = JSON.parse(res);
+                            user_address = parsedData.address;
+                            if(password != "x" &&  password != "123" && password != parsedData.password){
                                 authCallback(false);
-                            } else{
-                                var parsedData = JSON.parse(res);
-                                userAddress = parsedData.address;
-                                // if(password != parsedData.password){
-                                //     authCallback(false);
-                                // }
+                            }
+                            if(worker_name == null || !parsedData.workers.includes(worker_name)){
+                                //default
+                            }
 
-                                if(!parsedData.workers.includes(workerName)){
-                                    //default
 
+                            if (user_address.length === 40) {
+                                try {
+                                    new Buffer(user_address, 'hex');
+                                    authCallback(true);
+                                }
+                                catch (e) {
+                                    authCallback(false);
                                 }
                             }
-                        })
-                    }
-
-                    if (userAddress.length === 40) {
-                        try {
-                            new Buffer(userAddress, 'hex');
-                            authCallback(true);
+                            else {
+                                pool.daemon.cmd('validateaddress', [user_address], function (results) {
+                                    var isValid = results.filter(function (r) {
+                                        return r.response.isvalid
+                                    }).length > 0;
+                                    
+                                    authCallback(isValid);
+                                });
+                            }
+                            
                         }
-                        catch (e) {
-                            authCallback(false);
-                        }
-                    }
-                    else {
-                        pool.daemon.cmd('validateaddress', [userAddress], function (results) {
-                            var isValid = results.filter(function (r) {
-                                return r.response.isvalid
-                            }).length > 0;
-                            authCallback(isValid);
-                        });
-                    }
-
+                    });
                 }
             };
 
@@ -208,10 +184,7 @@ module.exports = function(logger){
 
         var authorizeFN = function (ip, port, workerName, password, callback) {
             handlers.auth(port, workerName, password, function(authorized){
-
                 var authString = authorized ? 'Authorized' : 'Unauthorized ';
-                console.log("this is george and this is the way how it shows us if it's connected",authorized);
-
                 logger.debug(logSystem, logComponent, logSubCat, authString + ' ' + workerName + ':' + password + ' [' + ip + ']');
                 callback({
                     error: null,
@@ -226,7 +199,7 @@ module.exports = function(logger){
         pool.on('share', function(isValidShare, isValidBlock, data){
 
             var shareData = JSON.stringify(data);
-            
+           
             if (data.blockHash && !isValidBlock)
                 logger.debug(logSystem, logComponent, logSubCat, 'We thought a block was found but it was rejected by the daemon, share data: ' + shareData);
 
@@ -243,6 +216,7 @@ module.exports = function(logger){
             } else if (!isValidShare)
                 logger.debug(logSystem, logComponent, logSubCat, 'Share rejected: ' + shareData);
 
+          
             handlers.share(isValidShare, isValidBlock, data)
 
 
@@ -380,3 +354,6 @@ module.exports = function(logger){
         });
     };
 };
+
+
+
