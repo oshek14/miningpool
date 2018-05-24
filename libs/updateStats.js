@@ -43,7 +43,10 @@ function calculateStatsForDay(portalConfig,poolConfigs){
     var redisClient = redis.createClient(portalConfig.redis.port, portalConfig.redis.host);
     
     var gatherTime = Date.now() / 1000 | 0;
-    var oneDayData = (gatherTime-24*3600);
+    for(var j=0;j<Object.keys(poolConfigs).length;j++){
+        var coin =Object.keys(poolConfigs)[j];
+        console.log(coin);
+    }
     redisClient.multi([
         ['smembers','bitcoin:existingWorkers'],
         ['zrevrangebyscore','bitcoin:stat:global:hourly','+inf','-inf','limit', 0, 24]
