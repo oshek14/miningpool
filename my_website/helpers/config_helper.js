@@ -200,6 +200,7 @@ module.exports = {
         var redisClient = redis.createClient("6777",'165.227.143.126');
         console.log(coins)
         console.log(timeInterval)
+        console.log(intervalCounts)
         var redisComands = []
         for (var i = 0; i < coins.length; i++) {
             var coin = coins[i]

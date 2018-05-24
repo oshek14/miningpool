@@ -16,7 +16,7 @@ router.get('/workers_graph',(req,res)=>{
     var timeInterval = req.query.type.name
     var intervalCounts = req.query.type.intervals
     configHelper.getWorkersCount(coins, timeInterval, intervalCounts, function(result) {
-        res.send({status:200,data:result});
+        res.send({status:200,data:result,timeInterval: req.query.type});
     })
 })
 module.exports = router;
