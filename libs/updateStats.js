@@ -64,15 +64,19 @@ function calculateStatsForDay(portalConfig,poolConfigs){
                     var worker = workersKeys[i]
                     var averageData = {
                         shares: 0,
+                        sharesCount:0,
+                        invalidSharesCount:0,
                         invalidShares: 0,
                         hashrate: 0,
                         hashrateString:'0',
                     }
                     for (var j = 0; j < data.length; j++) {
                         var parsedData = JSON.parse(data[j])
-                        averageData.shares += parsedData.shares / 24
-                        averageData.invalidShares += parsedData.invalidShares / 24
+                        averageData.shares += parsedData.shares;
+                        averageData.invalidShares += parsedData.invalidShares;
                         averageData.hashrate += parsedData.hashrate / 24
+                        averageData.invalidSharesCount += parsedData.invalidSharesCount;
+                        averageData.sharesCount += parsedData.sharesCount;
                     }
                     averageData.hashrateString = configHelper.getReadableHashRateString(averageData.hashrate);
                     workersGlobalCommands.push(['zadd','bitcoin:stat:workers:daily:'+worker,gatherTime,JSON.stringify(averageData)]);
@@ -87,20 +91,31 @@ function calculateStatsForDay(portalConfig,poolConfigs){
             var globalDaily = {
                 workersCount: 0,
                 hashrate: 0,
+                invalidSharesCount:0,
+                sharesCount:0,
                 invalidShares: 0,
                 blocksPending: 0,
                 blocksOrphaned: 0,
                 blocksConfirmed: 0
             }
+
+
             for (var i = 0; i < globalHourly.length; i++) {
                 var parsedData = JSON.parse(globalHourly[i])
                 globalDaily.workersCount += parsedData.workersCount / 24
                 globalDaily.hashrate += parsedData.hashrate / 24
-                globalDaily.invalidShares += parsedData.invalidShares / 24
-                globalDaily.blocksPending += parsedData.blocksPending / 24
-                globalDaily.blocksOrphaned += parsedData.blocksOrphaned / 24
-                globalDaily.blocksConfirmed += parsedData.blocksConfirmed / 24
+                globalDaily.invalidShares += parsedData.invalidShares;
+                globalDaily.shares+=parsedData.shares;
+                globalDaily.invalidSharesCount += parsedData.invalidSharesCount;
+                globalDaily.sharesCount += parsedData.sharesCount;
+                if(i==globalHourly.length-1){
+                    globalDaily.blocksPending = parsedData.blocksPending;
+                    globalDaily.blocksOrphaned = parsedData.blocksOrphaned;
+                    globalDaily.blocksConfirmed = parsedData.blocksConfirmed;
+                }    
             }
+            globalDaily.workersCount  = Math.ceil(globalDaily.workersCount);
+            globalDaily.hashrate = Math.floor(globalDaily.hashrate,2);
             globalDaily.hashrateString = configHelper.getReadableHashRateString(globalDaily.hashrate);
             var globalDailyCommands = ['zadd','bitcoin:stat:global:daily',gatherTime,JSON.stringify(globalDaily)];
             redisClient.zadd('bitcoin:stat:global:daily',gatherTime,JSON.stringify(globalDaily),function(err,res){
@@ -201,12 +216,15 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
                 coinStats.workers = {};
                 coinStats.shares = 0;
                 coinStats.invalidShares=0;
+                coinStats.shareCount = 0;
+                coinStats.invalidSharesCount = 0;
                 coinStats.hashrates.forEach(function(ins){
                     var parts = ins.split(':');
                     var workerShares = parseFloat(parts[0]);
                     var worker = parts[1];
                     if (workerShares > 0) {
                         coinStats.shares += workerShares;
+                        coinStats.shareCount++;
                         if (worker in coinStats.workers)
                             coinStats.workers[worker].shares += workerShares;
                         else
@@ -218,6 +236,7 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
                     }
                     else {
                         coinStats.invalidShares += workerShares;
+                        coinStats.invalidSharesCount++;
                         if (worker in coinStats.workers)
                             coinStats.workers[worker].invalidshares -= workerShares; // workerShares is negative number!
                         else
@@ -241,6 +260,8 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
                     hashrateString:configHelper.getReadableHashRateString(coinStats.hashrate),
                     hashrate:coinStats.hashrate,
                     shares:coinStats.shares,
+                    sharesCount:coinStats.shareCount,
+                    invalidSharesCount:coinStats.invalidSharesCount,
                     invalidShares:coinStats.invalidShares,
                     blocksPending:coinStats.blocks.pending,
                     blocksOrphaned:coinStats.blocks.orphaned,
