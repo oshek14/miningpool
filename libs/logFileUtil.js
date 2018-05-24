@@ -14,6 +14,8 @@ const filePathes = {
 
 
 var FileLogger = function(type, text, filename ) {
+    console.log(type, text, filename)
+
     var entryDesc = '[ ' + dateFormat(new Date(), 'yyyy-mm-dd HH:MM:ss') + ' ]' + '\t';
     entryDesc += " - "
     entryDesc += text

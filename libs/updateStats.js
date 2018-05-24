@@ -2,10 +2,10 @@ const configHelper = require('../my_website/helpers/config_helper');
 var algos = require('stratum-pool/lib/algoProperties.js');
 var redis = require('redis');
 var async = require('async')
-var fileLogger = require('../libs/logFileUtil')
+var floger = require('../libs/logFileUtil')
 
-var logLevels = fileLogger.levels
-var logFilePath = fileLogger.filePathes.updateStats
+var logLevels = floger.levels
+var logFilePath = floger.filePathes.updateStats
 
 module.exports = function(logger){
     var portalConfig = JSON.parse(process.env.portalConfig);
@@ -30,7 +30,7 @@ module.exports = function(logger){
     setInterval(function(){
         saveStatsEveryHour(portalConfig,poolConfigs,redisClients);
         calculateStatsForDay(portalConfig,poolConfigs);
-        fileLogger.fileLogger(logLevels.error, "something", logFilePath)
+        fileLogger.floger(logLevels.error, "something", logFilePath)
     },2000);
 }
 
