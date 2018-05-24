@@ -206,7 +206,11 @@ module.exports = {
             redisComands.push(['zrevrangebyscore', coin + ":stat:global:" + timeInterval, '+inf', '-inf', 'limit', 0, intervalCounts])
         }
         redisClient.multi(redisComands).exec(function(err, res) {
-            callback(res)
+            var resultRes = {}
+            for (var i = 0; i < res.length; i++) {
+                resultRes[coins[i]] = res[i]
+            }
+            callback(resultRes)
         })
     }
 }
