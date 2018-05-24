@@ -62,7 +62,7 @@ function calculateStatsForDay(portalConfig,poolConfigs){
                 for(var i=0; i<res.length; i++){
                     var data = res[i];
                     var worker = workersKeys[i]
-                    var avarageData = {
+                    var averageData = {
                         shares: 0,
                         invalidShares: 0,
                         hashrate: 0,
@@ -70,11 +70,11 @@ function calculateStatsForDay(portalConfig,poolConfigs){
                     }
                     for (var j = 0; j < data.length; j++) {
                         var parsedData = JSON.parse(data[j])
-                        avarageData.shares += parsedData.shares / 24
-                        avarageData.invalidShares += parsedData.invalidShares / 24
-                        avarageData.hashrate += parsedData.hashrate / 24
+                        averageData.shares += parsedData.shares / 24
+                        averageData.invalidShares += parsedData.invalidShares / 24
+                        averageData.hashrate += parsedData.hashrate / 24
                     }
-                    avarageData.hashrateString = configHelper.getReadableHashRateString(averageData.hashrate);
+                    averageData.hashrateString = configHelper.getReadableHashRateString(averageData.hashrate);
                     workersGlobalCommands.push(['zadd','bitcoin:stat:workers:daily:'+worker,gatherTime,JSON.stringify(averageData)]);
                 }
                 redisClient.multi(workersGlobalCommands).exec(function(err,res){
