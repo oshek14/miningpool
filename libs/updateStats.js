@@ -76,13 +76,13 @@ function calculateStatsForDay(portalConfig,poolConfigs){
                         }
                         for (var j = 0; j < data.length; j++) {
                             var parsedData = JSON.parse(data[j])
-                            console.log(parsedData);
                             averageData.shares += parsedData.shares;
                             averageData.invalidShares += parsedData.invalidShares;
                             averageData.hashrate += parsedData.hashrate / 24
                             averageData.invalidSharesCount += parsedData.invalidSharesCount;
                             averageData.sharesCount += parsedData.sharesCount;
                         }
+                        console.log(averageData.shares);
                         averageData.hashrate = Math.floor(averageData.hashrate,2);
                         averageData.hashrateString = configHelper.getReadableHashRateString(averageData.hashrate);
                         workersGlobalCommands.push(['zadd',coin+':stat:workers:daily:'+worker,gatherTime,JSON.stringify(averageData)]);
