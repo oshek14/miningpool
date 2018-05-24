@@ -4,42 +4,48 @@ var redis = require('redis');
 
 var redisClient = redis.createClient("6777", "165.227.143.126");
 
-// const jm = require('js-meter')
-// const isPrint = true
-// const isMs = true       // or Second
-// const isKb = true       // or Mb
-// const m = new jm({isPrint, isMs, isKb})
+const jm = require('js-meter')
+const isPrint = true
+const isMs = true       // or Second
+const isKb = true       // or Mb
+const m = new jm({isPrint, isMs, isKb})
 
 
-// var c = [];
-// for(var j=0;j<300000;j++){
-//     c.push(['zadd','bitcoin:stat:workers:hourly:'+j,Date.now()/1000,'1']);
-    
+//  var c = [];
+// var object = {
+//     shares:0,
+//     invalidShares:0,
+//     hashrate:5,
+//     hashrateString:0,
+// }
+// for(var j=0;j<200000;j++){
+//     c.push(['zadd','bitcoin:stat:workers:hourly'+j,Date.now()/1000,JSON.stringify(object)]);
 // }
 
+// redisClient.multi(c).exec(function(err,res){
+//     const meter = m.stop()
+// })
 redisClient.multi([
-    ['keys','bitcoin:stat:workers:hourly:*'],
+    ['smembers','bitcoin:existingWorkers'],
     ['zrangebyscore','bitcoin:stat:global:hourly','-inf','+inf']
 ]
 ).exec(function(err,res){
-    if(err){
+        if(err){
 
-    }else{
+        }else{
         var globalHourly = res[1]
         var workersKeys = res[0]
 
         var getCommandsQuery= []
-        var parsedWorkerKeys = []
         for(var i=0;i<workersKeys.length;i++){
-            getCommandsQuery.push(['zrevrangebyscore', workersKeys[i],'+inf','-inf', 'limit', 0, 24]);
-            parsedWorkerKeys.push(workersKeys[i].split(':')[4])
+            getCommandsQuery.push(['zrevrangebyscore', "bitcoin:stat:workers:hourly:"+workersKeys[i],'+inf','-inf', 'limit', 0, 24]);
         }
 
         var workersData = {}
         redisClient.multi(getCommandsQuery).exec(function(err,res){
             for(var i=0; i<res.length; i++){
                 var data = res[i];
-                var worker = parsedWorkerKeys[i]
+                var worker = workersKeys[i]
                 var avarageData = {
                     shares: 0,
                     invalidShares: 0,
@@ -53,13 +59,16 @@ redisClient.multi([
                 }
                 //calculate hashrateString
                 workersData[worker] = avarageData
+                
                 //console.log(workersData)
                 //TODO
             }
+            const meter = m.stop()
         })
+        
 
 
-        //mgoni blockebs hourly shi arasworad itvlis
+       // mgoni blockebs hourly shi arasworad itvlis
         var globalDaily = {
             workersCount: 0,
             hashrate: 0,
@@ -77,8 +86,7 @@ redisClient.multi([
             globalDaily.blocksOrphaned += parsedData.blocksOrphaned / 24
             globalDaily.blocksConfirmed += parsedData.blocksConfirmed / 24
         }
-        //calculate hashrateString
-        console.log(globalDaily)
+        
         //TODO
         
     }

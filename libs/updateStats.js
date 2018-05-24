@@ -24,12 +24,10 @@ module.exports = function(logger){
         });
     });
     
-    //setInterval(calculateStatsForDay(portalConfig,poolConfigs,redisClients),1000);
-    //saveStatsEveryHour(portalConfig,poolConfigs,redisClients);
-    //calculateStatsForDay(portalConfig,poolConfigs,redisClients);
-    setInterval(function(){
-        saveStatsEveryHour(portalConfig,poolConfigs,redisClients)   
-    }, 2000);
+    
+    calculateStatsForDay(portalConfig,poolConfigs);
+    saveStatsEveryHour(portalConfig,poolConfigs,redisClients)  
+    
     
 }
 
@@ -38,59 +36,79 @@ module.exports = function(logger){
 /* every 24 hour ,dear cronjob, come to this function,
     get data from statHistoryOneHour, which must be approximatelly
     24 records and calculate average from them and save */
-function calculateStatsForDay(portalConfig,poolConfigs,redisClients){
-    var redisStats = redis.createClient(portalConfig.redis.port, portalConfig.redis.host);
-    var oneDayStats = {};
+function calculateStatsForDay(portalConfig,poolConfigs){
+    var redisClient = redis.createClient(portalConfig.redis.port, portalConfig.redis.host);
+    
     var gatherTime = Date.now() / 1000 | 0;
     var oneDayData = (gatherTime-24*3600);
-    for(var i=0;i<Object.keys(poolConfigs).length;i++){
-        var coin = poolConfigs[Object.keys(poolConfigs)[i]];
-        var coin_name = coin.coin.name;
-        redisStats.multi([
-            ['zrangebyscore',coin_name+':stat:global:hourly','-inf','+inf'],
-            ['zrangebyscore',coin_name+':stat:workers:hourly','-inf','+inf'],
-        ])
-    }
-    // redisStats.zrangebyscore('stats:admin:eachHour','('+oneDayData,'+inf',function(err,res){
-    //     for(var i=0;i<Object.keys(poolConfigs).length;i++){
-
-    //     }
-        // if(!err && res!=null){
-        //     var howManyHours = res.length;
-        //     for(var i=0;i<res.length;i++){
-        //         var stats = JSON.parse(res[i]);
-        //         for(var j=0;j<Object.keys(stats).length;j++){
-        //             var coin_name = Object.keys(stats)[j];
-        //             var workerCount =stats[coin_name].workersCount;
-        //             var hashrate  = stats[coin_name].hashrate;
-        //             if(coin_name in oneDayStats){ 
-        //                 oneDayStats[coin_name].workersCount+=(workerCount / howManyHours);
-        //                 oneDayStats[coin_name].hashrate+=(hashrate / howManyHours);
-        //                 oneDayStats[coin_name].blocksPending+= (oneDayStats[coin_name].blocksPending)/howManyHours;
-        //                 oneDayStats[coin_name].blocksConfirmed+= (oneDayStats[coin_name].blocksConfirmed)/howManyHours;
-        //                 oneDayStats[coin_name].blocksOrphaned+= (oneDayStats[coin_name].blocksOrphaned)/howManyHours;
-        //             }else{
-        //                 oneDayStats[coin_name] = {
-        //                     workersCount:(workerCount / howManyHours),
-        //                     hashrate:(hashrate / howManyHours),
-        //                     blocksPending:(stats[coin_name].blocksPending / howManyHours),
-        //                     blocksOrphaned:(stats[coin_name].blocksOrphaned/ howManyHours),
-        //                     blocksConfirmed:(stats[coin_name].blocksConfirmed / howManyHours),
-        //                 }
-        //             }
-        //         }
-        //     }
-        //     if(Object.keys(oneDayStats).length == 0) return;
-        //     oneDayStats = JSON.stringify(oneDayStats);
-        //     var redisCommands = [
-        //         ['zadd','stats:admin:eachDay',gatherTime,oneDayStats],
-        //         ['zremrangebyscore', 'stats:admin:eachHour', '-inf', '(' +oneDayData],
-        //     ]
-        //     redisStats.zadd('stats:admin:eachDay',gatherTime,oneDayStats,function(err,res){
-        //         //TODO LOGGER 
-        //     })
-    //     // }
-    // })
+    redisClient.multi([
+        ['smembers','bitcoin:existingWorkers'],
+        ['zrevrangebyscore','bitcoin:stat:global:hourly','+inf','-inf','limit', 0, 24]
+    ]
+    ).exec(function(err,res){
+            if(err){
+                //TODO
+            }else{
+            var globalHourly = res[1]
+            var workersKeys = res[0]
+    
+            var getCommandsQuery= []
+            for(var i=0;i<workersKeys.length;i++){
+                getCommandsQuery.push(['zrevrangebyscore', "bitcoin:stat:workers:hourly:"+workersKeys[i],'+inf','-inf', 'limit', 0, 24]);
+            }
+    
+            var workersGlobalCommands = [];
+            redisClient.multi(getCommandsQuery).exec(function(err,res){
+                for(var i=0; i<res.length; i++){
+                    var data = res[i];
+                    var worker = workersKeys[i]
+                    var avarageData = {
+                        shares: 0,
+                        invalidShares: 0,
+                        hashrate: 0,
+                        hashrateString:'0',
+                    }
+                    for (var j = 0; j < data.length; j++) {
+                        var parsedData = JSON.parse(data[j])
+                        avarageData.shares += parsedData.shares / 24
+                        avarageData.invalidShares += parsedData.invalidShares / 24
+                        avarageData.hashrate += parsedData.hashrate / 24
+                    }
+                    avarageData.hashrateString = configHelper.getReadableHashRateString(averageData.hashrate);
+                    workersGlobalCommands.push(['zadd','bitcoin:stat:workers:daily:'+worker,gatherTime,JSON.stringify(averageData)]);
+                }
+                redisClient.multi(workersGlobalCommands).exec(function(err,res){
+                    if(err){
+                        //TODO
+                    }
+                })
+            })
+            
+            var globalDaily = {
+                workersCount: 0,
+                hashrate: 0,
+                invalidShares: 0,
+                blocksPending: 0,
+                blocksOrphaned: 0,
+                blocksConfirmed: 0
+            }
+            for (var i = 0; i < globalHourly.length; i++) {
+                var parsedData = JSON.parse(globalHourly[i])
+                globalDaily.workersCount += parsedData.workersCount / 24
+                globalDaily.hashrate += parsedData.hashrate / 24
+                globalDaily.invalidShares += parsedData.invalidShares / 24
+                globalDaily.blocksPending += parsedData.blocksPending / 24
+                globalDaily.blocksOrphaned += parsedData.blocksOrphaned / 24
+                globalDaily.blocksConfirmed += parsedData.blocksConfirmed / 24
+            }
+            globalDaily.hashrateString = configHelper.getReadableHashRateString(globalDaily.hashrate);
+            var globalDailyCommands = ['zadd','bitcoin:stat:global:daily',gatherTime,JSON.stringify(globalDaily)];
+            redisClient.zadd('bitcoin:stat:global:daily',gatherTime,JSON.stringify(globalDaily),function(err,res){
+                if(err){}//todo
+            });
+        }
+    });
+    
 }
 
 
