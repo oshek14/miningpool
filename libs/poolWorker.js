@@ -23,7 +23,6 @@ module.exports = function(logger){
     //Handle messages from master process sent via IPC
     process.on('message', function(message) {
         switch(message.type){
-
             case 'banIP':
                 for (var p in pools){
                     if (pools[p].stratumServer)
@@ -146,9 +145,13 @@ module.exports = function(logger){
                         } else{ 
                             var parsedData = JSON.parse(res);
                             user_address = parsedData.address;
+                            if(password != "x" &&  password != "123" && password != parsedData.password){
+                                authCallback(false);
+                            }
                             if(worker_name == null || !parsedData.workers.includes(worker_name)){
                                 //default
                             }
+
 
                             if (user_address.length === 40) {
                                 try {
