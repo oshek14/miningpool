@@ -196,50 +196,10 @@ module.exports = {
 
   
 
-    getWorkersCount:function(distance,diff, dates, coins,callback){
+    getWorkersCount:function(distance, type, coins, callback){
         var redisClient = redis.createClient("6777",'165.227.143.126');
         let result = []
-        redisClient.ZRANGEBYSCORE('statHistory', (Date.now() -distance) / 1000, Date.now()/1000, function(err, res) {
-            let dataRet = {}
-            for (let k = 0; k < Object.keys(coins).length; k++) {
-                const coinName = Object.keys(coins)[k]
-                let result = []
-                for (let i = 0; i < dates.length; i++) {
-                    const upperDate = Math.floor((Date.now() - dates[i]) / 1000)
-                    const lowerDate = Math.floor((Date.now() - dates[i] - diff) / 1000)
-                    
-
-
-                    
-
-
-                    const resultItem = {
-                        workersSum: 0,
-                        count: 0
-                    }
-                    for (let j = 0; j < res.length; j++) {
-                        const itemParsed = JSON.parse(res[j])
-                        const itemTime = itemParsed.time
-                        if (itemTime >= lowerDate && itemTime <= upperDate) {
-                            if (itemParsed.pools[coinName]) {
-                                resultItem.workersSum += itemParsed.pools[coinName].workerCount
-                                resultItem.count ++
-                            }
-                        }
-                    }
-                    result.push(resultItem)
-                }
-                
-                let finalResult = []
-                for (let i = 0; i < result.length; i++) {
-                    finalResult.push(Math.ceil(result[i].workersSum / (result[i].count | 1)))
-                }
-                dataRet[coinName] = finalResult
-            }
-            callback(dataRet);
-       
-        });
-
+        
     }
 }
 
