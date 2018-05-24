@@ -134,7 +134,7 @@ module.exports = function(logger){
                     authCallback(true);
                 else {
                     var user_name=null,worker_name=null,user_address=null;
-
+                    
                     var getUser = workerName.split(".");
                     user_name = getUser[0];
                     if(getUser.length > 1) worker_name = getUser[1];
