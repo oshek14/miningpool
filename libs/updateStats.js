@@ -82,9 +82,10 @@ function calculateStatsForDay(portalConfig,poolConfigs){
                             averageData.invalidSharesCount += parsedData.invalidSharesCount;
                             averageData.sharesCount += parsedData.sharesCount;
                         }
-                        console.log(averageData.shares);
+                       
                         averageData.hashrate = Math.floor(averageData.hashrate,2);
                         averageData.hashrateString = configHelper.getReadableHashRateString(averageData.hashrate);
+                        console.log(JSON.stringify(averageData));
                         workersGlobalCommands.push(['zadd',coin+':stat:workers:daily:'+worker,gatherTime,JSON.stringify(averageData)]);
                     }
                     redisClient.multi(workersGlobalCommands).exec(function(err,res){
