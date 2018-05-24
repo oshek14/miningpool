@@ -28,11 +28,15 @@ module.exports = function(logger){
     });
     
     setInterval(function(){
-        saveStatsEveryHour(portalConfig,poolConfigs,redisClients);
         calculateStatsForDay(portalConfig,poolConfigs);
 
-        floger.fileLogger(logLevels.error, "something", logFilePath)
+        // floger.fileLogger(logLevels.error, "something", logFilePath)
     },2000);
+    setInterval(function(){
+        saveStatsEveryHour(portalConfig,poolConfigs,redisClients);
+    },2000);
+    
+    
 }
 
 
@@ -51,7 +55,8 @@ function calculateStatsForDay(portalConfig,poolConfigs){
         ]
         ).exec(function(err,res){
                 if(err){
-                    //TODO
+                    //TODO // error warn info
+                // floger.fileLogger(logLevels.error, "something", logFilePath)
                     
                 }else{
                 var globalHourly = res[1]

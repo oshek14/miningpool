@@ -21,10 +21,8 @@ app.use(function (req, res, next) {
 
 var adminStatistics = require('./my_website/routes/admin/admin_get_statistics');
 var adminGraphs = require('./my_website/routes/admin/admin_graph_statistics');
-var seeder = require('./my_website/routes/seed/auth_seeder');
 
 app.use('/admin',adminStatistics);
-app.use('/seeder',seeder);
 app.use('/admin/graphs',adminGraphs);
 
 http.listen(4500,()=>{

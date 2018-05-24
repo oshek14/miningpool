@@ -469,14 +469,14 @@ function SetupForPool(logger, poolOptions, setupFinished){
              */
             function(workers, rounds, addressAccount, callback) {
 
-                var trySend = function (withholdPercent) {
+                var trySend = function () {
                     var addressAmounts = {};
                     var totalSent = 0;
                     for (var w in workers) {
-                        var worker = workers[w];
+                        var worker = workers[w]; //workerName //gio1.worker1;
                         worker.balance = worker.balance || 0;
                         worker.reward = worker.reward || 0;
-                        var toSend = (worker.balance + worker.reward) * (1 - withholdPercent);
+                        var toSend = (worker.balance + worker.reward);
                         if (toSend >= minPaymentSatoshis) {
                             totalSent += toSend;
                             var address = worker.address = (worker.address || getProperAddress(w));
@@ -497,36 +497,40 @@ function SetupForPool(logger, poolOptions, setupFinished){
                         callback(null, workers, rounds,paymentHappened);
                         return;
                     }
+
+                    callback(null, workers, rounds,paymentHappened);
+
                     
                     /* transfer from pool address to users accounts */
-                    daemon.cmd('sendmany', [addressAccount || '', addressAmounts], function (result) {
-                        //Check if payments failed because wallet doesn't have enough coins to pay for tx fees
-                        if (result.error && result.error.code === -6) {
-                            var higherPercent = withholdPercent + 0.01;
-                            logger.warning(logSystem, logComponent, 'Not enough funds to cover the tx fees for sending out payments, decreasing rewards by '
-                                + (higherPercent * 100) + '% and retrying');
-                            trySend(higherPercent);
-                        }
-                        else if (result.error) {
-                            logger.error(logSystem, logComponent, 'Error trying to send payments with RPC sendmany '
-                                + JSON.stringify(result.error));
-                            callback(true);
-                        }
-                        else {
-                            logger.debug(logSystem, logComponent, 'Sent out a total of ' + (totalSent / magnitude)
-                                + ' to ' + Object.keys(addressAmounts).length + ' workers');
-                            if (withholdPercent > 0) {
-                                logger.warning(logSystem, logComponent, 'Had to withhold ' + (withholdPercent * 100)
-                                    + '% of reward from miners to cover transaction fees. '
-                                    + 'Fund pool wallet with coins to prevent this from happening');
-                            }
+                    // daemon.cmd('sendmany', [addressAccount || '', addressAmounts], function (result) {
+                    //     //Check if payments failed because wallet doesn't have enough coins to pay for tx fees
+                    //     if (result.error && result.error.code === -6) {
+                    //         var higherPercent = withholdPercent + 0.01;
+                    //         logger.warning(logSystem, logComponent, 'Not enough funds to cover the tx fees for sending out payments, decreasing rewards by '
+                    //             + (higherPercent * 100) + '% and retrying');
+                    //         trySend(higherPercent);
+                    //     }
+                    //     else if (result.error) {
+                    //         logger.error(logSystem, logComponent, 'Error trying to send payments with RPC sendmany '
+                    //             + JSON.stringify(result.error));
+                    //         callback(true);
+                    //     }
+                    //     else {
+                    //         logger.debug(logSystem, logComponent, 'Sent out a total of ' + (totalSent / magnitude)
+                    //             + ' to ' + Object.keys(addressAmounts).length + ' workers');
+                    //         if (withholdPercent > 0) {
+                    //             logger.warning(logSystem, logComponent, 'Had to withhold ' + (withholdPercent * 100)
+                    //                 + '% of reward from miners to cover transaction fees. '
+                    //                 + 'Fund pool wallet with coins to prevent this from happening');
+                    //         }
                             
-                            paymentHappened.state = true;
-                            callback(null, workers, rounds,paymentHappened);
-                        }
-                    }, true, true);
+                    //         paymentHappened.state = true;
+                    //         callback(null, workers, rounds,paymentHappened);
+                    //     }
+                    // }, true, true);
                 };
-                trySend(0);
+                trySend();
+               
 
             },
             function(workers, rounds, paymentHappened, callback){
@@ -661,7 +665,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
     };
 
 
-    var getProperAddress = function(address){
+    var getProperAddress = function(userWorker){
         if (address.length === 40){
             return util.addressFromEx(poolOptions.address, address);
         }
