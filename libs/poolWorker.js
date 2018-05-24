@@ -138,14 +138,14 @@ module.exports = function(logger){
                     var userAddress;
                     var redisClient = redis.createClient("6777", "165.227.143.126");
                     if(getUser.length == 1) {
-                        console.log("modis 1",getUser[0]);
+
                         redisClient.hget("users",getUser[0],function(err,res){
-                            console.log("modis bebruccc");
+
                             if(err || res == null){
-                                console.log("aq shemodis bebruc");
+                  
                                 authCallback(false);
                             } else{
-                                console.log("modis 2");
+                    
                                 var parsedData = JSON.parse(res);
                                 // if(password != parsedData.password){
                                 //     authCallback(false);
@@ -160,10 +160,10 @@ module.exports = function(logger){
                     }else{
                         var userName = getUser[0];
                         var workerName = getUser[1];
-                        console.log("modis 3");
+              
                         redisClient.hget("users",userName,function(err,res){
                             if(err || res == null){
-                                console.log("modis 4");
+                     
                                 authCallback(false);
                             } else{
                                 var parsedData = JSON.parse(res);
@@ -171,10 +171,10 @@ module.exports = function(logger){
                                 // if(password != parsedData.password){
                                 //     authCallback(false);
                                 // }
-                                console.log("modis 5");
+
                                 if(!parsedData.workers.includes(workerName)){
                                     //default
-                                    console.log("modis 6");
+
                                 }
                             }
                         })
