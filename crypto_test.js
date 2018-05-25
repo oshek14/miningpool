@@ -17,6 +17,7 @@ for(var j=0;j<24;j++){
    var realTime = date.getTime();
     realTime = realTime - j*60*60*1000;
     realTime = realTime / 1000 | 0;
+    console.log(new Date(realTime * 1000));
     var jsondata= 
         {
             workersCount:Math.floor((Math.random() * 10) + 1),
