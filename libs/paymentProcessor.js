@@ -473,7 +473,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                     var addressAmounts = {};
                     var totalSent = 0;
                     for (var w in workers) {
-                        var worker = workers[w]; //workerName //gio1.worker1;
+                        var worker = workers[w]; //workerName
                         worker.balance = worker.balance || 0;
                         worker.reward = worker.reward || 0;
                         var toSend = (worker.balance + worker.reward);

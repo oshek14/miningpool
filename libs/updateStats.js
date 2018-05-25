@@ -3,6 +3,8 @@ var algos = require('stratum-pool/lib/algoProperties.js');
 var redis = require('redis');
 var async = require('async')
 var floger = require('../libs/logFileUtil')
+var CronJob = require('cron').CronJob;
+
 
 var logLevels = floger.levels
 var logFilePath = floger.filePathes.updateStats
@@ -27,16 +29,18 @@ module.exports = function(logger){
         });
     });
     
-    setInterval(function(){
-        calculateStatsForDay(portalConfig,poolConfigs);
+    // floger.fileLogger(logLevels.error, "something", logFilePath)
 
-        // floger.fileLogger(logLevels.error, "something", logFilePath)
-    },2000);
-    setInterval(function(){
+    //runs every day at 02:40:00 AM 
+    var dayJob = new CronJob('00 40 02 * * *', function() {
+        calculateStatsForDay(portalConfig,poolConfigs);
+    }, null, true, null);
+    
+
+    //RUNS EVERY DAY EVERY HOUR 
+    var hourJob = new CronJob('00 00 */1 * * *', function() {
         saveStatsEveryHour(portalConfig,poolConfigs,redisClients);
-    },2000);
-    
-    
+    }, null, true, null);
 }
 
 

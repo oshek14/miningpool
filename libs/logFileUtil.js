@@ -10,6 +10,8 @@ const levels = {
 
 const filePathes = {
     updateStats: path.join(__dirname, '/../logs/updateStats.log'),
+    paymentProcessor: path.join(__dirname, '/../logs/paymentProcessor.log'),
+    auth: path.join(__dirname, '/../logs/auth.log'),
 }
 
 
