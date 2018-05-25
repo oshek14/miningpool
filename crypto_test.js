@@ -15,7 +15,7 @@ const m = new jm({isPrint, isMs, isKb})
 for(var j=0;j<24;j++){
    var date = new Date();
    var realTime = date.getTime() / 1000 |0;
-    
+    realTime = realTime - j*60*60*1000;
     var jsondata= 
         {
             workersCount:Math.floor((Math.random() * 10) + 1),
