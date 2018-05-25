@@ -64,6 +64,26 @@ module.exports = {
     getCoinConfig : function(coin){
         return JSON.parse(JSON.minify(fs.readFileSync(coinDir+coin,{encoding:'utf8'})));
     },
+
+    hashratePowers: {
+        'KH': 1,
+        'MH': 2,
+        'GH': 3,
+        'TH': 4,
+        'PH': 5
+    },
+
+    getHasrateInObj : function(hashrate, power) {
+        var byteUnits = [ 'KH', 'MH', 'GH', 'TH', 'PH' ];
+        for (var i = 0; i < power; i++) {
+            hashrate = hashrate / 1000
+        }
+        return {
+            hashrate: hashrate,
+            type: byteUnits[power]
+        }
+    },
+
     getReadableHashRateString : function(hashrate){
         var i = -1;
         var byteUnits = [ ' KH', ' MH', ' GH', ' TH', ' PH' ];
@@ -196,11 +216,8 @@ module.exports = {
 
   
 
-    getWorkersCount:function(coins, timeInterval, intervalCounts, callback){
+    getGlobals:function(coins, timeInterval, intervalCounts, callback){
         var redisClient = redis.createClient("6777",'165.227.143.126');
-        console.log(coins)
-        console.log(timeInterval)
-        console.log(intervalCounts)
         var redisComands = []
         for (var i = 0; i < coins.length; i++) {
             var coin = coins[i]
