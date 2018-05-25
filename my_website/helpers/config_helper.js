@@ -64,6 +64,26 @@ module.exports = {
     getCoinConfig : function(coin){
         return JSON.parse(JSON.minify(fs.readFileSync(coinDir+coin,{encoding:'utf8'})));
     },
+
+    hashratePowers: {
+        'KH': 1,
+        'MH': 2,
+        'GH': 3,
+        'TH': 4,
+        'PH': 5
+    },
+
+    getHasrateInObj : function(hashrate, power) {
+        var byteUnits = [ 'KH', 'MH', 'GH', 'TH', 'PH' ];
+        for (var i = 0; i < power; i++) {
+            hashrate = hashrate / 1000
+        }
+        return {
+            hashrate: hashrate,
+            type: byteUnits[power]
+        }
+    },
+
     getReadableHashRateString : function(hashrate){
         var i = -1;
         var byteUnits = [ ' KH', ' MH', ' GH', ' TH', ' PH' ];
@@ -196,50 +216,20 @@ module.exports = {
 
   
 
-    getWorkersCount:function(distance,diff, dates, coins,callback){
+    getGlobals:function(coins, timeInterval, intervalCounts, callback){
         var redisClient = redis.createClient("6777",'165.227.143.126');
-        let result = []
-        redisClient.ZRANGEBYSCORE('statHistory', (Date.now() -distance) / 1000, Date.now()/1000, function(err, res) {
-            let dataRet = {}
-            for (let k = 0; k < Object.keys(coins).length; k++) {
-                const coinName = Object.keys(coins)[k]
-                let result = []
-                for (let i = 0; i < dates.length; i++) {
-                    const upperDate = Math.floor((Date.now() - dates[i]) / 1000)
-                    const lowerDate = Math.floor((Date.now() - dates[i] - diff) / 1000)
-                    
-
-
-                    
-
-
-                    const resultItem = {
-                        workersSum: 0,
-                        count: 0
-                    }
-                    for (let j = 0; j < res.length; j++) {
-                        const itemParsed = JSON.parse(res[j])
-                        const itemTime = itemParsed.time
-                        if (itemTime >= lowerDate && itemTime <= upperDate) {
-                            if (itemParsed.pools[coinName]) {
-                                resultItem.workersSum += itemParsed.pools[coinName].workerCount
-                                resultItem.count ++
-                            }
-                        }
-                    }
-                    result.push(resultItem)
-                }
-                
-                let finalResult = []
-                for (let i = 0; i < result.length; i++) {
-                    finalResult.push(Math.ceil(result[i].workersSum / (result[i].count | 1)))
-                }
-                dataRet[coinName] = finalResult
+        var redisComands = []
+        for (var i = 0; i < coins.length; i++) {
+            var coin = coins[i]
+            redisComands.push(['zrevrangebyscore', coin + ":stat:global:" + timeInterval, '+inf', '-inf', 'limit', 0, intervalCounts])
+        }
+        redisClient.multi(redisComands).exec(function(err, res) {
+            var resultRes = {}
+            for (var i = 0; i < res.length; i++) {
+                resultRes[coins[i]] = res[i]
             }
-            callback(dataRet);
-       
-        });
-
+            callback(resultRes)
+        })
     }
 }
 
