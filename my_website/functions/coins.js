@@ -77,7 +77,7 @@ module.exports = {
 
     getLastStats: function(coin, algo, callback) {
         
-        configHelper.getBalanceForCoinPool(coin,function(result){
+        configHelper.getBalanceFromAddress(coin,function(result){
             console.log(result);
             var redisClient = redis.createClient("6777",'165.227.143.126');
             redisComands = [
