@@ -5,18 +5,27 @@ var async = require('async');
 var configHelper = require('../my_website/helpers/config_helper')
 var Stratum = require('stratum-pool');
 var util = require('stratum-pool/lib/util.js');
+var floger = require('../libs/logFileUtil')
+
+
 
 
 module.exports = function(logger){
     var poolConfigs = JSON.parse(process.env.pools);
     var enabledPools = [];
 
+    
+    var logLevels = floger.levels;
+    var logFilePath = floger.filePathes.paymentProcessor
+    
     Object.keys(poolConfigs).forEach(function(coin) {
         var poolOptions = poolConfigs[coin];
         if (poolOptions.paymentProcessing &&
             poolOptions.paymentProcessing.enabled)
             enabledPools.push(coin);
     });
+
+    floger.fileLogger(logLevels.error, "something", logFilePath)
 
     async.filter(enabledPools, function(coin, callback){
         SetupForPool(logger, poolConfigs[coin], function(setupResults){
@@ -38,6 +47,8 @@ module.exports = function(logger){
         });
     });
 };
+
+console.log(logLevels);
 
 
 function SetupForPool(logger, poolOptions, setupFinished){
@@ -301,15 +312,11 @@ function SetupForPool(logger, poolOptions, setupFinished){
                     }
                     var addressAccount;
                     txDetails.forEach(function(tx, i){
-                        console.log(txDetails.length);
-                        console.log(i," ",txDetails.length-1);
-                        if (i === txDetails.length - 1){
-                            console.log("nice");
-                            console.log(tx.result);
+                       if (i === txDetails.length - 1){
                             addressAccount = tx.result;
                             return;
                         }
-                        console.log("addressAccount",addressAccount);
+                        
                         var round = rounds[i];
                         if (tx.error && tx.error.code === -5){
                             logger.warning(logSystem, logComponent, 'Daemon reports invalid transaction: ' + round.txHash);
@@ -439,8 +446,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                                     return p + parseFloat(workerShares[c])
                                 }, 0);
 
-                                console.log("workershares",workerShares);
-
+                                
                                 for (var workerAddress in workerShares){
                                     var percent = parseFloat(workerShares[workerAddress]) / totalShares;
                                     var workerRewardTotal = Math.floor(reward * percent);
@@ -480,7 +486,6 @@ function SetupForPool(logger, poolOptions, setupFinished){
                 var redisCommands = [];
                 var usersPerWorker = {};
                 var trySend = function () {
-                    console.log("workers",workers);
                     for (var w in workers) {
                         var worker = workers[w]; //workerName //gio1.worker1;
                         worker.reward = worker.reward || 0;
@@ -501,7 +506,10 @@ function SetupForPool(logger, poolOptions, setupFinished){
 
                     if(redisCommands.length > 0){
                         redisClient.multi(redisCommands).exec(function(err,res){
-                            if(err) callback(true);
+                            if(err) {
+                                callback(true);
+                                return;
+                            }
                             callback(null, workers, rounds);
                         })
                     }else{
