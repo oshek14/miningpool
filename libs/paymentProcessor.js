@@ -301,6 +301,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                     }
                     var addressAccount;
                     txDetails.forEach(function(tx, i){
+                        console.log(tx);
                         if (i === txDetails.length - 1){
                             addressAccount = tx.result;
                             return;
