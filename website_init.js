@@ -19,11 +19,11 @@ app.use(function (req, res, next) {
     next();
 });
 
-var adminStatistics = require('./my_website/routes/admin/admin_get_statistics');
-var adminGraphs = require('./my_website/routes/admin/admin_graph_statistics');
+var coinsStats = require('./my_website/routes/admin/coin_stats');
+var workersStats = require('./my_website/routes/admin/worker_stats');
 
-app.use('/admin',adminStatistics);
-app.use('/admin/graphs',adminGraphs);
+app.use('/admin/coins',coinsStats);
+app.use('/admin/workers',workersStats);
 
 http.listen(4500,()=>{
     console.log("listen on 4500 port");
