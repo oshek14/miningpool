@@ -70,6 +70,14 @@ router.get('/coin_stats',(req,res)=>{
     })
 })
 
+router.get('/coin_last_stats',(req,res)=>{ 
+    var coin = req.query.coin
+    var algo = req.query.algo
+    coinsHelper.getLastStats(coin, algo, function(coinsLastStats){
+        res.send({status: 200, data: coinsLastStats})
+    })   
+})
+
 
 module.exports = router;
 

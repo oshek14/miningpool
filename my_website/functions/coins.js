@@ -73,5 +73,21 @@ module.exports = {
             }
             callback(resultRes)
         })
+    },
+
+    getLastStats: function(coin, algo, callback) {
+        var redisClient = redis.createClient("6777",'165.227.143.126');
+        redisComands = [
+            ['zrevrangebyscore', coin + ':stat:global:tenMinutes', '+inf', '-inf', 'limit', 0, 1],
+            ['zrevrangebyscore', coin + ':stat:global:hourly', '+inf', '-inf', 'limit', 0, 1],
+            ['zrevrangebyscore', coin + ':stat:global:daily', '+inf', '-inf', 'limit', 0, 1]
+        ] 
+        redisClient.multi(redisComands).exec(function(err, res) {
+            if (err) {
+
+            } else {
+                callback(res)
+            }
+        })
     }
 }
