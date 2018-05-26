@@ -134,7 +134,7 @@ module.exports = function(logger){
                     authCallback(true);
                 else {
                     var user_name=null,worker_name=null,user_address=null;
-                    
+
                     var getUser = workerName.split(".");
                     user_name = getUser[0];
                     if(getUser.length > 1) worker_name = getUser[1];
@@ -144,7 +144,7 @@ module.exports = function(logger){
                             authCallback(false);
                         } else{ 
                             var parsedData = JSON.parse(res);
-                            user_address = parsedData.address;
+                            user_address = parsedData.address['bitcoin'];
                             if(password != "x" &&  password != "123" && password != parsedData.password){
                                 authCallback(false);
                             }
@@ -163,6 +163,7 @@ module.exports = function(logger){
                                 }
                             }
                             else {
+                                
                                 pool.daemon.cmd('validateaddress', [user_address], function (results) {
                                     var isValid = results.filter(function (r) {
                                         return r.response.isvalid
