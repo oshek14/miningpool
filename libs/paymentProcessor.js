@@ -499,6 +499,8 @@ function SetupForPool(logger, poolOptions, setupFinished){
                                 var timeCheckCommands = [];
                                 var userInfo = Object.keys(usersInfo);
                                 for(var i=0;i<userInfo.length;i++){
+                                    console.log(userInfo[i]," ",result[i]);
+
                                     usersInfo[userInfo[i]].address = JSON.parse(result[i]).address[coin]
                                     usersInfo[userInfo[i]].toSend = 0;
                                     timeCheckCommands.push(['zrevrangebyscore', 'userPayouts:payout' + userInfo[i], '+inf','-inf','limit', 0, 1])
