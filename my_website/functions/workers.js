@@ -1,5 +1,5 @@
 
-
+var redis = require('redis');
 module.exports = {
     
     getWorkerStats:function(time_stats,coin_name,algorithm,callback){
