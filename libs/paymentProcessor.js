@@ -196,7 +196,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
             function(callback){
                 startRedisTimer();
                 redisClient.multi([
-                    ['hgetall', coin + ':balances'],
+                    ['hgetall', coin + ':balances:workerBalances'],
                     ['smembers', coin + ':blocksPending']
                 ]).exec(function(error, results){
                     endRedisTimer();
