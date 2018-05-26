@@ -1,6 +1,7 @@
 
 var redis = require('redis')
 var configHelper = require('../helpers/config_helper')
+var Stratum = require('stratum-pool');
 module.exports = {
     getStatsForEachCoin:function(pool_configs,callback){
         var poolConfigsData = {};
@@ -77,9 +78,18 @@ module.exports = {
     getLastStats: function(coin, algo, callback) {
         
         configHelper.getPoolConfigs(function(data) {
-            console.log(data);
+            var coinConfig = data[coin];
+            var coinPoolAddress = coinConfig.address;
+            var daemon = new Stratum.daemon.interface([coinConfig.paymentProcessing.daemon], function(severity, message){
+                
+            });
+            daemon.cmd('getaccount',[coinPoolAddress],function(result) {
+                console.log(result);
+            })
         })
+
         
+
         // var redisClient = redis.createClient("6777",'165.227.143.126');
         // redisComands = [
         //     ['zrevrangebyscore', coin + ':stat:global:tenMinutes', '+inf', (Date.now() - 10*60*1000)/1000, 'limit', 0, 1],
