@@ -76,33 +76,35 @@ module.exports = {
     },
 
     getLastStats: function(coin, algo, callback) {
-        
-        configHelper.getBalanceFromAddress(coin,function(result){
-            console.log(result);
-            var redisClient = redis.createClient("6777",'165.227.143.126');
-            redisComands = [
-                ['zrevrangebyscore', coin + ':stat:global:tenMinutes', '+inf', (Date.now() - 10*60*1000)/1000, 'limit', 0, 1],
-                ['zrevrangebyscore', coin + ':stat:global:hourly', '+inf', '-inf', 'limit', 0, 1],
-                ['zrevrangebyscore', coin + ':stat:global:daily', '+inf', '-inf', 'limit', 0, 1],
-                ['scard', coin + ':blocksConfirmed'],
-                ['scard', coin + ':blocksPending'],
-                ['scard', coin + ':blocksOrphaned'],
-                ['scard', coin + ':blocksKicked'],
-                ['scard', coin + ':existingWorkers'],
-            ] 
+        var redisClient = redis.createClient("6777",'165.227.143.126');
+        redisComands = [
+            ['zrevrangebyscore', coin + ':stat:global:tenMinutes', '+inf', (Date.now() - 10*60*1000)/1000, 'limit', 0, 1],
+            ['zrevrangebyscore', coin + ':stat:global:hourly', '+inf', '-inf', 'limit', 0, 1],
+            ['zrevrangebyscore', coin + ':stat:global:daily', '+inf', '-inf', 'limit', 0, 1],
+            ['scard', coin + ':blocksConfirmed'],
+            ['scard', coin + ':blocksPending'],
+            ['scard', coin + ':blocksOrphaned'],
+            ['scard', coin + ':blocksKicked'],
+            ['scard', coin + ':existingWorkers'],
+        ] 
 
-            //pool balance how muhc paid how much we need to pay.
-            redisClient.multi(redisComands).exec(function(err, res) {
-                if (err) {
+        //pool balance how muhc paid how much we need to pay.
+        redisClient.multi(redisComands).exec(function(err, res) {
+            if (err) {
 
-                } else {
-                    callback(res)
-                }
-            })
+            } else {
+                callback(res)
+            }
         })
-
         
 
-        
+    },
+    getPoolInfoForCoin:function(coin,algo,callback){
+        var poolInfoForCoin ={};
+        configHelper.getBalanceFromAddress(coin,function(poolBalance,poolAccount){
+            poolInfoForCoin['balance'] = poolBalance;
+            poolInfoForCoin['account'] = poolAccount;
+            
+        })
     }
 }

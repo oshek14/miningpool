@@ -113,9 +113,10 @@ module.exports = {
                 if(!result){ callback(500);} //TODO ERROR
                 else if(result.error) {callback(500)} //todo error
                 else {
-                    console.log(result);
                     daemon.cmd('getbalance',[result[0].response],function(balanceResult){
-                        console.log(balanceResult);
+                        if(!result){ callback(500);} //TODO ERROR
+                        else if(result.error) {callback(500)} //todo error
+                        callback(balanceResult,result[0].response);
                     })
                 }
             })
