@@ -15,6 +15,7 @@ router.get('/global_statistic',(req,res)=>{
     var coins = Object.keys(req.query.coins)
     var timeInterval = req.query.type.name
     var intervalCounts = req.query.type.intervals
+    console.log(timeInterval," " ,intervalCounts, " " ,req.query.type.interval);
     configHelper.getGlobals(coins, timeInterval, intervalCounts, function(result) {
         res.send({status:200,data:result,timeInterval: req.query.type});
     })
