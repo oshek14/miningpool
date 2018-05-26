@@ -302,7 +302,9 @@ function SetupForPool(logger, poolOptions, setupFinished){
                     var addressAccount;
                     txDetails.forEach(function(tx, i){
                         console.log(txDetails.length);
+                        console.log(i," ",txDetails.length-1);
                         if (i === txDetails.length - 1){
+                            console.log("nice");
                             console.log(tx.result);
                             addressAccount = tx.result;
                             return;
