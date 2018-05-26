@@ -97,6 +97,30 @@ module.exports = {
         } while (hashrate > 1000);
         return hashrate.toFixed(2) + byteUnits[i];
     },
+    
+
+    /* Daemon Helpers */
+
+    getBalanceFromAddress:function(coin){
+        configHelper.getPoolConfigs(function(data) {
+            var coinConfig = data[coin];
+            var coinPoolAddress = coinConfig.address;
+            var daemon = new Stratum.daemon.interface([coinConfig.paymentProcessing.daemon], function(severity, message){
+            
+            });
+            daemon.cmd('getaccount',[coinPoolAddress],function(result) {
+                if(!result){ callback(500);} //TODO ERROR
+                else if(result.error) {callback(500)} //todo error
+                else {
+                    daemon.cmd('getbalance',[result.response],function(balanceResult){
+                        console.log(balanceResult);
+                    })
+                }
+            })
+        })
+    },
+            
+    
 }
 
    

@@ -77,44 +77,32 @@ module.exports = {
 
     getLastStats: function(coin, algo, callback) {
         
-        configHelper.getPoolConfigs(function(data) {
-            var coinConfig = data[coin];
-            var coinPoolAddress = coinConfig.address;
-            var daemon = new Stratum.daemon.interface([coinConfig.paymentProcessing.daemon], function(severity, message){
-                
-            });
-            var account = 
-            daemon.cmd('getaccount',[coinPoolAddress],function(result) {
-                if(!result){} //TODO ERROR
-                else if(result.error) {} //todo error
-                else account = result.response;
-            })
-            daemon.cmd('getbalance',[account],function(result){
-                console.log(result);
+        configHelper.getBalanceForCoinPool(coin,function(result){
+            console.log(result);
+            var redisClient = redis.createClient("6777",'165.227.143.126');
+            redisComands = [
+                ['zrevrangebyscore', coin + ':stat:global:tenMinutes', '+inf', (Date.now() - 10*60*1000)/1000, 'limit', 0, 1],
+                ['zrevrangebyscore', coin + ':stat:global:hourly', '+inf', '-inf', 'limit', 0, 1],
+                ['zrevrangebyscore', coin + ':stat:global:daily', '+inf', '-inf', 'limit', 0, 1],
+                ['scard', coin + ':blocksConfirmed'],
+                ['scard', coin + ':blocksPending'],
+                ['scard', coin + ':blocksOrphaned'],
+                ['scard', coin + ':blocksKicked'],
+                ['scard', coin + ':existingWorkers'],
+            ] 
+
+            //pool balance how muhc paid how much we need to pay.
+            redisClient.multi(redisComands).exec(function(err, res) {
+                if (err) {
+
+                } else {
+                    callback(res)
+                }
             })
         })
 
         
 
-        // var redisClient = redis.createClient("6777",'165.227.143.126');
-        // redisComands = [
-        //     ['zrevrangebyscore', coin + ':stat:global:tenMinutes', '+inf', (Date.now() - 10*60*1000)/1000, 'limit', 0, 1],
-        //     ['zrevrangebyscore', coin + ':stat:global:hourly', '+inf', '-inf', 'limit', 0, 1],
-        //     ['zrevrangebyscore', coin + ':stat:global:daily', '+inf', '-inf', 'limit', 0, 1],
-        //     ['scard', coin + ':blocksConfirmed'],
-        //     ['scard', coin + ':blocksPending'],
-        //     ['scard', coin + ':blocksOrphaned'],
-        //     ['scard', coin + ':blocksKicked'],
-        //     ['scard', coin + ':existingWorkers'],
-        // ] 
-
-        // //pool balance how muhc paid how much we need to pay.
-        // redisClient.multi(redisComands).exec(function(err, res) {
-        //     if (err) {
-
-        //     } else {
-        //         callback(res)
-        //     }
-        // })
+        
     }
 }
