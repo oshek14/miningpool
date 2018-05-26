@@ -472,66 +472,121 @@ function SetupForPool(logger, poolOptions, setupFinished){
                 var trySend = function () {
                     var addressAmounts = {};
                     var totalSent = 0;
-                    for (var w in workers) {
-                        var worker = workers[w]; //workerName //gio1.worker1;
-                        worker.balance = worker.balance || 0;
-                        worker.reward = worker.reward || 0;
-                        var toSend = (worker.balance + worker.reward);
-                        if (toSend >= minPaymentSatoshis) {
-                            totalSent += toSend;
-                            var address = worker.address = (worker.address || getProperAddress(w));
-                            worker.sent = addressAmounts[address] = satoshisToCoins(toSend);
-                            worker.balanceChange = Math.min(worker.balance, toSend) * -1;
-                        }
-                        else {
-                            worker.balanceChange = Math.max(toSend - worker.balance, 0);
-                            worker.sent = 0;
-                        }
-                    }
-                    
-                    var paymentHappened ={};
-                    paymentHappened.state = false;
+                    async.waterfall([
+                        function(insideCallback){
 
-                    /* if addressAmounds is zero length, no payments at all */
-                    if (Object.keys(addressAmounts).length === 0){
-                        callback(null, workers, rounds,paymentHappened);
-                        return;
-                    }
+                            var userAddressCommands = [];
+                            var usersInfo = {};
 
-                    callback(null, workers, rounds,paymentHappened);
-
-                    
-                    /* transfer from pool address to users accounts */
-                    // daemon.cmd('sendmany', [addressAccount || '', addressAmounts], function (result) {
-                    //     //Check if payments failed because wallet doesn't have enough coins to pay for tx fees
-                    //     if (result.error && result.error.code === -6) {
-                    //         var higherPercent = withholdPercent + 0.01;
-                    //         logger.warning(logSystem, logComponent, 'Not enough funds to cover the tx fees for sending out payments, decreasing rewards by '
-                    //             + (higherPercent * 100) + '% and retrying');
-                    //         trySend(higherPercent);
-                    //     }
-                    //     else if (result.error) {
-                    //         logger.error(logSystem, logComponent, 'Error trying to send payments with RPC sendmany '
-                    //             + JSON.stringify(result.error));
-                    //         callback(true);
-                    //     }
-                    //     else {
-                    //         logger.debug(logSystem, logComponent, 'Sent out a total of ' + (totalSent / magnitude)
-                    //             + ' to ' + Object.keys(addressAmounts).length + ' workers');
-                    //         if (withholdPercent > 0) {
-                    //             logger.warning(logSystem, logComponent, 'Had to withhold ' + (withholdPercent * 100)
-                    //                 + '% of reward from miners to cover transaction fees. '
-                    //                 + 'Fund pool wallet with coins to prevent this from happening');
-                    //         }
+                            if(Object.keys(workers).length == 0) insideCallback();
                             
-                    //         paymentHappened.state = true;
-                    //         callback(null, workers, rounds,paymentHappened);
-                    //     }
-                    // }, true, true);
-                };
-                trySend();
-               
+                            for (var w in workers){
+                                var username = w.split('.')[0];
+                                if(!usersInfo[username]){
+                                    usersInfo[username] = {};
+                                    userAddressCommands.push(['hget', 'users', username]);
+                                }
+                            }
 
+                            redisClient.multi(userAddressCommands).exec(function(err,result){
+                                if(err){
+                                    callback('Check finished - redis error with multi get user addresses');
+                                    return;
+                                }
+                                var timeCheckCommands = [];
+                                for (var u in usersInfo){
+                                    usersInfo[u].address = JSON.parse(result[i]).address[coin]
+                                    usersInfo[u].toSend = 0;
+                                    timeCheckCommands.push(['zrevrangebyscore', 'userPayouts:payout' + u, '+inf','-inf','limit', 0, 1],)
+                                }
+                                for (var w in workers) {
+                                    var worker = workers[w]; //w //workerName //gio1.worker1;
+                                    worker.balance = worker.balance || 0;
+                                    worker.reward = worker.reward || 0;
+                                    var u = w.split('.')[0];
+                                    usersInfo[u].toSend += (worker.balance + worker.reward);
+                                }
+                                redisClient.multi(timeCheckCommands).exec(function(err,timeCheckResult){
+                                    if(err){
+                                        callback('Check finished - redis error with multi get user payout time check');
+                                        return;
+                                    }
+                                    for (var w in workers) {
+                                        var worker = workers[w]; //w //workerName //gio1.worker1;
+                                        worker.balance = worker.balance || 0;
+                                        worker.reward = worker.reward || 0;
+
+                                        var toSendFromWorker = (worker.balance + worker.reward);                                        
+
+                                        var u = w.split('.')[0];
+                                        if(usersInfo[u]){
+                                            var index = Object.keys(usersInfo).indexOf(u);
+                                            var userInfo = usersInfo[u];
+                                            if (userInfo.toSend >= minPaymentSatoshis || 
+                                                parseInt(timeCheckResult[index][0].split(':')[0]) < Date.now()/1000 - 24*3600) {
+                                                    totalSent += userInfo.toSend;
+                                                    var address = userInfo.address;
+                                                    addressAmounts[address] = satoshisToCoins(userInfo.toSend)
+                                                    
+                                                    worker.sent = satoshisToCoins(toSendFromWorker);
+                                                    worker.balanceChange = Math.min(worker.balance, toSendFromWorker) * -1;
+
+                                                    delete usersInfo[u];
+                                            }
+                                            else {
+                                                worker.balanceChange = Math.max(toSendFromWorker - worker.balance, 0);
+                                                worker.sent = 0;
+                                            }
+                                        }else{
+                                            worker.sent = satoshisToCoins(toSendFromWorker);
+                                            worker.balanceChange = Math.min(worker.balance, toSendFromWorker) * -1;
+                                        }
+                                    }
+                                    insideCallback();
+                                });
+                            });
+                        }        
+                    ], 
+                    function(){
+                        var paymentHappened ={};
+                        paymentHappened.state = false;
+
+                        /* if addressAmounds is zero length, no payments at all */
+                        if (Object.keys(addressAmounts).length === 0){
+                            callback(null, workers, rounds,paymentHappened);
+                            return;
+                        }
+                    
+                        /* transfer from pool address to users accounts */
+                        daemon.cmd('sendmany', [addressAccount || '', addressAmounts], function (result) {
+                            //Check if payments failed because wallet doesn't have enough coins to pay for tx fees
+                            if (result.error && result.error.code === -6) {
+                                var higherPercent = withholdPercent + 0.01;
+                                logger.warning(logSystem, logComponent, 'Not enough funds to cover the tx fees for sending out payments, decreasing rewards by '
+                                    + (higherPercent * 100) + '% and retrying');
+                                trySend(higherPercent);
+                            }
+                            else if (result.error) {
+                                logger.error(logSystem, logComponent, 'Error trying to send payments with RPC sendmany '
+                                    + JSON.stringify(result.error));
+                                callback(true);
+                            }
+                            else {
+                                logger.debug(logSystem, logComponent, 'Sent out a total of ' + (totalSent / magnitude)
+                                    + ' to ' + Object.keys(addressAmounts).length + ' workers');
+                                if (withholdPercent > 0) {
+                                    logger.warning(logSystem, logComponent, 'Had to withhold ' + (withholdPercent * 100)
+                                        + '% of reward from miners to cover transaction fees. '
+                                        + 'Fund pool wallet with coins to prevent this from happening');
+                                }
+                                
+                                paymentHappened.state = true;
+                                callback(null, workers, rounds,paymentHappened);
+                            }
+                        }, true, true);
+                    });    
+                };
+                trySend(0);
             },
             function(workers, rounds, paymentHappened, callback){
 

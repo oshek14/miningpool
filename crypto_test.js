@@ -3,12 +3,12 @@ var redis = require('redis');
 
 
 var redisClient = redis.createClient("6777", "165.227.143.126");
-
-const jm = require('js-meter')
-const isPrint = true
-const isMs = true       // or Second
-const isKb = true       // or Mb
-const m = new jm({isPrint, isMs, isKb})
+var async = require('async');
+//const jm = require('js-meter')
+// const isPrint = true
+// const isMs = true       // or Second
+// const isKb = true       // or Mb
+// const m = new jm({isPrint, isMs, isKb})
 
 
 //  var c = [];
@@ -25,75 +25,62 @@ const m = new jm({isPrint, isMs, isKb})
 // redisClient.multi(c).exec(function(err,res){
 //     const meter = m.stop()
 // })
+// var bla = function(){
+// var resArray = [];
+// var a = "a";
+// async.waterfall([
+//     function(callback){
+//         for(var i = 0; i < 2; i ++){
+//             console.log("sledushiii");
+//             (function(i){
+//                 async.waterfall([
+//                     function(insideCallback){
+                        
+//                             redisClient.multi([
+//                                 // ['smembers','bitcoin:existingWorkers'],
+//                                 // ['zrangebyscore','bitcoin:stat:global:hourly','-inf','+inf']
+//                                 // ['hset', 'users', 'gio1', JSON.stringify({"password":123456,"address":{"bitcoin" : "msxzy8MrSQKAjBrp8XfHK1bvF6iAr5FTBR"},"workers":["worker1"]})],
+//                                 // ['hset', 'users', 'gio2', JSON.stringify({"password":654321,"address":{"bitcoin" : "asdOASd612dOASd12XfHK1bvF6iASOoAS"},"workers":["worker2"]})]
+//                                 ['hget', 'users', 'gio1'],
+//                                 ['hget', 'users', 'gio2']
+//                             ]
+//                             ).exec(function(err,result){
+//                                 //resArray.push(result[i])
+//                                 console.log(i);
+//                                 console.log(a);
+//                                 insideCallback(i, result[i])
+//                             });
+                        
+//                     },  
+//                 ], function(i, result){
+//                     console.log(i);
+//                     resArray.push(result);
+//                     console.log(result)
+//                     if(i == 1)callback();
+//                 });
+//             })(i)
+//         }
+//     }
+// ], function(){
+//    console.log(resArray)
+// });
+
+// }
+
+// bla();
+
+
 redisClient.multi([
-    ['smembers','bitcoin:existingWorkers'],
-    ['zrangebyscore','bitcoin:stat:global:hourly','-inf','+inf']
+    // ['smembers','bitcoin:existingWorkers'],
+    // ['zrangebyscore','bitcoin:stat:global:hourly','-inf','+inf']
+    // ['hset', 'users', 'gio1', JSON.stringify({"password":123456,"address":{"bitcoin" : "msxzy8MrSQKAjBrp8XfHK1bvF6iAr5FTBR"},"workers":["worker1"]})],
+    // ['hset', 'users', 'gio2', JSON.stringify({"password":654321,"address":{"bitcoin" : "asdOASd612dOASd12XfHK1bvF6iASOoAS"},"workers":["worker2"]})]
+    ['zrevrangebyscore', 'userPayouts:payoutgio1', '+inf','-inf','limit', 0, 1],
+    ['zrevrangebyscore', 'userPayouts:payoutgio2', '+inf','-inf','limit', 0, 1],
 ]
-).exec(function(err,res){
-        if(err){
-
-        }else{
-        var globalHourly = res[1]
-        var workersKeys = res[0]
-
-        var getCommandsQuery= []
-        for(var i=0;i<workersKeys.length;i++){
-            getCommandsQuery.push(['zrevrangebyscore', "bitcoin:stat:workers:hourly:"+workersKeys[i],'+inf','-inf', 'limit', 0, 24]);
-        }
-
-        var workersData = {}
-        redisClient.multi(getCommandsQuery).exec(function(err,res){
-            for(var i=0; i<res.length; i++){
-                var data = res[i];
-                var worker = workersKeys[i]
-                var avarageData = {
-                    shares: 0,
-                    invalidShares: 0,
-                    hashrate: 0,
-                }
-                for (var j = 0; j < data.length; j++) {
-                    var parsedData = JSON.parse(data[j])
-                    avarageData.shares += parsedData.shares / 24
-                    avarageData.invalidShares += parsedData.invalidShares / 24
-                    avarageData.hashrate += parsedData.hashrate / 24
-                }
-                //calculate hashrateString
-                workersData[worker] = avarageData
-                
-                //console.log(workersData)
-                //TODO
-            }
-            const meter = m.stop()
-        })
-        
-
-
-       // mgoni blockebs hourly shi arasworad itvlis
-        var globalDaily = {
-            workersCount: 0,
-            hashrate: 0,
-            invalidShares: 0,
-            blocksPending: 0,
-            blocksOrphaned: 0,
-            blocksConfirmed: 0
-        }
-        for (var i = 0; i < globalHourly.length; i++) {
-            var parsedData = JSON.parse(globalHourly[i])
-            globalDaily.workersCount += parsedData.workersCount / 24
-            globalDaily.hashrate += parsedData.hashrate / 24
-            globalDaily.invalidShares += parsedData.invalidShares / 24
-            globalDaily.blocksPending += parsedData.blocksPending / 24
-            globalDaily.blocksOrphaned += parsedData.blocksOrphaned / 24
-            globalDaily.blocksConfirmed += parsedData.blocksConfirmed / 24
-        }
-        
-        //TODO
-        
-    }
+).exec(function(err,result){
+    console.log(result)
 });
-
-
-
 // var ob ={
 //     workersCount:1,hashrateString:"6.11 GH",
 //     hashrate:6108397932.088889,
