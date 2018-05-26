@@ -477,6 +477,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
 
                             var userAddressCommands = [];
                             var usersInfo = {};
+                            var userPayoutsCommands = [];
 
                             if(Object.keys(workers).length == 0) insideCallback();
                             
@@ -503,7 +504,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
 
                                     usersInfo[userInfo[i]].address = JSON.parse(result[i]).address[coin]
                                     usersInfo[userInfo[i]].toSend = 0;
-                                    timeCheckCommands.push(['zrevrangebyscore', 'userPayouts:payout' + userInfo[i], '+inf','-inf','limit', 0, 1])
+                                    timeCheckCommands.push(['zrevrangebyscore', coin+':userPayouts:payout' + userInfo[i], '+inf','-inf','limit', 0, 1])
                                 }
 
                                 // {gio1:{address:20123,toSend:0}, gio2:{address:123:toSend:0}}
@@ -537,7 +538,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                                                     totalSent += userInfo.toSend;
                                                     var address = userInfo.address;
                                                     addressAmounts[address] = satoshisToCoins(userInfo.toSend)
-                                                    
+                                                    userPayoutsCommands.push(['zadd',coin+':userPayouts:payout'+u,Date.now()/1000, Date.now()+":"+userInfo.toSend])
                                                     worker.sent = satoshisToCoins(toSendFromWorker);
                                                     worker.balanceChange = Math.min(worker.balance, toSendFromWorker) * -1;
 
