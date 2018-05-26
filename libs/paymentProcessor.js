@@ -547,8 +547,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                 if (roundsToDelete.length > 0)
                     finalRedisCommands.push(['del'].concat(roundsToDelete));
 
-                finalRedisCommands.push(deleteOldPayouts);
-
+               
                 if (finalRedisCommands.length === 0){
                     callback();
                     return;
@@ -572,7 +571,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
             }
 
         ], function(){
-
+            
             var paymentProcessTime = Date.now() - startPaymentProcess;
             logger.debug(logSystem, logComponent, 'Finished interval - time spent: '
                 + paymentProcessTime + 'ms total, ' + timeSpentRedis + 'ms redis, '
