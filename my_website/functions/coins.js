@@ -80,7 +80,11 @@ module.exports = {
         redisComands = [
             ['zrevrangebyscore', coin + ':stat:global:tenMinutes', '+inf', '-inf', 'limit', 0, 1],
             ['zrevrangebyscore', coin + ':stat:global:hourly', '+inf', '-inf', 'limit', 0, 1],
-            ['zrevrangebyscore', coin + ':stat:global:daily', '+inf', '-inf', 'limit', 0, 1]
+            ['zrevrangebyscore', coin + ':stat:global:daily', '+inf', '-inf', 'limit', 0, 1],
+            ['scard', coin + ':blocksConfirmed'],
+            ['scard', coin + ':blocksPending'],
+            ['scard', coin + ':blocksOrphaned'],
+            ['scard', coin + ':blocksKicked']
         ] 
         redisClient.multi(redisComands).exec(function(err, res) {
             if (err) {
