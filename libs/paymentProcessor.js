@@ -358,8 +358,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                         }
 
                     });
-                    console.log(arr);
-
+                    
                     var canDeleteShares = function(r){
                         for (var i = 0; i < rounds.length; i++){
                             var compareR = rounds[i];
