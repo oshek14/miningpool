@@ -3,6 +3,8 @@ var algos = require('stratum-pool/lib/algoProperties.js');
 var redis = require('redis');
 var async = require('async')
 var floger = require('../libs/logFileUtil')
+var CronJob = require('cron').CronJob;
+
 
 var logLevels = floger.levels
 var logFilePath = floger.filePathes.updateStats
@@ -27,14 +29,24 @@ module.exports = function(logger){
         });
     });
     
-    setInterval(function(){
-        calculateStatsForDay(portalConfig,poolConfigs);
+    // floger.fileLogger(logLevels.error, "something", logFilePath)
 
-        // floger.fileLogger(logLevels.error, "something", logFilePath)
-    },2000);
-    setInterval(function(){
+    //runs every day at 02:40:00 AM 
+    var dayJob = new CronJob('00 40 02 * * *', function() {
+        calculateStatsForDay(portalConfig,poolConfigs);
+    }, null, true, null);
+    
+
+    //RUNS EVERY DAY EVERY HOUR 
+    var hourJob = new CronJob('00 00 */1 * * *', function() {
         saveStatsEveryHour(portalConfig,poolConfigs,redisClients);
-    },2000);
+    }, null, true, null);
+
+    //RUNS EVERY DAY EVERY ten minutes 
+    var tenMinutesJob = new CronJob('00 */10 * * * *', function() {
+        newsaveStatsEveryTenMinutes(portalConfig,poolConfigs,redisClients);
+    }, null, true, null);
+    
     
     
 }
@@ -393,3 +405,244 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
 
 
 
+
+
+    function saveStatsEveryTenMinutes(portalConfig,poolConfigs,redisClients){
+   
+        var statGatherTime = Date.now() / 1000 | 0;
+        var allCoinStats = {};
+        var existingWorkers = [];
+        var globalOneHourCommands = [], workersOneHourCommands = [], deleteGlobalOneHourCommands = [], deleteWorkerOneHourCommands = [];
+        async.each(redisClients, function(client, callback){
+            var windowTime = (( statGatherTime - (configHelper.hashRateStatTenMinutes)/1000 ) | 0).toString();
+            var redisCommands = [];
+            var redisCommandTemplates = [
+                ['zremrangebyscore', ':hashrate', '-inf', '(' + windowTime],
+                ['zrangebyscore', ':hashrate', windowTime, '+inf'],
+                ['hgetall', ':stats'],
+                ['scard', ':blocksPending'],
+                ['scard', ':blocksConfirmed'],
+                ['scard', ':blocksKicked'],
+                ['smembers',':existingWorkers']
+            ];
+    
+            
+            var commandsPerCoin = redisCommandTemplates.length;
+            client.coins.map(function(coin){
+                redisCommandTemplates.map(function(t){
+                    var clonedTemplates = t.slice(0);
+                    clonedTemplates[1] = coin + clonedTemplates[1];
+                    redisCommands.push(clonedTemplates);
+                });
+            });
+    
+            client.client.multi(redisCommands).exec(function(err, replies){
+                if (err){
+                    //TODO
+                    logger.error(logSystem, 'Global', 'error with getting global stats ' + JSON.stringify(err));
+                    callback(err);
+                }
+                else{
+                    
+                    for(var i = 0; i < replies.length; i += commandsPerCoin){
+                        var coinName = client.coins[i / commandsPerCoin | 0];
+                        existingWorkers[coinName] = replies[i+6];
+                        var coinStats = {
+                            name: coinName,
+                            symbol: poolConfigs[coinName].coin.symbol.toUpperCase(),
+                            algorithm: poolConfigs[coinName].coin.algorithm,
+                            hashrates: replies[i + 1],
+                            poolStats: {
+                                validShares: replies[i + 2] ? (replies[i + 2].validShares || 0) : 0,
+                                validBlocks: replies[i + 2] ? (replies[i + 2].validBlocks || 0) : 0,
+                                invalidShares: replies[i + 2] ? (replies[i + 2].invalidShares || 0) : 0,
+                                totalPaid: replies[i + 2] ? (replies[i + 2].totalPaid || 0) : 0
+                            },
+                            blocks: {
+                                pending: replies[i + 3],
+                                confirmed: replies[i + 4],
+                                orphaned: replies[i + 5]
+                            }
+                        };
+                        allCoinStats[coinStats.name] = (coinStats);
+                    }
+                    callback();
+                }
+            });
+        }, function(err){
+                if (err){
+                    //TODO 
+                    logger.error(logSystem, 'Global', 'error getting all stats' + JSON.stringify(err));
+                    callback();
+                    return;
+                }
+               
+                var portalStats = {
+                    time: statGatherTime,
+                    global:{
+                        workers: 0,
+                        hashrate: 0
+                    },
+                    algos: {},
+                    pools: allCoinStats
+                };
+    
+                Object.keys(allCoinStats).forEach(function(coin){
+                    var coinStats = allCoinStats[coin];
+                    coinStats.workers = {};
+                    coinStats.shares = 0;
+                    coinStats.invalidShares=0;
+                    coinStats.sharesCount = 0;
+                    coinStats.invalidSharesCount = 0;
+    
+                    coinStats.hashrates.forEach(function(ins){
+                        var parts = ins.split(':');
+                        var workerShares = parseFloat(parts[0]);
+                        var worker = parts[1];
+                        if (workerShares > 0) {
+                            coinStats.shares += workerShares;
+                            coinStats.sharesCount++;
+                            if (worker in coinStats.workers){
+                                coinStats.workers[worker].shares += workerShares;
+                                coinStats.workers[worker].sharesCount++;
+                            }
+                            else
+                                coinStats.workers[worker] = {
+                                    shares: workerShares,
+                                    sharesCount:1,
+                                    invalidSharesCount:0,
+                                    invalidShares: 0,
+                                    hashrateString: null
+                                };
+                        }
+                        else {
+                            coinStats.invalidShares -= workerShares;
+                            coinStats.invalidSharesCount++;
+                            if (worker in coinStats.workers){
+                                coinStats.workers[worker].invalidShares -= workerShares;
+                                coinStats.workers[worker].invalidSharesCount++;
+                            }
+                            else
+                                coinStats.workers[worker] = {
+                                    shares: 0,
+                                    sharesCount:0,
+                                    invalidSharesCount:1,
+                                    invalidShares: -workerShares,
+                                    hashrateString: null
+                                };
+                        }
+                    });
+    
+                    var shareMultiplier = Math.pow(2, 32) / algos[coinStats.algorithm].multiplier;
+                    coinStats.hashrate = shareMultiplier * coinStats.shares / (configHelper.hashRateStatTime/1000)
+    
+                    coinStats.workerCount = Object.keys(coinStats.workers).length;
+                    portalStats.global.workers += coinStats.workerCount;
+                    
+    
+                    var oneHourStat = {
+                        workersCount:coinStats.workerCount,
+                        hashrateString:configHelper.getReadableHashRateString(coinStats.hashrate),
+                        hashrate:Math.round(coinStats.hashrate * 100) / 100,
+                        shares:coinStats.shares,
+                        sharesCount:coinStats.sharesCount,
+                        invalidSharesCount:coinStats.invalidSharesCount,
+                        invalidShares:coinStats.invalidShares,
+                        blocksPending:coinStats.blocks.pending,
+                        blocksOrphaned:coinStats.blocks.orphaned,
+                        blocksConfirmed:coinStats.blocks.confirmed,
+                        date:statGatherTime
+                    }
+                    globalOneHourCommands.push(['zadd',coinStats.name+':stat:global:tenMinutes',statGatherTime,JSON.stringify(oneHourStat)]);
+                    deleteGlobalOneHourCommands.push(['zremrangebyscore',coinStats.name+':stat:global:tenMinutes','-inf','('+(statGatherTime - configHelper.hashRateStatTenMinutes)/1000])
+                    
+                    
+                    /* algorithm specific global stats */
+                    var algo = coinStats.algorithm;
+                    if (!portalStats.algos.hasOwnProperty(algo)){
+                        portalStats.algos[algo] = {
+                            workers: 0,
+                            hashrate: 0,
+                            hashrateString: null
+                        };
+                    }
+                    portalStats.algos[algo].hashrate += coinStats.hashrate;
+                    portalStats.algos[algo].workers += Object.keys(coinStats.workers).length;
+                    
+                    
+                    var workersExisting = existingWorkers[coinStats.name];
+                    for(var i=0;i<workersExisting.length;i++){
+                        var workerData;
+                        if(coinStats.workers[workersExisting[i]]){
+                            var hashrate = shareMultiplier * coinStats.workers[workersExisting[i]].shares / (configHelper.hashRateStatTime/1000);
+                            var hashrateString = configHelper.getReadableHashRateString(hashrate);
+                            workerData = {
+                                shares:coinStats.workers[workersExisting[i]].shares,
+                                invalidShares:coinStats.workers[workersExisting[i]].invalidshares,
+                                sharesCount:coinStats.workers[workersExisting[i]].sharesCount,
+                                invalidSharesCount:coinStats.workers[workersExisting[i]].invalidSharesCount,
+                                hashrateString:hashrateString,
+                                hashrate:Math.round(hashrate * 100) / 100,
+                                date:statGatherTime
+                            }
+                            coinStats.workers[workersExisting[i]].hashrateString = hashrateString;
+                        }else{
+                            workerData = {
+                                shares:0,
+                                sharesCount:0,
+                                invalidShares:0,
+                                invalidSharesCount:0,
+                                hashrateString:"0",
+                                hashrate:0,
+                                date:statGatherTime
+                            }
+                            
+                        }
+                        
+                        workersOneHourCommands.push(['zadd',coinStats.name+":stat:workers:tenMinutes:"+workersExisting[i],statGatherTime,JSON.stringify(workerData)])
+                        deleteWorkerOneHourCommands.push(['zremrangebyscore',coinStats.name+":stat:workers:tenMinutes:"+workersExisting[i],'-inf','('+(statGatherTime - configHelper.hashRateStatTenMinutes)/1000]);
+                        
+                        
+                    }
+    
+                    delete coinStats.hashrates;
+                    delete coinStats.shares;
+                    delete coinStats.sharesCount;
+                    delete coinStats.invalidSharesCount;
+                    delete coinStats.invalidShares;
+                    coinStats.hashrateString = configHelper.getReadableHashRateString(coinStats.hashrate);
+                });
+    
+                Object.keys(portalStats.algos).forEach(function(algo){
+                    var algoStats = portalStats.algos[algo];
+                    algoStats.hashrateString = configHelper.getReadableHashRateString(algoStats.hashrate);
+                });
+    
+                
+                
+                var statString = JSON.stringify(portalStats);
+                
+                var redisStats = redis.createClient(portalConfig.redis.port, portalConfig.redis.host);
+    
+                var statHistoryCommands = [];
+                statHistoryCommands.push(['zadd', 'statHistory', statGatherTime, statString]);
+                
+                statHistoryCommands.push(['zremrangebyscore', 'statHistory', '-inf', '(' + (configHelper.statHistoryLifetime)/1000]);
+                
+                if(globalOneHourCommands.length>0) statHistoryCommands = statHistoryCommands.concat(globalOneHourCommands);
+                if(workersOneHourCommands.length>0) statHistoryCommands = statHistoryCommands.concat(workersOneHourCommands);
+                if(deleteWorkerOneHourCommands.length > 0) statHistoryCommands = statHistoryCommands.concat(deleteWorkerOneHourCommands);
+                if(deleteGlobalOneHourCommands.length > 0) statHistoryCommands = statHistoryCommands.concat(deleteGlobalOneHourCommands);
+    
+                redisStats.multi(statHistoryCommands).exec(function(err, replies){
+                    if (err){
+                        //TODO
+                        //logger.error(logSystem, 'Historics', 'Error adding stats to historics ' + JSON.stringify(err));
+                    }
+                    else
+                        console.log("done");
+                    
+                });
+                
+            });
+        };

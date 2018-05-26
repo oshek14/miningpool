@@ -13,7 +13,10 @@ var coinDir = "coins/";
 
 //every one hour data from hashrates moves to bitcoin:stat:global:hourly
 var hashRateStatTime = 3600*1000;
+var hashRateStatTenMinutes =600*1000;
 var deleteHourlyRange = 24*3600*1000;
+
+
 
 //payouts older than 14 days are deleted
 var deleteOldPayouts = 14*24*3600*1000; 
@@ -29,6 +32,7 @@ module.exports = {
     hashRateStatTime:hashRateStatTime,
     statHistoryLifetime:statHistoryLifetime,
     deleteHourlyRange:deleteHourlyRange,
+    hashRateStatTenMinutes:hashRateStatTenMinutes,
     getPoolConfigs : function(callback){
         var poolConfigFiles=[];
         var configs=[];
@@ -64,6 +68,26 @@ module.exports = {
     getCoinConfig : function(coin){
         return JSON.parse(JSON.minify(fs.readFileSync(coinDir+coin,{encoding:'utf8'})));
     },
+
+    hashratePowers: {
+        'KH': 1,
+        'MH': 2,
+        'GH': 3,
+        'TH': 4,
+        'PH': 5
+    },
+
+    getHasrateInObj : function(hashrate, power) {
+        var byteUnits = [ 'KH', 'MH', 'GH', 'TH', 'PH' ];
+        for (var i = 0; i < power; i++) {
+            hashrate = hashrate / 1000
+        }
+        return {
+            hashrate: hashrate,
+            type: byteUnits[power]
+        }
+    },
+
     getReadableHashRateString : function(hashrate){
         var i = -1;
         var byteUnits = [ ' KH', ' MH', ' GH', ' TH', ' PH' ];
@@ -73,7 +97,9 @@ module.exports = {
         } while (hashrate > 1000);
         return hashrate.toFixed(2) + byteUnits[i];
     },
+}
 
+<<<<<<< HEAD
     getCoinStats:function(pool_configs,callback){
         var poolConfigsData = {};
         var coinStats = {};
@@ -194,15 +220,14 @@ module.exports = {
 
         })
     },
+=======
+    
+>>>>>>> 1261996aa55a21eb60439dbedbb2e623d3bd4ce6
 
   
 
-    getWorkersCount:function(distance, type, coins, callback){
-        var redisClient = redis.createClient("6777",'165.227.143.126');
-        let result = []
-        
-    }
-}
+   
+
 
           
                 
