@@ -40,31 +40,31 @@ var async = require('async');
 
 
 //FOR MONTHS
-for(var j=0;j<=30;j++){
-   var date = new Date();
-   var realTime = date.getTime();
-    realTime = realTime - j*24*60*60*1000;
-    realTime = realTime / 1000 | 0;
-    console.log(new Date(realTime * 1000));
-    var jsondata= 
-        {
-            workersCount:Math.floor((Math.random() * 10) + 1),
-            shares:Math.floor((Math.random() * 40000) + 1),
-            hashrate:Math.floor((Math.random() * 11351439490) + 1),
-            invalidSharesCount:Math.floor((Math.random() * 40000) + 1),
-            sharesCount:Math.floor((Math.random() * 40000) + 1),
-            invalidShares:Math.floor((Math.random() * 40000) + 1),
-            blocksPending:52,
-            blocksOrphaned:0,
-            blocksConfirmed:0,
-            date:realTime,
-            hashrateString:Math.floor((Math.random() * 30) + 1)+" GH"
-        }
-        redisClient.zadd('bitcoin:stat:global:daily',realTime,JSON.stringify(jsondata),function(err,res){
-            console.log(err);
-            console.log(res);
-        });
-} 
+// for(var j=0;j<=30;j++){
+//    var date = new Date();
+//    var realTime = date.getTime();
+//     realTime = realTime - j*24*60*60*1000;
+//     realTime = realTime / 1000 | 0;
+//     console.log(new Date(realTime * 1000));
+//     var jsondata= 
+//         {
+//             workersCount:Math.floor((Math.random() * 10) + 1),
+//             shares:Math.floor((Math.random() * 40000) + 1),
+//             hashrate:Math.floor((Math.random() * 11351439490) + 1),
+//             invalidSharesCount:Math.floor((Math.random() * 40000) + 1),
+//             sharesCount:Math.floor((Math.random() * 40000) + 1),
+//             invalidShares:Math.floor((Math.random() * 40000) + 1),
+//             blocksPending:52,
+//             blocksOrphaned:0,
+//             blocksConfirmed:0,
+//             date:realTime,
+//             hashrateString:Math.floor((Math.random() * 30) + 1)+" GH"
+//         }
+//         redisClient.zadd('bitcoin:stat:global:daily',realTime,JSON.stringify(jsondata),function(err,res){
+//             console.log(err);
+//             console.log(res);
+//         });
+// } 
 
 //  var c = [];
 // var object = {
@@ -132,9 +132,10 @@ redisClient.multi([
     // ['hset', 'users', 'gio2', JSON.stringify({"password":654321,"address":{"bitcoin" : "asdOASd612dOASd12XfHK1bvF6iASOoAS"},"workers":["worker2"]})]
     ['zrevrangebyscore', 'userPayouts:payoutgio1', '+inf','-inf','limit', 0, 1],
     ['zrevrangebyscore', 'userPayouts:payoutgio2', '+inf','-inf','limit', 0, 1],
+    ['zrevrangebyscore', 'userPayouts:payoutgio5', '+inf','-inf','limit', 0, 1],
 ]
 ).exec(function(err,result){
-    console.log(result)
+    console.log(result);
 });
 // var ob ={
 //     workersCount:1,hashrateString:"6.11 GH",

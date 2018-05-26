@@ -480,6 +480,9 @@ function SetupForPool(logger, poolOptions, setupFinished){
 
                             if(Object.keys(workers).length == 0) insideCallback();
                             
+                            /* gio1.worker1
+                               gio1.worker2
+                               gio2.worker5 */
                             for (var w in workers){
                                 var username = w.split('.')[0];
                                 if(!usersInfo[username]){
@@ -494,17 +497,20 @@ function SetupForPool(logger, poolOptions, setupFinished){
                                     return;
                                 }
                                 var timeCheckCommands = [];
-                                for (var u in usersInfo){
-                                    usersInfo[u].address = JSON.parse(result[i]).address[coin]
-                                    usersInfo[u].toSend = 0;
-                                    timeCheckCommands.push(['zrevrangebyscore', 'userPayouts:payout' + u, '+inf','-inf','limit', 0, 1],)
+                                for (var username in usersInfo) {
+                                    usersInfo[username].address = JSON.parse(result[i]).address[coin]
+                                    usersInfo[username].toSend = 0;
+                                    timeCheckCommands.push(['zrevrangebyscore', 'userPayouts:payout' + username, '+inf','-inf','limit', 0, 1],)
                                 }
+
+                                // {gio1:{address:20123,toSend:0}, gio2:{address:123:toSend:0}}
+
                                 for (var w in workers) {
                                     var worker = workers[w]; //w //workerName //gio1.worker1;
                                     worker.balance = worker.balance || 0;
                                     worker.reward = worker.reward || 0;
-                                    var u = w.split('.')[0];
-                                    usersInfo[u].toSend += (worker.balance + worker.reward);
+                                    var username = w.split('.')[0];
+                                    usersInfo[username].toSend += (worker.balance + worker.reward);
                                 }
                                 redisClient.multi(timeCheckCommands).exec(function(err,timeCheckResult){
                                     if(err){
@@ -519,11 +525,12 @@ function SetupForPool(logger, poolOptions, setupFinished){
                                         var toSendFromWorker = (worker.balance + worker.reward);                                        
 
                                         var u = w.split('.')[0];
-                                        if(usersInfo[u]){
+                                        if(!usersInfo[u].used){
                                             var index = Object.keys(usersInfo).indexOf(u);
                                             var userInfo = usersInfo[u];
                                             if (userInfo.toSend >= minPaymentSatoshis || 
-                                                parseInt(timeCheckResult[index][0].split(':')[0]) < Date.now()/1000 - 24*3600) {
+                                               (timeCheckResult[index].length > 0 
+                                                && parseInt(timeCheckResult[index][0].split(':')[0]) < Date.now()/1000 - 24*3600)) {
                                                     totalSent += userInfo.toSend;
                                                     var address = userInfo.address;
                                                     addressAmounts[address] = satoshisToCoins(userInfo.toSend)
@@ -531,7 +538,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                                                     worker.sent = satoshisToCoins(toSendFromWorker);
                                                     worker.balanceChange = Math.min(worker.balance, toSendFromWorker) * -1;
 
-                                                    delete usersInfo[u];
+                                                    usersInfo[u].used = true;
                                             }
                                             else {
                                                 worker.balanceChange = Math.max(toSendFromWorker - worker.balance, 0);
@@ -613,18 +620,11 @@ function SetupForPool(logger, poolOptions, setupFinished){
                     }
                     if (worker.sent !== 0){
                         workerPayoutsCommand.push(['hincrbyfloat', coin + ':payouts', w, worker.sent]);
-                        if(paymentHappened.state){
-                            var dateNow = Date.now();
-                            var minerPaid = [w,worker.sent,dateNow];
-                            lastFifteenDaysPayment.push(['zadd',coin+':lastPayouts',dateNow / 1000 | 0, minerPaid.join(':')]);
-                        }
                         totalPaid += worker.sent;
                     }
                 }
 
-                var deleteOldPayouts = ['ZREMRANGEBYSCORE','bitcoin:lastPayouts','-inf',(Date.now()-configHelper.deleteOldPayouts)/1000];
-
-
+                
 
                 var movePendingCommands = [];
                 var roundsToDelete = [];
