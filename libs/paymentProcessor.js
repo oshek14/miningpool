@@ -497,10 +497,11 @@ function SetupForPool(logger, poolOptions, setupFinished){
                                     return;
                                 }
                                 var timeCheckCommands = [];
-                                for (var username in usersInfo) {
-                                    usersInfo[username].address = JSON.parse(result[i]).address[coin]
-                                    usersInfo[username].toSend = 0;
-                                    timeCheckCommands.push(['zrevrangebyscore', 'userPayouts:payout' + username, '+inf','-inf','limit', 0, 1])
+                                var userInfo = Object.keys(usersInfo);
+                                for(var i=0;i<userInfo.length;i++){
+                                    usersInfo[userInfo[i]].address = JSON.parse(result[i]).address[coin]
+                                    usersInfo[userInfo[i]].toSend = 0;
+                                    timeCheckCommands.push(['zrevrangebyscore', 'userPayouts:payout' + userInfo[i], '+inf','-inf','limit', 0, 1])
                                 }
 
                                 // {gio1:{address:20123,toSend:0}, gio2:{address:123:toSend:0}}
