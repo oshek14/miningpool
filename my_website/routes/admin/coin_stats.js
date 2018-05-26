@@ -39,7 +39,7 @@ router.get('/active_coins',(req,res)=>{
 /* get some stats about each coin. returned stats are shown below */
 router.get('/coin_stats',(req,res)=>{
     configHelper.getPoolConfigs(function(data) {
-        coinsHelper.getCoinStats(data,function(coinsStats){
+        coinsHelper.getStatsForEachCoin(data,function(coinsStats){
             if(coinsStats === false){
                 res.send({status:404})
             }else if(coinsStats == 500){
