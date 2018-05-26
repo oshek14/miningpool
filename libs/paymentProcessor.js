@@ -5,12 +5,20 @@ var async = require('async');
 var configHelper = require('../my_website/helpers/config_helper')
 var Stratum = require('stratum-pool');
 var util = require('stratum-pool/lib/util.js');
+var floger = require('../libs/logFileUtil')
+
+
+var logLevels = floger.levels;
+var logFilePath = floger.filePathes.paymentProcessor
+    
 
 
 module.exports = function(logger){
     var poolConfigs = JSON.parse(process.env.pools);
     var enabledPools = [];
 
+    
+    
     Object.keys(poolConfigs).forEach(function(coin) {
         var poolOptions = poolConfigs[coin];
         if (poolOptions.paymentProcessing &&
@@ -18,6 +26,7 @@ module.exports = function(logger){
             enabledPools.push(coin);
     });
 
+    
     async.filter(enabledPools, function(coin, callback){
         SetupForPool(logger, poolConfigs[coin], function(setupResults){
             callback(setupResults);
@@ -38,6 +47,7 @@ module.exports = function(logger){
         });
     });
 };
+
 
 
 function SetupForPool(logger, poolOptions, setupFinished){
@@ -79,6 +89,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
             daemon.cmd('validateaddress', [poolOptions.address], function(result) {
                 if (result.error){
                     logger.error(logSystem, logComponent, 'Error with payment processing daemon ' + JSON.stringify(result.error));
+                    floger.fileLogger(logLevels.error, 'Error with payment processing daemon ' + JSON.stringify(result.error), logFilePath)
                     callback(true);
                 }
                 else if (!result.response || !result.response.ismine) {
@@ -196,7 +207,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
             function(callback){
                 startRedisTimer();
                 redisClient.multi([
-                    ['hgetall', coin + ':balances'],
+                    ['hgetall', coin + ':balances:workerBalances'],
                     ['smembers', coin + ':blocksPending']
                 ]).exec(function(error, results){
                     endRedisTimer();
@@ -300,11 +311,15 @@ function SetupForPool(logger, poolOptions, setupFinished){
                         return;
                     }
                     var addressAccount;
+                    var arr = [];
                     txDetails.forEach(function(tx, i){
-                        if (i === txDetails.length - 1){
+                        arr.push(tx.result.confirmations);
+                        
+                       if (i === txDetails.length - 1){
                             addressAccount = tx.result;
                             return;
                         }
+                        
                         var round = rounds[i];
                         if (tx.error && tx.error.code === -5){
                             logger.warning(logSystem, logComponent, 'Daemon reports invalid transaction: ' + round.txHash);
@@ -343,6 +358,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                         }
 
                     });
+                    console.log(arr);
 
                     var canDeleteShares = function(r){
                         for (var i = 0; i < rounds.length; i++){
@@ -434,6 +450,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                                     return p + parseFloat(workerShares[c])
                                 }, 0);
 
+                                
                                 for (var workerAddress in workerShares){
                                     var percent = parseFloat(workerShares[workerAddress]) / totalShares;
                                     var workerRewardTotal = Math.floor(reward * percent);
@@ -468,108 +485,46 @@ function SetupForPool(logger, poolOptions, setupFinished){
              if not sending the balance, the differnce should be +(the amount they earned this round)
              */
             function(workers, rounds, addressAccount, callback) {
-
+                var workersBalanceUpdates = [];
+                var usersBalanceUpdates = [];
+                var redisCommands = [];
+                var usersPerWorker = {};
                 var trySend = function () {
-                    var addressAmounts = {};
-                    var totalSent = 0;
                     for (var w in workers) {
                         var worker = workers[w]; //workerName //gio1.worker1;
-                        worker.balance = worker.balance || 0;
                         worker.reward = worker.reward || 0;
-                        var toSend = (worker.balance + worker.reward);
-                        if (toSend >= minPaymentSatoshis) {
-                            totalSent += toSend;
-                            var address = worker.address = (worker.address || getProperAddress(w));
-                            worker.sent = addressAmounts[address] = satoshisToCoins(toSend);
-                            worker.balanceChange = Math.min(worker.balance, toSend) * -1;
-                        }
-                        else {
-                            worker.balanceChange = Math.max(toSend - worker.balance, 0);
-                            worker.sent = 0;
-                        }
-                    }
-                    
-                    var paymentHappened ={};
-                    paymentHappened.state = false;
+                        var username = worker.split(":")[0];
 
-                    /* if addressAmounds is zero length, no payments at all */
-                    if (Object.keys(addressAmounts).length === 0){
-                        callback(null, workers, rounds,paymentHappened);
-                        return;
+                        if(!username in usersPerWorker) usersPerWorker[username] = 0;
+                        else usersPerWorker[username] += worker.reward;
+                        
+                        if(worker.reward>0) workersBalanceUpdates.push(['hincrbyfloat',coin + ':balances:workerBalances',w,satoshisToCoins(worker.reward)]);
+                    }
+                    for(var username in usersPerWorker){
+                        usersBalanceUpdates.push(['hincrbyfloat',coin + ':balances:userBalances',username,satoshisToCoins(usersPerWorker[username])]);
                     }
 
-      
-                    
-                    /* transfer from pool address to users accounts */
-                    daemon.cmd('sendmany', [addressAccount || '', addressAmounts], function (result) {
-                        //Check if payments failed because wallet doesn't have enough coins to pay for tx fees
-                        if (result.error && result.error.code === -6) {
-                            var higherPercent = withholdPercent + 0.01;
-                            logger.warning(logSystem, logComponent, 'Not enough funds to cover the tx fees for sending out payments, decreasing rewards by '
-                                + (higherPercent * 100) + '% and retrying');
-                            trySend(higherPercent);
-                        }
-                        else if (result.error) {
-                            logger.error(logSystem, logComponent, 'Error trying to send payments with RPC sendmany '
-                                + JSON.stringify(result.error));
-                            callback(true);
-                        }
-                        else {
-                            logger.debug(logSystem, logComponent, 'Sent out a total of ' + (totalSent / magnitude)
-                                + ' to ' + Object.keys(addressAmounts).length + ' workers');
-                            if (withholdPercent > 0) {
-                                logger.warning(logSystem, logComponent, 'Had to withhold ' + (withholdPercent * 100)
-                                    + '% of reward from miners to cover transaction fees. '
-                                    + 'Fund pool wallet with coins to prevent this from happening');
+                    if(workersBalanceUpdates.length > 0) redisCommands.concat(workersBalanceUpdates);
+                    if(usersBalanceUpdates.length > 0) redisCommands.concat(usersBalanceUpdates);
+
+
+                    if(redisCommands.length > 0){
+                        redisClient.multi(redisCommands).exec(function(err,res){
+                            if(err) {
+                                callback(true);
+                                return;
                             }
-                            
-                            paymentHappened.state = true;
-                            callback(null, workers, rounds,paymentHappened);
-                        }
-                    }, true, true);
+                            callback(null, workers, rounds);
+                        })
+                    }else{
+                        callback(null, workers, rounds);
+                    }
+                    
                 };
-                trySend(0);
-               
-
+                trySend();
             },
-            function(workers, rounds, paymentHappened, callback){
-
-                var totalPaid = 0;
-
-                var balanceUpdateCommands = [];
-                var workerPayoutsCommand = [];
-
-                /*this records how much we paid to each miner.
-                it's used to show users how much we paid to them for the last 15 days each day. */
-                var lastFifteenDaysPayment = []; 
-
-                
-
-                for (var w in workers) {
-                    var worker = workers[w];
-                    if (worker.balanceChange !== 0){
-                        balanceUpdateCommands.push([
-                            'hincrbyfloat',
-                            coin + ':balances',
-                            w,
-                            satoshisToCoins(worker.balanceChange)
-                        ]);
-                    }
-                    if (worker.sent !== 0){
-                        workerPayoutsCommand.push(['hincrbyfloat', coin + ':payouts', w, worker.sent]);
-                        if(paymentHappened.state){
-                            var dateNow = Date.now();
-                            var minerPaid = [w,worker.sent,dateNow];
-                            lastFifteenDaysPayment.push(['zadd',coin+':lastPayouts',dateNow / 1000 | 0, minerPaid.join(':')]);
-                        }
-                        totalPaid += worker.sent;
-                    }
-                }
-
-                var deleteOldPayouts = ['ZREMRANGEBYSCORE','bitcoin:lastPayouts','-inf',(Date.now()-configHelper.deleteOldPayouts)/1000];
-
-
-
+               
+            function(workers, rounds, callback){
                 var movePendingCommands = [];
                 var roundsToDelete = [];
                 var orphanMergeCommands = [];
@@ -603,34 +558,16 @@ function SetupForPool(logger, poolOptions, setupFinished){
                 });
 
                 var finalRedisCommands = [];
-                
-
                 if (movePendingCommands.length > 0)
                     finalRedisCommands = finalRedisCommands.concat(movePendingCommands);
 
                 if (orphanMergeCommands.length > 0)
                     finalRedisCommands = finalRedisCommands.concat(orphanMergeCommands);
 
-                if (balanceUpdateCommands.length > 0)
-                    finalRedisCommands = finalRedisCommands.concat(balanceUpdateCommands);
-
-                if (workerPayoutsCommand.length > 0)
-                    finalRedisCommands = finalRedisCommands.concat(workerPayoutsCommand);
-
                 if (roundsToDelete.length > 0)
                     finalRedisCommands.push(['del'].concat(roundsToDelete));
 
-                if (totalPaid !== 0)
-                    finalRedisCommands.push(['hincrbyfloat', coin + ':stats', 'totalPaid', totalPaid]);
-
-                
-                if(lastFifteenDaysPayment.length > 0) {
-                    finalRedisCommands = finalRedisCommands.concat(lastFifteenDaysPayment);
-                }
-                
-                
-                finalRedisCommands.push(deleteOldPayouts);
-
+               
                 if (finalRedisCommands.length === 0){
                     callback();
                     return;
