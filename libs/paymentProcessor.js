@@ -311,9 +311,10 @@ function SetupForPool(logger, poolOptions, setupFinished){
                         return;
                     }
                     var addressAccount;
-                    
+                    var arr = [];
                     txDetails.forEach(function(tx, i){
-                        console.log(tx.result.confirmations);
+                        arr.push(tx.result.confirmations);
+                        
                        if (i === txDetails.length - 1){
                             addressAccount = tx.result;
                             return;
@@ -357,6 +358,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                         }
 
                     });
+                    console.log(arr);
 
                     var canDeleteShares = function(r){
                         for (var i = 0; i < rounds.length; i++){
