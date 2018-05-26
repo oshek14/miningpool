@@ -45,6 +45,7 @@ router.get('/tab_stats',(req,res)=>{
                         coinData.confirmed = coinsStats[key].blocks.confirmedCount
                         coinData.orphaned = coinsStats[key].blocks.orphanedCount
                         coinData.kicked = coinsStats[key].blocks.kickedCount
+                        coinData.existingWorkers = coinsStats[key].existingWorkers
                         result.push(coinData)
                     }
                 }
