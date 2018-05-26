@@ -8,6 +8,9 @@ var util = require('stratum-pool/lib/util.js');
 var floger = require('../libs/logFileUtil')
 
 
+var logLevels = floger.levels;
+var logFilePath = floger.filePathes.paymentProcessor
+    
 
 
 module.exports = function(logger){
@@ -15,8 +18,6 @@ module.exports = function(logger){
     var enabledPools = [];
 
     
-    var logLevels = floger.levels;
-    var logFilePath = floger.filePathes.paymentProcessor
     
     Object.keys(poolConfigs).forEach(function(coin) {
         var poolOptions = poolConfigs[coin];
