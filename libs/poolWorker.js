@@ -134,7 +134,7 @@ module.exports = function(logger){
                     authCallback(true);
                 else {
                     var user_name=null,worker_name=null,user_address=null;
-                    
+
                     var getUser = workerName.split(".");
                     user_name = getUser[0];
                     if(getUser.length > 1) worker_name = getUser[1];
@@ -163,6 +163,7 @@ module.exports = function(logger){
                                 }
                             }
                             else {
+                                console.log(user_address);
                                 pool.daemon.cmd('validateaddress', [user_address], function (results) {
                                     var isValid = results.filter(function (r) {
                                         return r.response.isvalid
