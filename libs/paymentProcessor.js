@@ -688,8 +688,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                 }
                 
                 
-                finalRedisCommands.push(deleteOldPayouts);
-
+                
                 if (finalRedisCommands.length === 0){
                     callback();
                     return;
