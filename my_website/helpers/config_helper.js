@@ -3,6 +3,7 @@ var fs = require('fs');
 var path = require('path');
 var redis = require('redis');
 var extend = require('extend');
+var Stratum = require('stratum-pool');
 
 //var algos = require('stratum-pool/lib/algoProperties.js');
 
