@@ -472,132 +472,65 @@ function SetupForPool(logger, poolOptions, setupFinished){
                 var trySend = function () {
                     var addressAmounts = {};
                     var totalSent = 0;
-                    async.waterfall([
-                        function(insideCallback){
-
-                            var userAddressCommands = [];
-                            var usersInfo = {};
-                            var userPayoutsCommands = [];
-
-                            if(Object.keys(workers).length == 0) insideCallback();
-                            
-                            /* gio1.worker1
-                               gio1.worker2
-                               gio2.worker5 */
-                            for (var w in workers){
-                                var username = w.split('.')[0];
-                                if(!usersInfo[username]){
-                                    usersInfo[username] = {};
-                                    userAddressCommands.push(['hget', 'users', username]);
-                                }
-                            }
-
-                            redisClient.multi(userAddressCommands).exec(function(err,result){
-                                if(err){
-                                    callback('Check finished - redis error with multi get user addresses');
-                                    return;
-                                }
-                                var timeCheckCommands = [];
-                                var userInfo = Object.keys(usersInfo);
-                                for(var i=0;i<userInfo.length;i++){
-                                    console.log(userInfo[i]," ",result[i]);
-
-                                    usersInfo[userInfo[i]].address = JSON.parse(result[i]).address[coin]
-                                    usersInfo[userInfo[i]].toSend = 0;
-                                    timeCheckCommands.push(['zrevrangebyscore', coin+':userPayouts:payout' + userInfo[i], '+inf','-inf','limit', 0, 1])
-                                }
-
-                                // {gio1:{address:20123,toSend:0}, gio2:{address:123:toSend:0}}
-
-                                for (var w in workers) {
-                                    var worker = workers[w]; //w //workerName //gio1.worker1;
-                                    worker.balance = worker.balance || 0;
-                                    worker.reward = worker.reward || 0;
-                                    var username = w.split('.')[0];
-                                    usersInfo[username].toSend += (worker.balance + worker.reward);
-                                }
-                                redisClient.multi(timeCheckCommands).exec(function(err,timeCheckResult){
-                                    if(err){
-                                        callback('Check finished - redis error with multi get user payout time check');
-                                        return;
-                                    }
-                                    for (var w in workers) {
-                                        var worker = workers[w]; //w //workerName //gio1.worker1;
-                                        worker.balance = worker.balance || 0;
-                                        worker.reward = worker.reward || 0;
-
-                                        var toSendFromWorker = (worker.balance + worker.reward);                                        
-
-                                        var u = w.split('.')[0];
-                                        if(!usersInfo[u].used){
-                                            var index = Object.keys(usersInfo).indexOf(u);
-                                            var userInfo = usersInfo[u];
-                                            if (userInfo.toSend >= minPaymentSatoshis || 
-                                               (timeCheckResult[index].length > 0 
-                                                && parseInt(timeCheckResult[index][0].split(':')[0]) < Date.now()/1000 - 24*3600)) {
-                                                    totalSent += userInfo.toSend;
-                                                    var address = userInfo.address;
-                                                    addressAmounts[address] = satoshisToCoins(userInfo.toSend)
-                                                    userPayoutsCommands.push(['zadd',coin+':userPayouts:payout'+u,Date.now()/1000, Date.now()+":"+userInfo.toSend])
-                                                    worker.sent = satoshisToCoins(toSendFromWorker);
-                                                    worker.balanceChange = Math.min(worker.balance, toSendFromWorker) * -1;
-
-                                                    usersInfo[u].used = true;
-                                            }
-                                            else {
-                                                worker.balanceChange = Math.max(toSendFromWorker - worker.balance, 0);
-                                                worker.sent = 0;
-                                            }
-                                        }else{
-                                            worker.sent = satoshisToCoins(toSendFromWorker);
-                                            worker.balanceChange = Math.min(worker.balance, toSendFromWorker) * -1;
-                                        }
-                                    }
-                                    insideCallback();
-                                });
-                            });
-                        }        
-                    ], 
-                    function(){
-                        var paymentHappened ={};
-                        paymentHappened.state = false;
-
-                        /* if addressAmounds is zero length, no payments at all */
-                        if (Object.keys(addressAmounts).length === 0){
-                            callback(null, workers, rounds,paymentHappened);
-                            return;
+                    for (var w in workers) {
+                        var worker = workers[w]; //workerName //gio1.worker1;
+                        worker.balance = worker.balance || 0;
+                        worker.reward = worker.reward || 0;
+                        var toSend = (worker.balance + worker.reward);
+                        if (toSend >= minPaymentSatoshis) {
+                            totalSent += toSend;
+                            var address = worker.address = (worker.address || getProperAddress(w));
+                            worker.sent = addressAmounts[address] = satoshisToCoins(toSend);
+                            worker.balanceChange = Math.min(worker.balance, toSend) * -1;
                         }
+                        else {
+                            worker.balanceChange = Math.max(toSend - worker.balance, 0);
+                            worker.sent = 0;
+                        }
+                    }
                     
-                        /* transfer from pool address to users accounts */
-                        daemon.cmd('sendmany', [addressAccount || '', addressAmounts], function (result) {
-                            //Check if payments failed because wallet doesn't have enough coins to pay for tx fees
-                            if (result.error && result.error.code === -6) {
-                                var higherPercent = withholdPercent + 0.01;
-                                logger.warning(logSystem, logComponent, 'Not enough funds to cover the tx fees for sending out payments, decreasing rewards by '
-                                    + (higherPercent * 100) + '% and retrying');
-                                trySend(higherPercent);
+                    var paymentHappened ={};
+                    paymentHappened.state = false;
+
+                    /* if addressAmounds is zero length, no payments at all */
+                    if (Object.keys(addressAmounts).length === 0){
+                        callback(null, workers, rounds,paymentHappened);
+                        return;
+                    }
+
+      
+                    
+                    /* transfer from pool address to users accounts */
+                    daemon.cmd('sendmany', [addressAccount || '', addressAmounts], function (result) {
+                        //Check if payments failed because wallet doesn't have enough coins to pay for tx fees
+                        if (result.error && result.error.code === -6) {
+                            var higherPercent = withholdPercent + 0.01;
+                            logger.warning(logSystem, logComponent, 'Not enough funds to cover the tx fees for sending out payments, decreasing rewards by '
+                                + (higherPercent * 100) + '% and retrying');
+                            trySend(higherPercent);
+                        }
+                        else if (result.error) {
+                            logger.error(logSystem, logComponent, 'Error trying to send payments with RPC sendmany '
+                                + JSON.stringify(result.error));
+                            callback(true);
+                        }
+                        else {
+                            logger.debug(logSystem, logComponent, 'Sent out a total of ' + (totalSent / magnitude)
+                                + ' to ' + Object.keys(addressAmounts).length + ' workers');
+                            if (withholdPercent > 0) {
+                                logger.warning(logSystem, logComponent, 'Had to withhold ' + (withholdPercent * 100)
+                                    + '% of reward from miners to cover transaction fees. '
+                                    + 'Fund pool wallet with coins to prevent this from happening');
                             }
-                            else if (result.error) {
-                                logger.error(logSystem, logComponent, 'Error trying to send payments with RPC sendmany '
-                                    + JSON.stringify(result.error));
-                                callback(true);
-                            }
-                            else {
-                                logger.debug(logSystem, logComponent, 'Sent out a total of ' + (totalSent / magnitude)
-                                    + ' to ' + Object.keys(addressAmounts).length + ' workers');
-                                if (withholdPercent > 0) {
-                                    logger.warning(logSystem, logComponent, 'Had to withhold ' + (withholdPercent * 100)
-                                        + '% of reward from miners to cover transaction fees. '
-                                        + 'Fund pool wallet with coins to prevent this from happening');
-                                }
-                                
-                                paymentHappened.state = true;
-                                callback(null, workers, rounds,paymentHappened);
-                            }
-                        }, true, true);
-                    });    
+                            
+                            paymentHappened.state = true;
+                            callback(null, workers, rounds,paymentHappened);
+                        }
+                    }, true, true);
                 };
                 trySend(0);
+               
+
             },
             function(workers, rounds, paymentHappened, callback){
 
@@ -624,11 +557,18 @@ function SetupForPool(logger, poolOptions, setupFinished){
                     }
                     if (worker.sent !== 0){
                         workerPayoutsCommand.push(['hincrbyfloat', coin + ':payouts', w, worker.sent]);
+                        if(paymentHappened.state){
+                            var dateNow = Date.now();
+                            var minerPaid = [w,worker.sent,dateNow];
+                            lastFifteenDaysPayment.push(['zadd',coin+':lastPayouts',dateNow / 1000 | 0, minerPaid.join(':')]);
+                        }
                         totalPaid += worker.sent;
                     }
                 }
 
-                
+                var deleteOldPayouts = ['ZREMRANGEBYSCORE','bitcoin:lastPayouts','-inf',(Date.now()-configHelper.deleteOldPayouts)/1000];
+
+
 
                 var movePendingCommands = [];
                 var roundsToDelete = [];
@@ -689,7 +629,8 @@ function SetupForPool(logger, poolOptions, setupFinished){
                 }
                 
                 
-                
+                finalRedisCommands.push(deleteOldPayouts);
+
                 if (finalRedisCommands.length === 0){
                     callback();
                     return;
