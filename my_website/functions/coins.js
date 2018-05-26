@@ -83,7 +83,13 @@ module.exports = {
             var daemon = new Stratum.daemon.interface([coinConfig.paymentProcessing.daemon], function(severity, message){
                 
             });
+            var account = 
             daemon.cmd('getaccount',[coinPoolAddress],function(result) {
+                if(!result){} //TODO ERROR
+                else if(result.error) {} //todo error
+                else account = result.response;
+            })
+            daemon.cmd('getbalance',[account],function(result){
                 console.log(result);
             })
         })
