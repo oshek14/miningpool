@@ -102,7 +102,7 @@ module.exports = {
     /* Daemon Helpers */
 
     getBalanceFromAddress:function(coin){
-        configHelper.getPoolConfigs(function(data) {
+        module.exports.getPoolConfigs(function(data) {
             var coinConfig = data[coin];
             var coinPoolAddress = coinConfig.address;
             var daemon = new Stratum.daemon.interface([coinConfig.paymentProcessing.daemon], function(severity, message){
