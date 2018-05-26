@@ -103,12 +103,13 @@ module.exports = {
         var coinStats = {};
         var redisClient = redis.createClient("6777",'165.227.143.126');
         var redisCommands = [];
-        var commandsPerCoin = 5;
+        var commandsPerCoin = 6;
         var data = pool_configs;
         for(var i=0;i<Object.keys(data).length;i++){
             var coin_name  = Object.keys(data)[i]; // bitcoin
             var tabStatsCommand = [
                 ['hgetall', coin_name+':stats'],
+                ['scard', coin_name+':existingWorkers'],
                 ['scard', coin_name+':blocksPending'],
                 ['scard', coin_name+':blocksConfirmed'],
                 ['scard', coin_name+':blocksKicked'],
@@ -129,10 +130,10 @@ module.exports = {
                     var algorithm = data[coin_name].coin.algorithm;
                     coinStats[coin_name] = {
                         blocks:{
-                            pendingCount:res[i*commandsPerCoin+1],
-                            confirmedCount: res[i*commandsPerCoin+2],
-                            kickedCount:res[i*commandsPerCoin+3],
-                            orphanedCount:res[i*commandsPerCoin+4]
+                            pendingCount:res[i*commandsPerCoin+2],
+                            confirmedCount: res[i*commandsPerCoin+3],
+                            kickedCount:res[i*commandsPerCoin+4],
+                            orphanedCount:res[i*commandsPerCoin+5]
                         },
                         
                         stats:{
@@ -141,6 +142,7 @@ module.exports = {
                             validBlocks:res[i*commandsPerCoin] ? (res[i*commandsPerCoin].validBlocks || 0) :0,
                             totalPaid:res[i*commandsPerCoin] ? (res[i*commandsPerCoin].totalPaid || 0) :0,
                         },
+                        existingWorkers:res[i*commandsPerCoin+1],
                         algorithm:algorithm,
                         symbol:data[coin_name].coin.symbol.toUpperCase(),
                         
