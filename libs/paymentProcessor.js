@@ -26,8 +26,7 @@ module.exports = function(logger){
             enabledPools.push(coin);
     });
 
-    floger.fileLogger(logLevels.error, "something", logFilePath)
-
+    
     async.filter(enabledPools, function(coin, callback){
         SetupForPool(logger, poolConfigs[coin], function(setupResults){
             callback(setupResults);
@@ -49,7 +48,6 @@ module.exports = function(logger){
     });
 };
 
-console.log(logLevels);
 
 
 function SetupForPool(logger, poolOptions, setupFinished){
@@ -91,6 +89,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
             daemon.cmd('validateaddress', [poolOptions.address], function(result) {
                 if (result.error){
                     logger.error(logSystem, logComponent, 'Error with payment processing daemon ' + JSON.stringify(result.error));
+                    floger.fileLogger(logLevels.error, 'Error with payment processing daemon ' + JSON.stringify(result.error), logFilePath)
                     callback(true);
                 }
                 else if (!result.response || !result.response.ismine) {
@@ -312,6 +311,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                         return;
                     }
                     var addressAccount;
+                    console.log(txDetails);
                     txDetails.forEach(function(tx, i){
                        if (i === txDetails.length - 1){
                             addressAccount = tx.result;
