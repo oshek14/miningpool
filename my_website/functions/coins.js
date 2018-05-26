@@ -78,7 +78,7 @@ module.exports = {
     getLastStats: function(coin, algo, callback) {
         var redisClient = redis.createClient("6777",'165.227.143.126');
         redisComands = [
-            ['zrevrangebyscore', coin + ':stat:global:tenMinutes', (Date.now() - 60 * 60 * 60 * 1000)/1000, '-inf', 'limit', 0, 1],
+            ['zrevrangebyscore', coin + ':stat:global:tenMinutes', '+inf', '-inf', 'limit', 0, 1],
             ['zrevrangebyscore', coin + ':stat:global:hourly', '+inf', '-inf', 'limit', 0, 1],
             ['zrevrangebyscore', coin + ':stat:global:daily', '+inf', '-inf', 'limit', 0, 1]
         ] 
