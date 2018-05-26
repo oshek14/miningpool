@@ -18,7 +18,7 @@ router.get('/coins_graph',(req,res)=>{
     var timeInterval = req.query.type.name //hourly,mothly
     var intervalCounts = req.query.type.intervals   //24 or 30
     var interval = req.query.type.interval; // 3600*1000 or 24*3600*1000
-    coinsHelper.getGlobals(coins, timeInterval, intervalCounts, interval,function(result) {
+    coinsHelper.getCoinStatsForGraph(coins, timeInterval, intervalCounts, interval,function(result) {
         res.send({status:200,data:result,timeInterval: req.query.type});
     })
 })
