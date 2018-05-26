@@ -305,6 +305,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                             addressAccount = tx.result;
                             return;
                         }
+                        console.log("addressAccount",addressAccount);
                         var round = rounds[i];
                         if (tx.error && tx.error.code === -5){
                             logger.warning(logSystem, logComponent, 'Daemon reports invalid transaction: ' + round.txHash);
