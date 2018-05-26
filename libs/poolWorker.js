@@ -144,7 +144,7 @@ module.exports = function(logger){
                             authCallback(false);
                         } else{ 
                             var parsedData = JSON.parse(res);
-                            user_address = parsedData.address;
+                            user_address = parsedData.address['bitcoin'];
                             if(password != "x" &&  password != "123" && password != parsedData.password){
                                 authCallback(false);
                             }
@@ -163,7 +163,7 @@ module.exports = function(logger){
                                 }
                             }
                             else {
-                                console.log(user_address);
+                                
                                 pool.daemon.cmd('validateaddress', [user_address], function (results) {
                                     var isValid = results.filter(function (r) {
                                         return r.response.isvalid
