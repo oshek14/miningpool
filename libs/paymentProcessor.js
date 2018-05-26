@@ -473,6 +473,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                 var redisCommands = [];
                 var usersPerWorker = {};
                 var trySend = function () {
+                    console.log("workers",workers);
                     for (var w in workers) {
                         var worker = workers[w]; //workerName //gio1.worker1;
                         worker.reward = worker.reward || 0;
@@ -571,7 +572,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
             }
 
         ], function(){
-            
+
             var paymentProcessTime = Date.now() - startPaymentProcess;
             logger.debug(logSystem, logComponent, 'Finished interval - time spent: '
                 + paymentProcessTime + 'ms total, ' + timeSpentRedis + 'ms redis, '
