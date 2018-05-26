@@ -220,12 +220,12 @@ module.exports = {
 
   
 
-    getGlobals:function(coins, timeInterval, intervalCounts, callback){
+    getGlobals:function(coins, timeInterval, intervalCounts, interval,callback){
         var redisClient = redis.createClient("6777",'165.227.143.126');
         var redisComands = []
         for (var i = 0; i < coins.length; i++) {
             var coin = coins[i]
-            redisComands.push(['zrevrangebyscore', coin + ":stat:global:" + timeInterval, '+inf', '-inf', 'limit', 0, intervalCounts])
+            redisComands.push(['zrevrangebyscore', coin + ":stat:global:" + timeInterval, '+inf', (Date.now() - interval*intervalCounts)/1000, 'limit', 0, intervalCounts])
         }
         redisClient.multi(redisComands).exec(function(err, res) {
             var resultRes = {}
