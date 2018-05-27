@@ -5,6 +5,7 @@ module.exports = {
     getWorkerStats:function(coin_name,algorithm,callback){
         var redisCommands = [];
         var date  = Date.now();
+        var redisClient = redis.createClient("6777",'165.227.143.126');
         redisClient.smembers(coin_name+':existingWorkers',function(err,res){
             if(err) callback(500);
             else
