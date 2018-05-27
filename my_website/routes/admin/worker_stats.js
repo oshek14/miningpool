@@ -18,7 +18,7 @@ router.get('/worker_stats',(req,res)=>{
     var coin_name = req.query.coin_name;
     var algorithm = req.query.algorithm;
 
-    configHelper.getWorkerStats(coin_name,algorithm,function(data){
+    workersHelper.getWorkerStats(coin_name,algorithm,function(data){
         if(data == 500) res.send({status:500});
         else res.send({status:200,data:data});
     })
