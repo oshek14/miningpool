@@ -148,12 +148,9 @@ redisClient.multi(redisCommands
 // var commands = [];
 
 
-redisClient.multi([
-    ['hget', 'users', 'gio1' ]
-]
-).exec(function(err,result){
-    console.log(result);
-});
+redisClient.hgetall('bitcoin' + ":balances:userBalances", function(err,outsideRes){
+    console.log(outsideRes)
+})
 
 // // redisClient.multi(deleteOldPayouts).exec(function(err,res){
 // //     console.log(res);
