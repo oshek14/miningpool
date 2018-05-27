@@ -5,13 +5,7 @@ var redis = require('redis');
 var redisClient = redis.createClient("6777", "165.227.143.126");
 var async = require('async');
 
-var logger = require('./libs/logFileUtil')
-
-var files = logger.filePathes
-var levels = logger.levels
-
-logger.fileLogger(levels.info, "dadadadada", files.auth);
-
+var CronJob = require('cron').CronJob;
 
 //const jm = require('js-meter')
 // const isPrint = true
@@ -171,8 +165,7 @@ logger.fileLogger(levels.info, "dadadadada", files.auth);
 //     console.log(outsideRes)
 // })
 
-// redisClient.del('bitcoin' + ":balances:userBalances", function(err,outsideRes){
-// })
+// redisClient.del('bitcoin' + ":balances:userBalances", function(err,outsideRes){})
 
 // // redisClient.multi(deleteOldPayouts).exec(function(err,res){
 // //     console.log(res);
@@ -181,3 +174,18 @@ logger.fileLogger(levels.info, "dadadadada", files.auth);
 // // redisClient.ZRANGEBYSCORE('bitcoin:lastPayouts',(Date.now()-600*1000)/1000,Date.now(),function(err,res){
 // //     console.log(res);
 // // });
+
+
+var i = 0;
+
+var dayJob = new CronJob('* * * * * *', function() {
+    doit(i, this);
+    i++;
+}, null, true, null, {"":""});
+
+var doit = function(i, self){
+    console.log("omo")
+    if(i == 2){
+        console.log(self)
+    }
+}
