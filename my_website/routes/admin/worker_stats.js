@@ -26,7 +26,7 @@ router.get('/workers_stats',(req,res)=>{
     
 })
 
-router.get('/worker_stat',(req,res)=>{
+router.get('/worker_stats',(req,res)=>{
     var coin_name = req.query.coin_name;
     var worker_name = req.query.worker_name;
     /* each worker stat */
