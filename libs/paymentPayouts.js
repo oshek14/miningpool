@@ -102,9 +102,8 @@ var trySend = function (withholdPercent, coin, coinConfig) {
                                         }else{
                                             redisClient.hset(coin + ":stats", "totalPaid", totalSent,  function(err,outsideRes){
                                                 if(err){
-                                                    logger.debug(logSystem, logComponent, 'can not update total paied statistics after payout for coin: ' + coin);
-                                                    floger.fileLogger(logLevels.error, 'can not update total paied statistics after payout for coin: ' + coin , logFilePath)
-                                                    paymentJob.stop();
+                                                    logger.debug(logSystem, logComponent, 'can not update total paid statistics after payout for coin: ' + coin + " we have to update :stat totalPaid "+totalSent);
+                                                    floger.fileLogger(logLevels.error, 'can not update total paid statistics after payout for coin: ' + coin + " we have to update :stat totalPaid "+totalSent,logFilePath);
                                                 }
                                             })
                                         }

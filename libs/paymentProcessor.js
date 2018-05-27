@@ -595,6 +595,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                                 + coin + '_finalRedisCommands.txt must be ran manually');
                         
                         fs.writeFile(coin + '_finalRedisCommands.txt', JSON.stringify(finalRedisCommands), function(err){
+                            floger.fileLogger(logLevels.error, "couldn't write to file finalreddiscommands error.fucked up" + JSON.stringify(error), logFilePath)
                             logger.error('Could not write finalRedisCommands.txt, you are fucked.');
                         });
                     }
@@ -610,7 +611,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                 + timeSpentRPC + 'ms daemon RPC');
 
         });
-    };
+    };o
 
 
     
