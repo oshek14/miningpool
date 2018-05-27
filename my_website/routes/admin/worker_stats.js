@@ -14,7 +14,7 @@ router.all("/*",(req,res,next)=>{
 
 
 
-router.get('/worker_stats',(req,res)=>{
+router.get('/workers_stats',(req,res)=>{
     var coin_name = req.query.coin_name;
     var algorithm = req.query.algorithm;
 
