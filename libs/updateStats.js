@@ -58,8 +58,9 @@ module.exports = function(logger){
 function calculateStatsForDay(portalConfig,poolConfigs){
     var redisClient = redis.createClient(portalConfig.redis.port, portalConfig.redis.host);
     var gatherTime = Date.now() / 1000 | 0;
-    for(var j=0;j<Object.keys(poolConfigs).length;j++){
-        var coin =Object.keys(poolConfigs)[j];
+    var poolconfigKeys = Object.keys(poolConfigs);
+    for(var j=0; j<poolconfigKeys.length ;j++){
+        var coin = poolconfigKeys[j];
         redisClient.multi([
             ['smembers',coin+':existingWorkers'],
             ['zrevrangebyscore',coin+':stat:global:hourly','+inf','-inf','limit', 0, 24]

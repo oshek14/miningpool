@@ -167,25 +167,25 @@ var CronJob = require('cron').CronJob;
 
 // redisClient.del('bitcoin' + ":balances:userBalances", function(err,outsideRes){})
 
-// // redisClient.multi(deleteOldPayouts).exec(function(err,res){
-// //     console.log(res);
-// //     console.log(err);
-// // });
-// // redisClient.ZRANGEBYSCORE('bitcoin:lastPayouts',(Date.now()-600*1000)/1000,Date.now(),function(err,res){
-// //     console.log(res);
-// // });
+redisClient.multi([['smembers','bitcoin'+':existingWorkers']]).exec(function(err,res){
+    console.log(res);
+    console.log(err);
+});
+// redisClient.ZRANGEBYSCORE('bitcoin:lastPayouts',(Date.now()-600*1000)/1000,Date.now(),function(err,res){
+//     console.log(res);
+// });
 
 
-var i = 0;
+// var i = 0;
 
-var dayJob = new CronJob('* * * * * *', function() {
-    doit(i, this);
-    i++;
-}, null, true, null, {"":""});
+// var dayJob = new CronJob('* * * * * *', function() {
+//     doit(i, this);
+//     i++;
+// }, null, true, null, {"":""});
 
-var doit = function(i, self){
-    console.log("omo")
-    if(i == 2){
-        console.log(self)
-    }
-}
+// var doit = function(i, self){
+//     console.log("omo")
+//     if(i == 2){
+//         console.log(self)
+//     }
+// }
