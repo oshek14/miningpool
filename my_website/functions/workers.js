@@ -2,6 +2,7 @@
 var redis = require('redis');
 module.exports = {
     
+    /* get all workers */
     getWorkerStats:function(coin_name,algorithm,callback){
         var redisCommands = [];
         var date  = Date.now();
@@ -18,6 +19,22 @@ module.exports = {
                 })
         })
     },
+
+    /* get stat for one worker gio1.worker1 */
+    getWorkerStats:function(coin_name,worker_name,callback){
+        var redisClient = redis.createClient("6777",'165.227.143.126');
+        var redisCommands = [
+            ['zrevrangebyscore',coin_name+":stat:workers:tenMinutes:"+worker_name,'+inf','-inf','limit',0,1],
+            ['zrevrangebyscore',coin_name+":stat:workers:hourly:"+worker_name,'+inf','-inf','limit',0,1],
+            ['zrevrangebyscore',coin_name+":stat:workers:daily:"+worker_name,'+inf','-inf','limit',0,1],
+            ['hget',coin_name+":balances:userBalances",worker_name.split(":")[0]],
+            ['hget',coin_name+":userPayouts",worker_name.split(":")[0]],
+        ]
+        redisClient.multi(redisCommands).exec(function(err,res){
+            if(err) callback(err);
+            else callback(res);
+        })
+    }
     
     
 }

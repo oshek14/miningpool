@@ -24,6 +24,8 @@ const filePathes = {
     paymentProcessor: path.join(__dirname, '/../logs/paymentProcessor/' +  DateNow + 'paymentProcessor.log'),
     paymentPayouts:path.join(__dirname, '/../logs/paymentPayouts/' +  DateNow + 'paymentPayouts.log'),
     auth: path.join(__dirname, '/../logs/auth/' +  DateNow + 'auth.log'),
+    confirmedBlocks :path.join(__dirname, '/../logs/blocksConfirmed/' +  DateNow + 'blocksConfirmed.log'),
+    shareProcessor :path.join(__dirname, '/../logs/shareProcessor/' +  DateNow + 'shareProcessor.log'),
 }
 
 

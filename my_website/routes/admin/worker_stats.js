@@ -17,12 +17,23 @@ router.all("/*",(req,res,next)=>{
 router.get('/workers_stats',(req,res)=>{
     var coin_name = req.query.coin_name;
     var algorithm = req.query.algorithm;
-
+    /* all worker stat */
     workersHelper.getWorkerStats(coin_name,algorithm,function(data){
         if(data == 500) res.send({status:500});
         else res.send({status:200,data:data});
     })
     
+    
+})
+
+router.get('/worker_stat',(req,res)=>{
+    var coin_name = req.query.coin_name;
+    var worker_name = req.query.worker_name;
+    /* each worker stat */
+    workersHelper.getWorkerStats(coin_name,worker_name,function(data){
+        if(data == 500) res.send({status:500});
+        else res.send({status:200,data:data});
+    })
 })
 
 

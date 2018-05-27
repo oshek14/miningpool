@@ -193,3 +193,6 @@ var CronJob = require('cron').CronJob;
 
 
 
+redisClient.hget('litecoin:balances:userBalances','gio12',function(err,res){
+    console.log(res);
+})
