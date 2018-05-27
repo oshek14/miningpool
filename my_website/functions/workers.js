@@ -14,7 +14,7 @@ module.exports = {
                 }
                 redisClient.multi(redisCommands).exec(function(err,res){
                     if(err) callback(500);
-                    else callback(res);
+                    else callback({workersKeys:workersKeys,workersValues:workersValues});
                 })
         })
     },
