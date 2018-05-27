@@ -125,17 +125,17 @@ var async = require('async');
 
 // bla();
 
-var coins = ["bitcoin", "litecoin"];
-var redisCommands = [];
+// var coins = ["bitcoin", "litecoin"];
+// var redisCommands = [];
 
-for(var i = 0; i < coins.length; i ++){
-    redisCommands.push(["hgetall", coins[i] + ":balances:userBalances"]);
-}
+// for(var i = 0; i < coins.length; i ++){
+//     redisCommands.push(["hgetall", coins[i] + ":balances:userBalances"]);
+// }
 
-redisClient.multi(redisCommands
-).exec(function(err,result){
-    console.log(Object.keys(result[0]));
-});
+// redisClient.multi(redisCommands
+// ).exec(function(err,result){
+//     console.log(Object.keys(result[0]));
+// });
 // var ob ={
 //     workersCount:1,hashrateString:"6.11 GH",
 //     hashrate:6108397932.088889,
@@ -150,6 +150,9 @@ redisClient.multi(redisCommands
 
 redisClient.hgetall('bitcoin' + ":balances:userBalances", function(err,outsideRes){
     console.log(outsideRes)
+})
+
+redisClient.del('bitcoin' + ":balances:userBalances", function(err,outsideRes){
 })
 
 // // redisClient.multi(deleteOldPayouts).exec(function(err,res){
