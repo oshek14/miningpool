@@ -102,7 +102,7 @@ module.exports = {
 
     /* Daemon Helpers */
 
-    getBalanceFromAddress:function(coin){
+    getBalanceFromAddress:function(coin,callback){
         module.exports.getPoolConfigs(function(data) {
             var coinConfig = data[coin];
             var coinPoolAddress = coinConfig.address;
