@@ -4,6 +4,7 @@ var redis = require('redis');
 
 var redisClient = redis.createClient("6777", "165.227.143.126");
 var async = require('async');
+
 //const jm = require('js-meter')
 // const isPrint = true
 // const isMs = true       // or Second
@@ -124,18 +125,16 @@ var async = require('async');
 
 // bla();
 
+var coins = ["bitcoin", "litecoin"];
+var redisCommands = [];
 
-redisClient.multi([
-    // ['smembers','bitcoin:existingWorkers'],
-    // ['zrangebyscore','bitcoin:stat:global:hourly','-inf','+inf']
-    // ['hset', 'users', 'gio1', JSON.stringify({"password":123456,"address":{"bitcoin" : "msxzy8MrSQKAjBrp8XfHK1bvF6iAr5FTBR"},"workers":["worker1"]})],
-    // ['hset', 'users', 'gio2', JSON.stringify({"password":654321,"address":{"bitcoin" : "asdOASd612dOASd12XfHK1bvF6iASOoAS"},"workers":["worker2"]})]
-    ['zrevrangebyscore', 'userPayouts:payoutgio1', '+inf','-inf','limit', 0, 1],
-    ['zrevrangebyscore', 'userPayouts:payoutgio2', '+inf','-inf','limit', 0, 1],
-    ['zrevrangebyscore', 'userPayouts:payoutgio5', '+inf','-inf','limit', 0, 1],
-]
+for(var i = 0; i < coins.length; i ++){
+    redisCommands.push(["hgetall", coins[i] + ":balances:userBalances"]);
+}
+
+redisClient.multi(redisCommands
 ).exec(function(err,result){
-    console.log(result);
+    console.log(Object.keys(result[0]));
 });
 // var ob ={
 //     workersCount:1,hashrateString:"6.11 GH",
@@ -149,7 +148,12 @@ redisClient.multi([
 // var commands = [];
 
 
-
+redisClient.multi([
+    ['hget', 'users', 'gio1' ]
+]
+).exec(function(err,result){
+    console.log(result);
+});
 
 // // redisClient.multi(deleteOldPayouts).exec(function(err,res){
 // //     console.log(res);
