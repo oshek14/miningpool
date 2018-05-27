@@ -8,7 +8,7 @@ var CronJob = require('cron').CronJob;
 
 var logLevels = floger.levels
 var logFilePath = floger.filePathes.paymentPayouts
-var paymentJob
+var paymentJob;
 
 module.exports = function(logger){
 
@@ -19,7 +19,6 @@ module.exports = function(logger){
 
     Object.keys(poolConfigs).forEach(function(coin){
         coins[coin] = poolConfigs[coin];
-
     });
 
     var coinKeys = Object.keys(coins);
@@ -27,7 +26,7 @@ module.exports = function(logger){
     //runs every day at 02:40:00 AM 
     var paymentJob = new CronJob('00 40 02 * * *', function() {
         for(var i = 0; i < coinKeys.length; i++){
-            trySend(0,  coinKeys[i], coins[coinKeys[i]]);
+            trySend(0, coinKeys[i], coins[coinKeys[i]]);
         }
     }, null, true, null);
 }
@@ -37,7 +36,7 @@ var trySend = function (withholdPercent, coin, coinConfig) {
 
     redisClient.hgetall(coin + ":balances:userBalances", function(err,outsideRes){  //{ gio1: '3.11', gio2: '4.88', gio3: '7.12' }
         if(err){
-            //todo
+            floger.fileLogger(logLevels.error, "paymentPayouts:can't execute redis commands for coin" + coin, logFilePath)
         }else{
             var daemon = new Stratum.daemon.interface([coinConfig.paymentProcessing.daemon], function(severity, message){
                 logger[severity](logSystem, logComponent, message);
