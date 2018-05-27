@@ -18,9 +18,10 @@ module.exports = function(logger){
 
     Object.keys(poolConfigs).forEach(function(coin){
         coins[coin] = poolConfigs[coin];
+
     });
 
-    var coinKeys = Object.keys(coins);
+    var coinKeys = Object.keys(coins); //bitcoin,litecoin .etc.
     for(var i = 0; i < coinKeys.length; i++){
         redisCommands.push(["hgetall", coinKeys[i] + ":balances:userBalances"]);
     }
@@ -54,7 +55,7 @@ var trySend = function (withholdPercent, coins, redisCommands) {
                 redisClient.multi(userAddressCommand).exec(function(err,middleRes){
                     for(var j = 0; j < middleRes.length; j++){
                         var address = JSON.parse(middleRes[j]).address[coinName];
-                        addressAmounts[address] = outsideRes[i][j] * (1 - withholdPercent);
+                        addressAmounts[address] = outsideRes[i][userKeys[j]] * (1 - withholdPercent);
                     }
                     daemon.cmd('getaccount', [coins[coinName].address], function(insideRes){
                         if(!insideRes){
@@ -73,7 +74,7 @@ var trySend = function (withholdPercent, coins, redisCommands) {
                                 else if (insideRes.error) {
                                     logger.error(logSystem, logComponent, 'Error trying to send payments with RPC sendmany '
                                         + JSON.stringify(insideRes.error));
-                                    callback(true);
+                                    
                                 }
                                 else {
                                     logger.debug(logSystem, logComponent, 'Sent out a total of ' + (totalSent / magnitude)
@@ -83,7 +84,8 @@ var trySend = function (withholdPercent, coins, redisCommands) {
                                             + '% of reward from miners to cover transaction fees. '
                                             + 'Fund pool wallet with coins to prevent this from happening');
                                     }
-                                    callback(null, workers, rounds,paymentHappened);
+                                    
+                                    
                                 }
                             }, true, true); 
                         }
