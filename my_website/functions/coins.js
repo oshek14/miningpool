@@ -1,8 +1,8 @@
 
 var redis = require('redis')
+var configHelper = require('../helpers/config_helper')
+var Stratum = require('stratum-pool');
 module.exports = {
-
-
     getStatsForEachCoin:function(pool_configs,callback){
         var poolConfigsData = {};
         var coinStats = {};
@@ -78,20 +78,52 @@ module.exports = {
     getLastStats: function(coin, algo, callback) {
         var redisClient = redis.createClient("6777",'165.227.143.126');
         redisComands = [
-            ['zrevrangebyscore', coin + ':stat:global:tenMinutes', '+inf', '-inf', 'limit', 0, 1],
+            ['zrevrangebyscore', coin + ':stat:global:tenMinutes', '+inf', (Date.now() - 10*60*1000)/1000, 'limit', 0, 1],
             ['zrevrangebyscore', coin + ':stat:global:hourly', '+inf', '-inf', 'limit', 0, 1],
             ['zrevrangebyscore', coin + ':stat:global:daily', '+inf', '-inf', 'limit', 0, 1],
             ['scard', coin + ':blocksConfirmed'],
             ['scard', coin + ':blocksPending'],
             ['scard', coin + ':blocksOrphaned'],
-            ['scard', coin + ':blocksKicked']
+            ['scard', coin + ':blocksKicked'],
+            ['scard', coin + ':existingWorkers'],
         ] 
+
+        //pool balance how muhc paid how much we need to pay.
         redisClient.multi(redisComands).exec(function(err, res) {
             if (err) {
-
+                callback(500);
             } else {
                 callback(res)
             }
+        })
+        
+
+    },
+
+   
+    getPoolInfoForCoin:function(coin,algo,callback){
+        var poolInfoForCoin ={};
+        configHelper.getBalanceFromAddress(coin,function(poolBalance,poolAccount){
+            if(poolBalance == 500){
+                poolInfoForCoin['balance'] = null;
+                poolInfoForCoin['account'] = null;
+            }else{
+                poolInfoForCoin['balance'] = poolBalance;
+                poolInfoForCoin['account'] = poolAccount;
+            }
+            
+            var redisClient = redis.createClient("6777",'165.227.143.126');
+            var commands = [
+                ['hgetall', coin+':stats'],
+                ['hgetall', coin+':balances:userBalances'],
+            ];
+            redisClient.multi(commands).exec(function(err,res){
+                if(err){
+                    callback(500,null);
+                }else{
+                    callback(poolInfoForCoin,res);
+                }
+            })
         })
     }
 }
