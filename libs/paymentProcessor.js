@@ -96,12 +96,14 @@ function SetupForPool(logger, poolOptions, setupFinished){
                             daemon.cmd('getaddressinfo', [poolOptions.address], function(result) {
                         if (result.error){
                             logger.error(logSystem, logComponent, 'Error with payment processing daemon, getaddressinfo failed ... ' + JSON.stringify(result.error));
+                            floger.fileLogger(logLevels.error, 'Error with payment processing daemon, getaddressinfo failed ... ' + JSON.stringify(result.error), logFilePath);
                             callback(true);
                         }
                         else if (!result.response || !result.response.ismine) {
                             logger.error(logSystem, logComponent,
                                     'Daemon does not own pool address - payment processing can not be done with this daemon, '
                                     + JSON.stringify(result.response));
+                            floger.fileLogger(logLevels.error, 'Daemon does not own pool address - payment processing can not be done with this daemon'+ JSON.stringify(result.response), logFilePath);
                             callback(true);
                         }
                         else{
@@ -149,6 +151,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                 }
                 catch(e){
                     logger.error(logSystem, logComponent, 'Error detecting number of satoshis in a coin, cannot do payment processing. Tried parsing: ' + result.data);
+                    floger.fileLogger(logLevels.error, 'Error detecting number of satoshis in a coin, cannot do payment processing. Tried parsing: ' + result.data, logFilePath);
                     callback(true);
                 }
 
@@ -214,6 +217,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
 
                     if (error){
                         logger.error(logSystem, logComponent, 'Could not get blocks from redis ' + JSON.stringify(error));
+                        floger.fileLogger(logLevels.error, 'Could not get blocks from redis ' + JSON.stringify(error), logFilePath);
                         callback(true);
                         return;
                     }
@@ -323,17 +327,20 @@ function SetupForPool(logger, poolOptions, setupFinished){
                         var round = rounds[i];
                         if (tx.error && tx.error.code === -5){
                             logger.warning(logSystem, logComponent, 'Daemon reports invalid transaction: ' + round.txHash);
+                            floger.fileLogger(logLevels.error,  'Daemon reports invalid transaction: ' + round.txHash, logFilePath);
                             round.category = 'kicked';
                             return;
                         }
                         else if (!tx.result.details || (tx.result.details && tx.result.details.length === 0)){
                             logger.warning(logSystem, logComponent, 'Daemon reports no details for transaction: ' + round.txHash);
+                            floger.fileLogger(logLevels.error, 'Daemon reports no details for transaction: ' + round.txHash, logFilePath);
                             round.category = 'kicked';
                             return;
                         }
                         else if (tx.error || !tx.result){
                             logger.error(logSystem, logComponent, 'Odd error with gettransaction ' + round.txHash + ' '
                                 + JSON.stringify(tx));
+                            floger.fileLogger(logLevels.error,'Odd error with gettransaction ' + round.txHash + ' '+ JSON.stringify(tx), logFilePath);
                             return;
                         }
 
@@ -349,6 +356,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                         if (!generationTx){
                             logger.error(logSystem, logComponent, 'Missing output details to pool address for transaction '
                                 + round.txHash);
+                            floger.fileLogger(logLevels.error,'Missing output details to pool address for transaction '+ round.txHash, logFilePath);
                             return;
                         }
 
@@ -510,9 +518,11 @@ function SetupForPool(logger, poolOptions, setupFinished){
                     if(redisCommands.length > 0){
                         redisClient.multi(redisCommands).exec(function(err,res){
                             if(err) {
+                                floger.fileLogger(logLevels.error,'Redis Commands Balance Updates Failed Because Of Redis Not so much Fucked Up...', logFilePath);
                                 callback(true);
                                 return;
                             }
+                            
                             callback(null, workers, rounds);
                         })
                     }else{
@@ -577,10 +587,13 @@ function SetupForPool(logger, poolOptions, setupFinished){
                     endRedisTimer();
                     if (error){
                         clearInterval(paymentInterval);
+                        //TODO SEND MAIL :)
+                        floger.fileLogger(logLevels.error, 'Balance Updates happend,but could not move from blockspending and couldnt delete shares, it is a critical error,so we need to shut down this file.commans will be saved in a file to run it manually.' + JSON.stringify(error), logFilePath)
                         logger.error(logSystem, logComponent,
                                 'Payments sent but could not update redis. ' + JSON.stringify(error)
                                 + ' Disabling payment processing to prevent possible double-payouts. The redis commands in '
                                 + coin + '_finalRedisCommands.txt must be ran manually');
+                        
                         fs.writeFile(coin + '_finalRedisCommands.txt', JSON.stringify(finalRedisCommands), function(err){
                             logger.error('Could not write finalRedisCommands.txt, you are fucked.');
                         });
