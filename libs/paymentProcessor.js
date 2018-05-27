@@ -492,6 +492,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                     for (var w in workers) {
                         var worker = workers[w]; //workerName //gio1.worker1;
                         worker.reward = worker.reward || 0;
+                        console.log(worker,"   DAsdasdasd");
                         var username = worker.split(":")[0];
 
                         if(!username in usersPerWorker) usersPerWorker[username] = 0;
