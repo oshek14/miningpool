@@ -2,70 +2,19 @@
 var redis = require('redis');
 module.exports = {
     
-    getWorkerStats:function(time_stats,coin_name,algorithm,callback){
-        var workerStats = {};
-        var redisClient = redis.createClient("6777",'165.227.143.126');
+    getWorkerStats:function(coin_name,algorithm,callback){
         var redisCommands = [];
-        var hashRateCommand = [
-            ['zrangebyscore', coin_name+':hashrate', (Date.now()-time_stats)/1000,'+inf'],
-        ];
-        redisCommands = redisCommands.concat(hashRateCommand);
-        redisClient.multi(redisCommands).exec(function(err,res){
-            if(err){
-                callback(500);
-                return;
-            }else if(res.length == 0){
-                callback(false);
-                return;
-            }
-            else{
-                var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
-                
-                if(!algos.hasOwnProperty(algorithm)) {
-                    callback(false);
-                    return;
+        var date  = Date.now();
+        redisClient.smembers(coin_name+':existingWorkers',function(err,res){
+            if(err) callback(500);
+            else
+                for(var j=0;j<res.length;j++){
+                    redisCommands.push(['zrevrangebyscore',coin_name+':stat:workers:tenMinutes:'+res[j],'+inf',(date-10*60*1000)/1000,'limit',0,1]);
                 }
-               
-                var hashratesPerCoin = res[0];
-                var workers = {};
-                hashratesPerCoin.forEach(minerRate => {
-                    var miner_address = minerRate.split(":")[1];
-                    var difficulty = parseFloat(minerRate.split(":")[0]);
-                    if(difficulty > 0) {
-                        if(miner_address in workers){
-                            
-                            workers[miner_address].shares+=difficulty;
-                        }
-                        else{
-                            workers[miner_address]  = {
-                                shares: difficulty,
-                                invalidShares: 0,
-                                hashrateString: null
-                            };
-                        }
-                    }else{
-                        if(miner_address in workers){
-                            workers[miner_address].invalidShares-=difficulty;
-                        }else{
-                            workers[miner_address]  = {
-                                shares: 0,
-                                invalidShares: -difficulty,
-                                hashrateString: null
-                            };
-                        }
-                    }
-                    
-                });
-                for (var worker in workers) {
-                    workers[worker].hashrateString = module.exports.getReadableHashRateString( shareMultiplier * workers[worker].shares / (time_stats / 1000 | 0));
-                }
-                
-                workerStats[coin_name] = workers;
-            }
-            
-            callback(workerStats);
-                
-    
+                redisClient.multi(redisCommands).exec(function(err,res){
+                    if(err) callback(500);
+                    else callback(res);
+                })
         })
     },
     

@@ -49,11 +49,17 @@ var trySend = function (withholdPercent, coin, coinConfig) {
             var addressAmounts = {};
             redisClient.multi(userAddressCommand).exec(function(err,middleRes){
                 var totalSent = 0;
+                var userPaymentSchedule = [];
                 for(var i = 0; i < middleRes.length; i++){
                     var address = JSON.parse(middleRes[i]).address[coin];
                     var toSend = outsideRes[userKeys[i]] * (1 - withholdPercent);
                     addressAmounts[address] = toSend;
                     totalSent += toSend;
+                    var userPaymentObject = {};
+                    userPaymentObject.value = toSend;
+                    userPaymentObject.address = address;
+                    userPaymentObject.time = Date.now()/1000 | 0;
+                    userPaymentSchedule.push(['hset', coin + 'userPayouts', userKeys[i], JSON.stringify(userPaymentObject)])
                 }
                 if(totalSent > 0){
                     daemon.cmd('getaccount', [coinConfig.address], function(insideRes){
@@ -99,15 +105,19 @@ var trySend = function (withholdPercent, coin, coinConfig) {
                                             logger.debug(logSystem, logComponent, 'can not update database after payout for coin: ' + coin +' so we should stop payment cron job');
                                             floger.fileLogger(logLevels.error, 'can not update database after payout for coin: ' + coin +' so we should stop payment cron job' , logFilePath)
                                             paymentJob.stop();
-                                        }else{
-                                            redisClient.hset(coin + ":stats", "totalPaid", totalSent,  function(err,outsideRes){
-                                                if(err){
-                                                    logger.debug(logSystem, logComponent, 'can not update total paid statistics after payout for coin: ' + coin + " we have to update :stat totalPaid "+totalSent);
-                                                    floger.fileLogger(logLevels.error, 'can not update total paid statistics after payout for coin: ' + coin + " we have to update :stat totalPaid "+totalSent,logFilePath);
-                                                }
-                                            })
                                         }
-                                    }) 
+                                    })
+                                    userPaymentSchedule.push(['hincrbyfloat',coin + ":stats", "totalPaid", totalSent]);
+                                    redisClient.multi(userPaymentSchedule).exec(function(err,middleRes){
+                                        if(err){
+                                            logger.debug(logSystem, logComponent, 'can not update total paied statistics after payout for coin: ' + coin);
+                                            floger.fileLogger(logLevels.error, 'can not update total paied statistics after payout for coin: ' + coin , logFilePath)
+                                            fs.writeFile(coin + '_paymentStatUpdate.txt', JSON.stringify(userPaymentSchedule), function(err){
+                                                logger.error('Could not write paymentStatUpdate.txt.');
+                                                floger.fileLogger(logLevels.error, 'Could not write paymentStatUpdate.txt.' , logFilePath)
+                                            });
+                                        }
+                                    })
                                 }
                             }, true, true); 
                         }
