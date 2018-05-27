@@ -28,8 +28,9 @@ module.exports = function(logger){
             client: redis.createClient(redisConfig.port, redisConfig.host)
         });
     });
+    floger.fileLogger(logLevels.error, 'Error with ssss processing daemon ' + "dd", logFilePath)
     
-    // floger.fileLogger(logLevels.error, "something", logFilePath)
+    
 
     //runs every day at 02:40:00 AM 
     var dayJob = new CronJob('00 40 02 * * *', function() {

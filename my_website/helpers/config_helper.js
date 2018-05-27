@@ -116,7 +116,6 @@ module.exports = {
                     daemon.cmd('getbalance',[result[0].response],function(balanceResult){
                         if(!result){ callback(500,null);} //TODO ERROR
                         else if(result.error) {callback(500,null)} //todo error
-                        
                         callback(balanceResult[0].response,result[0].response);
                     })
                 }
