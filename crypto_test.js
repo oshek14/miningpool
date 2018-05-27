@@ -5,6 +5,8 @@ var redis = require('redis');
 var redisClient = redis.createClient("6777", "165.227.143.126");
 var async = require('async');
 
+var CronJob = require('cron').CronJob;
+
 //const jm = require('js-meter')
 // const isPrint = true
 // const isMs = true       // or Second
@@ -148,12 +150,11 @@ var async = require('async');
 // var commands = [];
 
 
-redisClient.hgetall('bitcoin' + ":balances:userBalances", function(err,outsideRes){
-    console.log(outsideRes)
-})
+// redisClient.hgetall('bitcoin' + ":balances:userBalances", function(err,outsideRes){
+//     console.log(outsideRes)
+// })
 
-redisClient.del('bitcoin' + ":balances:userBalances", function(err,outsideRes){
-})
+// redisClient.del('bitcoin' + ":balances:userBalances", function(err,outsideRes){})
 
 // // redisClient.multi(deleteOldPayouts).exec(function(err,res){
 // //     console.log(res);
@@ -162,3 +163,18 @@ redisClient.del('bitcoin' + ":balances:userBalances", function(err,outsideRes){
 // // redisClient.ZRANGEBYSCORE('bitcoin:lastPayouts',(Date.now()-600*1000)/1000,Date.now(),function(err,res){
 // //     console.log(res);
 // // });
+
+
+var i = 0;
+
+var dayJob = new CronJob('* * * * * *', function() {
+    doit(i, this);
+    i++;
+}, null, true, null, {"":""});
+
+var doit = function(i, self){
+    console.log("omo")
+    if(i == 2){
+        console.log(self)
+    }
+}
