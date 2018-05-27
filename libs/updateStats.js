@@ -28,7 +28,7 @@ module.exports = function(logger){
             client: redis.createClient(redisConfig.port, redisConfig.host)
         });
     });
-    floger.fileLogger(logLevels.error, 'Error with ssss processing daemon ' + JSON.stringify(result.error), logFilePath)
+    floger.fileLogger(logLevels.error, 'Error with ssss processing daemon ' + "dd", logFilePath)
     
     
 
