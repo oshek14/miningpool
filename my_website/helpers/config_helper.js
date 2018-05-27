@@ -110,12 +110,12 @@ module.exports = {
             
             });
             daemon.cmd('getaccount',[coinPoolAddress],function(result) {
-                if(!result){ callback(500);} //TODO ERROR
-                else if(result.error) {callback(500)} //todo error
+                if(!result){ callback(500,null);} //TODO ERROR
+                else if(result.error) {callback(500,null)} //todo error
                 else {
                     daemon.cmd('getbalance',[result[0].response],function(balanceResult){
-                        if(!result){ callback(500);} //TODO ERROR
-                        else if(result.error) {callback(500)} //todo error
+                        if(!result){ callback(500,null);} //TODO ERROR
+                        else if(result.error) {callback(500,null)} //todo error
                         callback(balanceResult,result[0].response);
                     })
                 }

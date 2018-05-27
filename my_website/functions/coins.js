@@ -91,7 +91,7 @@ module.exports = {
         //pool balance how muhc paid how much we need to pay.
         redisClient.multi(redisComands).exec(function(err, res) {
             if (err) {
-
+                callback(500);
             } else {
                 callback(res)
             }
@@ -99,12 +99,31 @@ module.exports = {
         
 
     },
+
+   
     getPoolInfoForCoin:function(coin,algo,callback){
         var poolInfoForCoin ={};
         configHelper.getBalanceFromAddress(coin,function(poolBalance,poolAccount){
-            poolInfoForCoin['balance'] = poolBalance;
-            poolInfoForCoin['account'] = poolAccount;
+            if(poolBalance == 500){
+                poolInfoForCoin['balance'] = null;
+                poolInfoForCoin['account'] = null;
+            }else{
+                poolInfoForCoin['balance'] = poolBalance;
+                poolInfoForCoin['account'] = poolAccount;
+            }
             
+            var redisClient = redis.createClient("6777",'165.227.143.126');
+            var commands = [
+                ['hgetall', coin+':stats'],
+                ['hgetall', coin+':balances:userBalances'],
+            ];
+            redisClient.multi(commands).exec(function(err,res){
+                if(err){
+                    callback(500,null);
+                }else{
+                    callback(poolInfoForCoin,res);
+                }
+            })
         })
     }
 }
