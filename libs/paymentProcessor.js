@@ -358,8 +358,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                         }
 
                     });
-                    console.log(arr);
-
+                    
                     var canDeleteShares = function(r){
                         for (var i = 0; i < rounds.length; i++){
                             var compareR = rounds[i];
@@ -493,7 +492,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                     for (var w in workers) {
                         var worker = workers[w]; //workerName //gio1.worker1;
                         worker.reward = worker.reward || 0;
-                        var username = worker.split(":")[0];
+                        var username = w.split(":")[0];
 
                         if(!username in usersPerWorker) usersPerWorker[username] = 0;
                         else usersPerWorker[username] += worker.reward;
