@@ -21,14 +21,7 @@ module.exports = function(logger){
 
     });
 
-<<<<<<< HEAD
     var coinKeys = Object.keys(coins);
-=======
-    var coinKeys = Object.keys(coins); //bitcoin,litecoin .etc.
-    for(var i = 0; i < coinKeys.length; i++){
-        redisCommands.push(["hgetall", coinKeys[i] + ":balances:userBalances"]);
-    }
->>>>>>> edf05f439a20c9976c9d71f68687683cadda1846
 
     //runs every day at 02:40:00 AM 
     var dayJob = new CronJob('00 40 02 * * *', function() {
