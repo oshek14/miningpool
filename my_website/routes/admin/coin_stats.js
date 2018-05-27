@@ -88,7 +88,7 @@ router.get('/coin_payment_stats',(req,res)=>{
         if(poolInfo == 500)
             res.send({status: 500});
         else 
-            res.send({status: 200, data: coinsLastStats})
+            res.send({status: 200, data: {poolInfo:poolInfo,result:result}})
     })   
 })
 
