@@ -9,7 +9,7 @@ var CronJob = require('cron').CronJob;
 var logLevels = floger.levels
 var logFilePath = floger.filePathes.updateStats
 
-module.exports = function(logger){
+module.exports = function(){
 
     var poolConfigs = JSON.parse(process.env.pools);
 
@@ -48,9 +48,12 @@ var trySend = function (withholdPercent, coin, coinConfig) {
             }
             var addressAmounts = {};
             redisClient.multi(userAddressCommand).exec(function(err,middleRes){
+                var totalSent = 0;
                 for(var i = 0; i < middleRes.length; i++){
                     var address = JSON.parse(middleRes[i]).address[coin];
-                    addressAmounts[address] = outsideRes[userKeys[i]] * (1 - withholdPercent);
+                    var toSend = outsideRes[userKeys[i]] * (1 - withholdPercent);
+                    addressAmounts[address] = toSend;
+                    totalSent += toSend;
                 }
                 daemon.cmd('getaccount', [coinConfig.address], function(insideRes){
                     if(!insideRes){
@@ -68,17 +71,24 @@ var trySend = function (withholdPercent, coin, coinConfig) {
                             }
                             else if (insideRes.error) {
                                 logger.error(logSystem, logComponent, 'Error trying to send payments with RPC sendmany '
-                                    + JSON.stringify(insideRes.error));
-                                
+                                    + JSON.stringify(insideRes.error));  
                             }
                             else {
-                                logger.debug(logSystem, logComponent, 'Sent out a total of ' + (totalSent / magnitude)
+
+                                logger.debug(logSystem, logComponent, 'Sent out a total of ' + totalSent + " " +  coin
                                     + ' to ' + Object.keys(addressAmounts).length + ' workers');
                                 if (withholdPercent > 0) {
                                     logger.warning(logSystem, logComponent, 'Had to withhold ' + (withholdPercent * 100)
                                         + '% of reward from miners to cover transaction fees. '
                                         + 'Fund pool wallet with coins to prevent this from happening');
                                 }
+                                redisClient.del(coin + ":balances:userBalances", function(err,outsideRes){
+                                    if(err){
+                                        //todo
+                                    }else{
+                                        //todo
+                                    }
+                                })
                                 
                             }
                         }, true, true); 

@@ -8,16 +8,25 @@ const levels = {
     error: 3
 }
 
+function calculateDate() {
+    var date = new Date()
+    var year = date.getFullYear()
+    var month = date.getMonth() >= 10 ? date.getMonth() : "0" + date.getMonth()
+    var day = date.getDate() >= 10 ? date.getDate() : "0" + date.getDate()
+    var dateString = year + "." + month + "." + day
+    return dateString
+}
+
+const DateNow = calculateDate()
+
 const filePathes = {
-    updateStats: path.join(__dirname, '/../logs/updateStats.log'),
-    paymentProcessor: path.join(__dirname, '/../logs/paymentProcessor.log'),
-    auth: path.join(__dirname, '/../logs/auth.log'),
+    updateStats: path.join(__dirname, '/../logs/' +  DateNow + 'updateStats.log'),
+    paymentProcessor: path.join(__dirname, '/../logs/' +  DateNow + 'paymentProcessor.log'),
+    auth: path.join(__dirname, '/../logs/' +  DateNow + 'auth.log'),
 }
 
 
 var FileLogger = function(type, text, filename ) {
-    console.log(type, text, filename)
-
     var entryDesc = '[ ' + dateFormat(new Date(), 'yyyy-mm-dd HH:MM:ss') + ' ]' + '\t';
     entryDesc += " - "
     entryDesc += text
