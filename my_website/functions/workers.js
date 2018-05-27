@@ -10,7 +10,7 @@ module.exports = {
             if(error) callback(500);
             else
                 for(var j=0;j<workersKeys.length;j++){
-                    redisCommands.push(['zrevrangebyscore',coin_name+':stat:workers:tenMinutes:'+res[j],'+inf',(date-10*60*1000)/1000,'limit',0,1]);
+                    redisCommands.push(['zrevrangebyscore',coin_name+':stat:workers:tenMinutes:'+workersKeys[j],'+inf',(date-10*60*1000)/1000,'limit',0,1]);
                 }
                 redisClient.multi(redisCommands).exec(function(err,workersValues){
                     if(err) callback(500);
