@@ -42,6 +42,22 @@ router.get('/worker_stats',(req,res)=>{
     
 })
 
+router.get('/worker_graph',(req,res)=>{
+    var coin = req.query.coins
+    var worker = req.query.worker
+    var timeInterval = req.query.type.name //hourly,mothly
+    var intervalCounts = req.query.type.intervals   //24 or 30
+    var interval = req.query.type.interval; // 3600*1000 or 24*3600*1000
+    console.log(coin)
+    console.log(worker)
+    console.log(timeInterval)
+    console.log(intervalCounts)
+    console.log(interval)
+    // coinsHelper.getCoinStatsForGraph(coins, timeInterval, intervalCounts, interval,function(result) {
+    //     res.send({status:200,data:result,timeInterval: req.query.type});
+    // })
+})
+
 
 
 

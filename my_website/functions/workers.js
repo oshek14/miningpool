@@ -68,6 +68,20 @@ module.exports = {
     
         })
     },
+
+    getWorkerStatsForGraph:function(coin, worker, timeInterval, intervalCounts, interval, callback){
+        var redisClient = redis.createClient("6777",'165.227.143.126');
+        var redisComands = []
+        redisComands.push(['zrevrangebyscore', coin + ":stat:workers:" + timeInterval + ":" + worker, '+inf', (Date.now() - interval * intervalCounts)/1000, 'limit', 0, intervalCounts])
+        
+        redisClient.multi(redisComands).exec(function(err, res) {
+            var resultRes = {}
+            for (var i = 0; i < res.length; i++) {
+                resultRes[coins[i]] = res[i]
+            }
+            callback(resultRes)
+        })
+    }
     
     
 }
