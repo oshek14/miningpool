@@ -1,85 +1,52 @@
-
 var redis = require('redis');
 module.exports = {
     
-    getWorkerStats:function(time_stats,coin_name,algorithm,callback){
-        var workerStats = {};
-        var redisClient = redis.createClient("6777",'165.227.143.126');
+    /* get all workers */
+    getWorkersStats:function(coin_name,algorithm,callback){
         var redisCommands = [];
-        var hashRateCommand = [
-            ['zrangebyscore', coin_name+':hashrate', (Date.now()-time_stats)/1000,'+inf'],
-        ];
-        redisCommands = redisCommands.concat(hashRateCommand);
-        redisClient.multi(redisCommands).exec(function(err,res){
-            if(err){
-                callback(500);
-                return;
-            }else if(res.length == 0){
-                callback(false);
-                return;
-            }
-            else{
-                var shareMultiplier = Math.pow(2, 32) / algos[algorithm].multiplier;
-                
-                if(!algos.hasOwnProperty(algorithm)) {
-                    callback(false);
-                    return;
+        var date  = Date.now();
+        var redisClient = redis.createClient("6777",'165.227.143.126');
+        redisClient.smembers(coin_name+':existingWorkers',function(error,workersKeys){
+            if(error) callback(500);
+            else
+                for(var j=0;j<workersKeys.length;j++){
+                    redisCommands.push(['zrevrangebyscore',coin_name+':stat:workers:tenMinutes:'+workersKeys[j],'+inf',(date-10*60*1000)/1000,'limit',0,1]);
                 }
-               
-                var hashratesPerCoin = res[0];
-                var workers = {};
-                hashratesPerCoin.forEach(minerRate => {
-                    var miner_address = minerRate.split(":")[1];
-                    var difficulty = parseFloat(minerRate.split(":")[0]);
-                    if(difficulty > 0) {
-                        if(miner_address in workers){
-                            
-                            workers[miner_address].shares+=difficulty;
-                        }
-                        else{
-                            workers[miner_address]  = {
-                                shares: difficulty,
-                                invalidShares: 0,
-                                hashrateString: null
-                            };
-                        }
-                    }else{
-                        if(miner_address in workers){
-                            workers[miner_address].invalidShares-=difficulty;
-                        }else{
-                            workers[miner_address]  = {
-                                shares: 0,
-                                invalidShares: -difficulty,
-                                hashrateString: null
-                            };
-                        }
-                    }
-                    
-                });
-                for (var worker in workers) {
-                    workers[worker].hashrateString = module.exports.getReadableHashRateString( shareMultiplier * workers[worker].shares / (time_stats / 1000 | 0));
-                }
-                
-                workerStats[coin_name] = workers;
-            }
-            
-            callback(workerStats);
-                
-    
+                redisClient.multi(redisCommands).exec(function(err,workersValues){
+                    if(err) callback(500);
+                    else callback({workersKeys:workersKeys,workersValues:workersValues});
+                })
         })
     },
 
-    getWorkerStatsForGraph:function(coin, worker, timeInterval, intervalCounts, interval, callback){
+    /* get stat for one worker gio1.worker1 */
+    getWorkerStats:function(coin_name,worker_name,callback){
+        var redisClient = redis.createClient("6777",'165.227.143.126');
+        var redisCommands = [
+            ['zrevrangebyscore',coin_name+":stat:workers:tenMinutes:"+worker_name,'+inf','-inf','limit',0,1],
+            ['zrevrangebyscore',coin_name+":stat:workers:hourly:"+worker_name,'+inf','-inf','limit',0,1],
+            ['zrevrangebyscore',coin_name+":stat:workers:daily:"+worker_name,'+inf','-inf','limit',0,1],
+            ['hget',coin_name+":balances:userBalances",worker_name.split(".")[0]],
+            ['hget',coin_name+":userPayouts",worker_name.split(".")[0]],
+            ['hget',coin_name+":workers:invalidShares",worker_name],
+            ['hget',coin_name+":workers:validShares",worker_name],
+        ]
+        redisClient.multi(redisCommands).exec(function(err,res){
+            if(err) callback(err);
+            else callback(res);
+        })
+    },
+
+    getWorkerStatsForGraph:function(coins, worker, timeInterval, intervalCounts, interval, callback){
         var redisClient = redis.createClient("6777",'165.227.143.126');
         var redisComands = []
-        redisComands.push(['zrevrangebyscore', coin + ":stat:workers:" + timeInterval + ":" + worker, '+inf', (Date.now() - interval * intervalCounts)/1000, 'limit', 0, intervalCounts])
-        
+        redisComands.push(['zrevrangebyscore', coin + ":stat:workers:" + timeInterval + ":" + worker, '+inf', (Date.now() - interval*intervalCounts)/1000, 'limit', 0, intervalCounts])
         redisClient.multi(redisComands).exec(function(err, res) {
             var resultRes = {}
             for (var i = 0; i < res.length; i++) {
                 resultRes[coins[i]] = res[i]
             }
-            callback(resultRes)
+            callback(resultRes[0])
         })
     }
     

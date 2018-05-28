@@ -28,8 +28,6 @@ module.exports = function(logger){
             client: redis.createClient(redisConfig.port, redisConfig.host)
         });
     });
-    floger.fileLogger(logLevels.error, 'Error with ssss processing daemon ' + "dd", logFilePath)
-    
     
 
     //runs every day at 02:40:00 AM 
@@ -55,111 +53,111 @@ module.exports = function(logger){
 
 
 /*  every 24 hour ,dear cronjob, come to this function,
-    get data from statHistoryOneHour, which must be approximatelly
+    get data from coin+':stat:global:hourly', which must be approximatelly
     24 records and calculate average from them and save */
 function calculateStatsForDay(portalConfig,poolConfigs){
     var redisClient = redis.createClient(portalConfig.redis.port, portalConfig.redis.host);
     var gatherTime = Date.now() / 1000 | 0;
-    for(var j=0;j<Object.keys(poolConfigs).length;j++){
-        var coin =Object.keys(poolConfigs)[j];
+    var poolconfigKeys = Object.keys(poolConfigs);
+    for(var j=0; j<poolconfigKeys.length ;j++){
+        var coin = poolconfigKeys[j];
         redisClient.multi([
             ['smembers',coin+':existingWorkers'],
             ['zrevrangebyscore',coin+':stat:global:hourly','+inf','-inf','limit', 0, 24]
         ]
         ).exec(function(err,res){
                 if(err){
-                    //TODO // error warn info
-                // floger.fileLogger(logLevels.error, "something", logFilePath)
-                    
+                    floger.fileLogger(logLevels.error, "calculateStatsForDay:couldn't execute first redis multi command", logFilePath);
                 }else{
-                var globalHourly = res[1]
-                var workersKeys = res[0]
+                    var globalHourly = res[1]
+                    var workersKeys = res[0]
+            
+                    var getCommandsQuery= []
+                    for(var i=0;i<workersKeys.length;i++){
+                        getCommandsQuery.push(['zrevrangebyscore', coin+":stat:workers:hourly:"+workersKeys[i],'+inf','-inf', 'limit', 0, 24]);
+                    }
         
-                var getCommandsQuery= []
-                for(var i=0;i<workersKeys.length;i++){
-                    getCommandsQuery.push(['zrevrangebyscore', coin+":stat:workers:hourly:"+workersKeys[i],'+inf','-inf', 'limit', 0, 24]);
-                }
-        
-                var workersGlobalCommands = [];
-                redisClient.multi(getCommandsQuery).exec(function(err,res){
-                    for(var i=0; i<res.length; i++){
-                        var data = res[i];
-                        var worker = workersKeys[i]
-                        var averageData = {
-                            shares: 0,
-                            sharesCount:0,
-                            invalidSharesCount:0,
-                            invalidShares: 0,
-                            hashrate: 0,
-                            hashrateString:'0',
-                            date:gatherTime,
-                        }
-                        for (var j = 0; j < data.length; j++) {
-                            var parsedData = JSON.parse(data[j])
-                            averageData.shares += parsedData.shares;
-                            averageData.invalidShares += parsedData.invalidShares;
-                            averageData.hashrate += parsedData.hashrate / 24
-                            averageData.invalidSharesCount += parsedData.invalidSharesCount;
-                            averageData.sharesCount += parsedData.sharesCount;
-                        }
-                       
-                        averageData.hashrate = Math.round(averageData.hashrate * 100) / 100
-                        averageData.hashrateString = configHelper.getReadableHashRateString(averageData.hashrate);
+                    var workersGlobalCommands = [];
+                    redisClient.multi(getCommandsQuery).exec(function(err,res){
+                        for(var i=0; i<res.length; i++){
+                            var data = res[i];
+                            var worker = workersKeys[i]
+                            var averageData = {
+                                shares: 0,
+                                sharesCount:0,
+                                invalidSharesCount:0,
+                                invalidShares: 0,
+                                hashrate: 0,
+                                hashrateString:'0',
+                                date:gatherTime,
+                            }
+                            for (var j = 0; j < data.length; j++) {
+                                var parsedData = JSON.parse(data[j])
+                                averageData.shares += parsedData.shares;
+                                averageData.invalidShares += parsedData.invalidShares;
+                                averageData.hashrate += parsedData.hashrate / 24
+                                averageData.invalidSharesCount += parsedData.invalidSharesCount;
+                                averageData.sharesCount += parsedData.sharesCount;
+                            }
                         
-                        workersGlobalCommands.push(['zadd',coin+':stat:workers:daily:'+worker,gatherTime,JSON.stringify(averageData)]);
-                    }
-                    redisClient.multi(workersGlobalCommands).exec(function(err,res){
-                        if(err){
-                            //TODO
+                            averageData.hashrate = Math.round(averageData.hashrate * 100) / 100
+                            averageData.hashrateString = configHelper.getReadableHashRateString(averageData.hashrate);
+                            
+                            workersGlobalCommands.push(['zadd',coin+':stat:workers:daily:'+worker,gatherTime,JSON.stringify(averageData)]);
                         }
+                        redisClient.multi(workersGlobalCommands).exec(function(err,res){
+                            if(err){
+                                floger.fileLogger(logLevels.error, "calculateStatsForDay:couldn't execute workersGlobalCommands push command", logFilePath);
+                            }
+                        })
                     })
-                })
                 
-                var globalDaily = {
-                    workersCount: 0,
-                    shares:0,
-                    hashrate: 0,
-                    invalidSharesCount:0,
-                    sharesCount:0,
-                    invalidShares: 0,
-                    blocksPending: 0,
-                    blocksOrphaned: 0,
-                    blocksConfirmed: 0,
-                    date:gatherTime,
-                }
-
-
-                for (var i = 0; i < globalHourly.length; i++) {
-                    var parsedData = JSON.parse(globalHourly[i])
-                    globalDaily.workersCount += parsedData.workersCount / 24
-                    globalDaily.hashrate += parsedData.hashrate / 24
-                    globalDaily.invalidShares += parsedData.invalidShares;
-                    globalDaily.shares+=parsedData.shares;
-                    globalDaily.invalidSharesCount += parsedData.invalidSharesCount;
-                    globalDaily.sharesCount += parsedData.sharesCount;
-                    if(i==globalHourly.length-1){
-                        globalDaily.blocksPending = parsedData.blocksPending;
-                        globalDaily.blocksOrphaned = parsedData.blocksOrphaned;
-                        globalDaily.blocksConfirmed = parsedData.blocksConfirmed;
-                    }    
-                }
-                globalDaily.workersCount  = Math.ceil(globalDaily.workersCount);
-                globalDaily.hashrate = Math.round(globalDaily.hashrate * 100)/100;
-                globalDaily.hashrateString = configHelper.getReadableHashRateString(globalDaily.hashrate);
-                var globalDailyCommands = ['zadd',coin+':stat:global:daily',gatherTime,JSON.stringify(globalDaily)];
-                redisClient.zadd(coin+':stat:global:daily',gatherTime,JSON.stringify(globalDaily),function(err,res){
-                    if(err){
-
+                    var globalDaily = {
+                        workersCount: 0,
+                        shares:0,
+                        hashrate: 0,
+                        invalidSharesCount:0,
+                        sharesCount:0,
+                        invalidShares: 0,
+                        blocksPending: 0,
+                        blocksOrphaned: 0,
+                        blocksConfirmed: 0,
+                        date:gatherTime,
                     }
-                });
-            }
-        });
+
+
+                    for (var i = 0; i < globalHourly.length; i++) {
+                        var parsedData = JSON.parse(globalHourly[i])
+                        globalDaily.workersCount += parsedData.workersCount / 24
+                        globalDaily.hashrate += parsedData.hashrate / 24
+                        globalDaily.invalidShares += parsedData.invalidShares;
+                        globalDaily.shares+=parsedData.shares;
+                        globalDaily.invalidSharesCount += parsedData.invalidSharesCount;
+                        globalDaily.sharesCount += parsedData.sharesCount;
+                        if(i==globalHourly.length-1){
+                            globalDaily.blocksPending = parsedData.blocksPending;
+                            globalDaily.blocksOrphaned = parsedData.blocksOrphaned;
+                            globalDaily.blocksConfirmed = parsedData.blocksConfirmed;
+                        }    
+                    }
+                    globalDaily.workersCount  = Math.ceil(globalDaily.workersCount);
+                    globalDaily.hashrate = Math.round(globalDaily.hashrate * 100)/100;
+                    globalDaily.hashrateString = configHelper.getReadableHashRateString(globalDaily.hashrate);
+                    var globalDailyCommands = ['zadd',coin+':stat:global:daily',gatherTime,JSON.stringify(globalDaily)];
+                    redisClient.zadd(coin+':stat:global:daily',gatherTime,JSON.stringify(globalDaily),function(err,res){
+                        if(err){
+                            floger.fileLogger(logLevels.error, "calculateStatsForDay:couldn't execute globalDailyCommands push command", logFilePath);
+                        }
+                    });
+                }
+            
+            });
     }
     
 }
 
 
-/* every 1 hour ,dear cronjob, come to this function,
+/*  every 1 hour ,dear cronjob, come to this function,
     get last 1 hour data from hashrates, more than 1 hour data must be deleted
     then get all the statistics and save it in statsHistoryByHour */
 
@@ -170,7 +168,7 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
     var existingWorkers = [];
     var globalOneHourCommands = [], workersOneHourCommands = [], deleteGlobalOneHourCommands = [], deleteWorkerOneHourCommands = [];
     async.each(redisClients, function(client, callback){
-        var windowTime = (( statGatherTime - (configHelper.hashRateStatTime)/1000 ) | 0).toString();
+        var windowTime = statGatherTime -  (configHelper.hashRateStatTime / 1000);
         var redisCommands = [];
         var redisCommandTemplates = [
             ['zremrangebyscore', ':hashrate', '-inf', '(' + windowTime],
@@ -182,7 +180,7 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
             ['smembers',':existingWorkers']
         ];
 
-        
+        /* do above commands for all coins . redisCommands become commands for all coins as array */
         var commandsPerCoin = redisCommandTemplates.length;
         client.coins.map(function(coin){
             redisCommandTemplates.map(function(t){
@@ -194,12 +192,11 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
 
         client.client.multi(redisCommands).exec(function(err, replies){
             if (err){
-                //TODO
+                floger.fileLogger(logLevels.error, "saveStatsEveryHour:couldn't execute first multi command", logFilePath);
                 logger.error(logSystem, 'Global', 'error with getting global stats ' + JSON.stringify(err));
                 callback(err);
             }
             else{
-                
                 for(var i = 0; i < replies.length; i += commandsPerCoin){
                     var coinName = client.coins[i / commandsPerCoin | 0];
                     existingWorkers[coinName] = replies[i+6];
@@ -227,7 +224,7 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
         });
     }, function(err){
             if (err){
-                //TODO 
+                floger.fileLogger(logLevels.error, "saveStatsEveryHour:couldn't execute first multi command - callback", logFilePath);
                 logger.error(logSystem, 'Global', 'error getting all stats' + JSON.stringify(err));
                 callback();
                 return;
@@ -242,7 +239,7 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
                 algos: {},
                 pools: allCoinStats
             };
-
+            
             Object.keys(allCoinStats).forEach(function(coin){
                 var coinStats = allCoinStats[coin];
                 coinStats.workers = {};
@@ -309,8 +306,11 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
                     blocksConfirmed:coinStats.blocks.confirmed,
                     date:statGatherTime
                 }
+
+               
                 globalOneHourCommands.push(['zadd',coinStats.name+':stat:global:hourly',statGatherTime,JSON.stringify(oneHourStat)]);
-                deleteGlobalOneHourCommands.push(['zremrangebyscore',coinStats.name+':stat:global:hourly','-inf','('+(statGatherTime - configHelper.deleteHourlyRange)/1000])
+                /* we must delete data older than last 1 day */
+                deleteGlobalOneHourCommands.push(['zremrangebyscore',coinStats.name+':stat:global:hourly','-inf','('+statGatherTime - (configHelper.deleteHourlyRange/1000)]);
                 
                 
                 /* algorithm specific global stats */
@@ -356,7 +356,7 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
                     }
                     
                     workersOneHourCommands.push(['zadd',coinStats.name+":stat:workers:hourly:"+workersExisting[i],statGatherTime,JSON.stringify(workerData)])
-                    deleteWorkerOneHourCommands.push(['zremrangebyscore',coinStats.name+":stat:workers:hourly:"+workersExisting[i],'-inf','('+(statGatherTime - configHelper.deleteHourlyRange)/1000]);
+                    deleteWorkerOneHourCommands.push(['zremrangebyscore',coinStats.name+":stat:workers:hourly:"+workersExisting[i],'-inf','('+statGatherTime - (configHelper.deleteHourlyRange/1000)]);
                     
                     
                 }
@@ -382,7 +382,7 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
 
             var statHistoryCommands = [];
             statHistoryCommands.push(['zadd', 'statHistory', statGatherTime, statString]);
-            statHistoryCommands.push(['zremrangebyscore', 'statHistory', '-inf', '(' + (configHelper.statHistoryLifetime)/1000]);
+            statHistoryCommands.push(['zremrangebyscore', 'statHistory', '-inf', '(' + statGatherTime- (configHelper.statHistoryLifetime/1000)]);
             
             if(globalOneHourCommands.length>0) statHistoryCommands = statHistoryCommands.concat(globalOneHourCommands);
             if(workersOneHourCommands.length>0) statHistoryCommands = statHistoryCommands.concat(workersOneHourCommands);
@@ -391,12 +391,9 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
 
             redisStats.multi(statHistoryCommands).exec(function(err, replies){
                 if (err){
-                    //TODO
-                    //logger.error(logSystem, 'Historics', 'Error adding stats to historics ' + JSON.stringify(err));
+                    floger.fileLogger(logLevels.error, "saveStatsEveryHour:couldn't execute last multi command, fucked up...", logFilePath);
+                    logger.error(logSystem, 'Historics', 'Error adding stats to historics ' + JSON.stringify(err));
                 }
-                else
-                    console.log("done");
-                
             });
             
         });
@@ -404,18 +401,13 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
     
 
 
-
-
-
-
     function saveStatsEveryTenMinutes(portalConfig,poolConfigs,redisClients){
-   
         var statGatherTime = Date.now() / 1000 | 0;
         var allCoinStats = {};
         var existingWorkers = [];
         var globalOneHourCommands = [], workersOneHourCommands = [], deleteGlobalOneHourCommands = [], deleteWorkerOneHourCommands = [];
         async.each(redisClients, function(client, callback){
-            var windowTime = (( statGatherTime - (configHelper.hashRateStatTenMinutes)/1000 ) | 0).toString();
+            var windowTime = statGatherTime - (configHelper.hashRateStatTenMinutes/1000 );
             var redisCommands = [];
             var redisCommandTemplates = [
                 ['zremrangebyscore', ':hashrate', '-inf', '(' + windowTime],
@@ -439,7 +431,7 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
     
             client.client.multi(redisCommands).exec(function(err, replies){
                 if (err){
-                    //TODO
+                    floger.fileLogger(logLevels.error, "saveStatsEveryTenMinutes:couldn't execute first multi command", logFilePath);
                     logger.error(logSystem, 'Global', 'error with getting global stats ' + JSON.stringify(err));
                     callback(err);
                 }
@@ -472,7 +464,7 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
             });
         }, function(err){
                 if (err){
-                    //TODO 
+                    floger.fileLogger(logLevels.error, "saveStatsEveryTenMinutes:couldn't execute first multi command,callback", logFilePath);
                     logger.error(logSystem, 'Global', 'error getting all stats' + JSON.stringify(err));
                     callback();
                     return;
@@ -535,13 +527,13 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
                     });
     
                     var shareMultiplier = Math.pow(2, 32) / algos[coinStats.algorithm].multiplier;
-                    coinStats.hashrate = shareMultiplier * coinStats.shares / (configHelper.hashRateStatTime/1000)
+                    coinStats.hashrate = shareMultiplier * coinStats.shares / (configHelper.hashRateStatTenMinutes/1000)
     
                     coinStats.workerCount = Object.keys(coinStats.workers).length;
                     portalStats.global.workers += coinStats.workerCount;
                     
     
-                    var oneHourStat = {
+                    var tenMinutesStat = {
                         workersCount:coinStats.workerCount,
                         hashrateString:configHelper.getReadableHashRateString(coinStats.hashrate),
                         hashrate:Math.round(coinStats.hashrate * 100) / 100,
@@ -554,8 +546,9 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
                         blocksConfirmed:coinStats.blocks.confirmed,
                         date:statGatherTime
                     }
-                    globalOneHourCommands.push(['zadd',coinStats.name+':stat:global:tenMinutes',statGatherTime,JSON.stringify(oneHourStat)]);
-                    deleteGlobalOneHourCommands.push(['zremrangebyscore',coinStats.name+':stat:global:tenMinutes','-inf','('+(statGatherTime - configHelper.hashRateStatTenMinutes)/1000])
+                    globalOneHourCommands.push(['zadd',coinStats.name+':stat:global:tenMinutes',statGatherTime,JSON.stringify(tenMinutesStat)]);
+                    
+                    deleteGlobalOneHourCommands.push(['zremrangebyscore',coinStats.name+':stat:global:tenMinutes','-inf','('+statGatherTime - (configHelper.hashRateStatTenMinutes/1000)]);
                     
                     
                     /* algorithm specific global stats */
@@ -575,7 +568,7 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
                     for(var i=0;i<workersExisting.length;i++){
                         var workerData;
                         if(coinStats.workers[workersExisting[i]]){
-                            var hashrate = shareMultiplier * coinStats.workers[workersExisting[i]].shares / (configHelper.hashRateStatTime/1000);
+                            var hashrate = shareMultiplier * coinStats.workers[workersExisting[i]].shares / (configHelper.hashRateStatTenMinutes/1000);
                             var hashrateString = configHelper.getReadableHashRateString(hashrate);
                             workerData = {
                                 shares:coinStats.workers[workersExisting[i]].shares,
@@ -601,7 +594,7 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
                         }
                         
                         workersOneHourCommands.push(['zadd',coinStats.name+":stat:workers:tenMinutes:"+workersExisting[i],statGatherTime,JSON.stringify(workerData)])
-                        deleteWorkerOneHourCommands.push(['zremrangebyscore',coinStats.name+":stat:workers:tenMinutes:"+workersExisting[i],'-inf','('+(statGatherTime - configHelper.hashRateStatTenMinutes)/1000]);
+                        deleteWorkerOneHourCommands.push(['zremrangebyscore',coinStats.name+":stat:workers:tenMinutes:"+workersExisting[i],'-inf','('+statGatherTime - (configHelper.hashRateStatTenMinutes/1000)]);
                         
                         
                     }
@@ -628,7 +621,7 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
                 var statHistoryCommands = [];
                 statHistoryCommands.push(['zadd', 'statHistory', statGatherTime, statString]);
                 
-                statHistoryCommands.push(['zremrangebyscore', 'statHistory', '-inf', '(' + (configHelper.statHistoryLifetime)/1000]);
+                statHistoryCommands.push(['zremrangebyscore', 'statHistory', '-inf', '(' + statGatherTime - (configHelper.statHistoryLifetime/1000)]);
                 
                 if(globalOneHourCommands.length>0) statHistoryCommands = statHistoryCommands.concat(globalOneHourCommands);
                 if(workersOneHourCommands.length>0) statHistoryCommands = statHistoryCommands.concat(workersOneHourCommands);
@@ -637,12 +630,8 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
     
                 redisStats.multi(statHistoryCommands).exec(function(err, replies){
                     if (err){
-                        //TODO
-                        //logger.error(logSystem, 'Historics', 'Error adding stats to historics ' + JSON.stringify(err));
+                        floger.fileLogger(logLevels.error, "saveStatsEveryTenMinutes:couldn't execute last multi command,fucked up", logFilePath);
                     }
-                    else
-                        console.log("done");
-                    
                 });
                 
             });

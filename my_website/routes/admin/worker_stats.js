@@ -14,32 +14,26 @@ router.all("/*",(req,res,next)=>{
 
 
 
-router.get('/worker_stats',(req,res)=>{
-    var timeSeconds = req.query.timeSeconds;
+router.get('/workers_stats',(req,res)=>{
     var coin_name = req.query.coin_name;
     var algorithm = req.query.algorithm;
-
-    configHelper.getWorkerStats(timeSeconds,coin_name,algorithm,function(workerStats){
-        if(workerStats === false){
-            res.send({status:404})
-        }else if(workerStats==500){
-            res.send({status:500})
-        }else{
-            let result = []
-            for (let i = 0; i < Object.keys(workerStats[coin_name]).length; i++) {
-                let workerName = Object.keys(workerStats[coin_name])[i]
-                let data = {}
-                data.worker = workerName
-                data.shares = Math.floor(workerStats[coin_name][workerName].shares)
-                data.invalidShares = Math.floor(workerStats[coin_name][workerName].invalidShares)
-                data.hashRate = workerStats[coin_name][workerName].hashrateString
-                data.efficiency = (data.shares > 0) ? (Math.floor(10000 * data.shares / (data.shares + data.invalidShares)))/100 : 0
-                result.push(data)
-            }
-            res.send({status: 200, data: result})
-        }
-    });
+    /* all worker stat */
+    workersHelper.getWorkersStats(coin_name,algorithm,function(data){
+        if(data == 500) res.send({status:500});
+        else res.send({status:200,data:data});
+    })
     
+    
+})
+
+router.get('/worker_stats',(req,res)=>{
+    var coin_name = req.query.coin_name;
+    var worker_name = req.query.worker_name;
+    /* each worker stat */
+    workersHelper.getWorkerStats(coin_name,worker_name,function(data){
+        if(data == 500) res.send({status:500});
+        else res.send({status:200,data:data});
+    })
 })
 
 router.get('/worker_graph',(req,res)=>{
@@ -53,9 +47,9 @@ router.get('/worker_graph',(req,res)=>{
     console.log(timeInterval)
     console.log(intervalCounts)
     console.log(interval)
-    // coinsHelper.getCoinStatsForGraph(coins, timeInterval, intervalCounts, interval,function(result) {
-    //     res.send({status:200,data:result,timeInterval: req.query.type});
-    // })
+    workersHelper.getWorkerStatsForGraph(coins, timeInterval, intervalCounts, interval,function(result) {
+        res.send({status:200,data:result,timeInterval: req.query.type});
+    })
 })
 
 

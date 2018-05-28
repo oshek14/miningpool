@@ -12,6 +12,7 @@ JSON.minify = JSON.minify || require("node-json-minify");
 var configDir = "pool_configs/";
 var coinDir = "coins/";
 
+
 //every one hour data from hashrates moves to bitcoin:stat:global:hourly
 var hashRateStatTime = 3600*1000;
 var hashRateStatTenMinutes =600*1000;

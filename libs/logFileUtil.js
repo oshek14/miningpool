@@ -13,16 +13,19 @@ function calculateDate() {
     var year = date.getFullYear()
     var month = date.getMonth() >= 10 ? date.getMonth() : "0" + date.getMonth()
     var day = date.getDate() >= 10 ? date.getDate() : "0" + date.getDate()
-    var dateString = year + "." + month + "." + day
+    var dateString = year + ":" + month + ":" + day+":";
     return dateString
 }
 
 const DateNow = calculateDate()
 
 const filePathes = {
-    updateStats: path.join(__dirname, '/../logs/' +  DateNow + 'updateStats.log'),
-    paymentProcessor: path.join(__dirname, '/../logs/' +  DateNow + 'paymentProcessor.log'),
-    auth: path.join(__dirname, '/../logs/' +  DateNow + 'auth.log'),
+    updateStats: path.join(__dirname, '/../logs/stats/' +  DateNow + 'updateStats.log'),
+    paymentProcessor: path.join(__dirname, '/../logs/paymentProcessor/' +  DateNow + 'paymentProcessor.log'),
+    paymentPayouts:path.join(__dirname, '/../logs/paymentPayouts/' +  DateNow + 'paymentPayouts.log'),
+    auth: path.join(__dirname, '/../logs/auth/' +  DateNow + 'auth.log'),
+    confirmedBlocks :path.join(__dirname, '/../logs/blocksConfirmed/' +  DateNow + 'blocksConfirmed.log'),
+    shareProcessor :path.join(__dirname, '/../logs/shareProcessor/' +  DateNow + 'shareProcessor.log'),
 }
 
 
