@@ -37,7 +37,7 @@ router.get('/worker_stats',(req,res)=>{
 })
 
 router.get('/worker_graph',(req,res)=>{
-    var coin = req.query.coins
+    var coin = req.query.coin
     var worker = req.query.worker
     var timeInterval = req.query.type.name //hourly,mothly
     var intervalCounts = req.query.type.intervals   //24 or 30
@@ -47,8 +47,11 @@ router.get('/worker_graph',(req,res)=>{
     console.log(timeInterval)
     console.log(intervalCounts)
     console.log(interval)
-    workersHelper.getWorkerStatsForGraph(coins, timeInterval, intervalCounts, interval,function(result) {
-        res.send({status:200,data:result,timeInterval: req.query.type});
+    workersHelper.getWorkerStatsForGraph(coin, timeInterval, intervalCounts, interval, function(result) {
+        if (result === 500) {
+            res.send({ status: 500 });
+        }
+        res.send({ status: 200, data: result });
     })
 })
 
