@@ -46,7 +46,7 @@ router.get('/worker_graph',(req,res)=>{
         if (result === 500) {
             res.send({ status: 500 });
         }
-        res.send({ status: 200, data: result });
+        res.send({ status: 200, data: result, timeInterval: req.query.type });
     })
 })
 
