@@ -47,7 +47,7 @@ router.get('/worker_graph',(req,res)=>{
     console.log(timeInterval)
     console.log(intervalCounts)
     console.log(interval)
-    workersHelper.getWorkerStatsForGraph(coin, timeInterval, intervalCounts, interval, function(result) {
+    workersHelper.getWorkerStatsForGraph(coin, worker, timeInterval, intervalCounts, interval, function(result) {
         if (result === 500) {
             res.send({ status: 500 });
         }
