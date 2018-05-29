@@ -306,6 +306,7 @@ function init(coin,howManyUsers,workersPerUser,firstIndex,address){
     for(var j=0;j<howManyUsers;j++){ 
         deletionCommands.push(['del',coin+':userPayouts:'+ firstIndex+j]);
     }
+    deletionCommands.push(['del',coin+':userPayouts']);
     deletionCommands.push(['del',coin+':balances:userPaid']);
     deletionCommands.push(['del',coin+':existingWorkers']);
     deletionCommands.push(['del',coin+':balances:userBalances']);
@@ -329,10 +330,10 @@ function init(coin,howManyUsers,workersPerUser,firstIndex,address){
             console.log("modis");
             put10MinutesDataForGlobal(coin);
             put10MinutesDataForWorkers(coin,howManyUsers,workersPerUser,firstIndex);
-             put24HoursDataForGlobal(coin);
+            put24HoursDataForGlobal(coin);
             put24HoursDataForWorkers(coin,howManyUsers,workersPerUser,firstIndex);
             put30DaysDataForGlobal(coin);
-           put30DaysDataForWorkers(coin,howManyUsers,workersPerUser,firstIndex);
+            put30DaysDataForWorkers(coin,howManyUsers,workersPerUser,firstIndex);
             putExistingWorkers(coin,howManyUsers,workersPerUser,firstIndex);
             putUserBalances(coin,howManyUsers,firstIndex);
             workersValidInvalid(coin,howManyUsers,workersPerUser,firstIndex);
