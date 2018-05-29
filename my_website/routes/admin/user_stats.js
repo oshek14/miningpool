@@ -26,7 +26,7 @@ router.get('/user_stats',(req,res)=>{
         }
         else {
             console.log(result);
-            res.send({status:200,data:3,res:result});
+            res.send({status:200,data:3,res:{a:result}});
         }
     })
 })
