@@ -32,8 +32,6 @@ module.exports = {
                         finalData['result'] = res;
                         callback(finalData);
                     }
-                        
-
                 })
                 
         })
