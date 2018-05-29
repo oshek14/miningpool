@@ -26,8 +26,6 @@ module.exports = {
             ['zrevrangebyscore',coin_name+":stat:workers:tenMinutes:"+worker_name,'+inf','-inf','limit',0,1],
             ['zrevrangebyscore',coin_name+":stat:workers:hourly:"+worker_name,'+inf','-inf','limit',0,1],
             ['zrevrangebyscore',coin_name+":stat:workers:daily:"+worker_name,'+inf','-inf','limit',0,1],
-            ['hget',coin_name+":balances:userBalances",worker_name.split(".")[0]],
-            ['hget',coin_name+":userPayouts",worker_name.split(".")[0]],
             ['hget',coin_name+":workers:invalidShares",worker_name],
             ['hget',coin_name+":workers:validShares",worker_name],
         ]
