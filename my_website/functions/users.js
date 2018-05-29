@@ -47,10 +47,10 @@ module.exports = {
         })
     },
 
-    getPaymentHistory:function(coin, username, callback){
+    getPaymentHistory:function(coin_name, user_name, callback){
         var redisClient = redis.createClient("6777",'165.227.143.126');
         var redisCommands = [
-            ['zrevrangebyscore',coin+':userPayouts:'+username,'+inf','-inf'],
+            ['zrevrangebyscore',coin_name+':userPayouts:'+user_name,'+inf','-inf'],
             ['hget',coin_name+':balances:userBalances',user_name],
             ['scard',coin_name+':existingWorkers']
         ]
