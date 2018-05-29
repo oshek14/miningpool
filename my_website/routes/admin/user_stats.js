@@ -1,6 +1,7 @@
 const express =require('express')
 const router = express.Router();
 const configHelper = require('../../helpers/config_helper');
+const coinsHelper = require('../../functions/coins')
 const usersHelper = require('../../functions/users')
 var redis = require('redis');
 
@@ -13,12 +14,13 @@ router.all("/*",(req,res,next)=>{
 })
 
 
-
-
-router.get('/user_stat',(req,res)=>{
-    var coin_name = req.query.coin_name;
-    var user_name = req.query.user_name;
+router.get('/users_stat',(req,res)=>{
+    usersHelper.getUsersStats(function(data) {
+        if (data === 500)  res.send({status: 500});
+        else res.send({status: 200, data: data})
+    })
 })
+
 
 module.exports = router;
 
