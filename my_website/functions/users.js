@@ -25,10 +25,13 @@ module.exports = {
                 }
                 
                 redisClient.multi(redisCommands).exec(function(err,res){
-                    if(err || res==null) callback(finalData);
-                    else
+                    if(err || res==null) {
+                        callback(finalData);
+                    }
+                    else{
                         finalData['result'] = res;
                         callback(finalData);
+                    }
                         
 
                 })
