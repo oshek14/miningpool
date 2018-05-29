@@ -210,7 +210,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
             function(callback){
                 startRedisTimer();
                 redisClient.multi([
-                    ['hgetall', coin + ':balances:workerBalances'],
+                    //['hgetall', coin + ':balances:workerBalances'],
                     ['smembers', coin + ':blocksPending']
                 ]).exec(function(error, results){
                     endRedisTimer();
@@ -225,9 +225,9 @@ function SetupForPool(logger, poolOptions, setupFinished){
 
 
                     var workers = {};
-                    for (var w in results[0]){
-                        workers[w] = {balance: coinsToSatoshies(parseFloat(results[0][w]))};
-                    }
+                    // for (var w in results[0]){
+                    //     workers[w] = {balance: coinsToSatoshies(parseFloat(results[0][w]))};
+                    // }
 
                     /* workers = [worker_id:{balance:coinToSatoshi(balance_from_redis_for_this_user)}]; */
 
@@ -500,12 +500,12 @@ function SetupForPool(logger, poolOptions, setupFinished){
                     for (var w in workers) {
                         var worker = workers[w]; //workerName //gio1.worker1;
                         worker.reward = worker.reward || 0;
-                        var username = w.split(":")[0];
+                        var username = w.split(".")[0];
 
                         if(!username in usersPerWorker) usersPerWorker[username] = 0;
                         else usersPerWorker[username] += worker.reward;
                         
-                        if(worker.reward>0) workersBalanceUpdates.push(['hincrbyfloat',coin + ':balances:workerBalances',w,satoshisToCoins(worker.reward)]);
+                        //if(worker.reward>0) workersBalanceUpdates.push(['hincrbyfloat',coin + ':balances:workerBalances',w,satoshisToCoins(worker.reward)]);
                     }
                     for(var username in usersPerWorker){
                         usersBalanceUpdates.push(['hincrbyfloat',coin + ':balances:userBalances',username,satoshisToCoins(usersPerWorker[username])]);

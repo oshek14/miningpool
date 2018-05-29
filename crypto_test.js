@@ -175,6 +175,18 @@ redisClient.multi([['smembers','bitcoin'+':existingWorkers']]).exec(function(err
 //     console.log(res);
 // });
 
+var userPaymentObject = {};
+    userPaymentObject.value = 4.11;
+    userPaymentObject.address = 'OKAMsdoamsd209dsMASdAosd1021aAs';
+    userPaymentObject.time = Date.now()/1000 | 0;
+
+redisClient.multi([
+    ['hset', 'bitcoin' + ':userPayouts', 'gio1', JSON.stringify(userPaymentObject)],
+    ['hset', 'bitcoin' + ':userPayouts', 'gio2', JSON.stringify(userPaymentObject)]
+]).exec(function(err,res){
+    console.log(res);
+    console.log(err);
+});
 
 // var i = 0;
 
