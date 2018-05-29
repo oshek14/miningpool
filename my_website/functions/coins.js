@@ -125,5 +125,14 @@ module.exports = {
                 }
             })
         })
-    }
+    },
+
+     getPaymentHistory:function(coin, algo, callback){
+        var redisClient = redis.createClient("6777",'165.227.143.126');
+        redisClient.hgetall(coin + ':userPayouts', function(err, res) {
+            if (err) callback(500)
+            else callback(res)
+        })
+     },
+    
 }
