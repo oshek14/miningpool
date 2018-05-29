@@ -533,7 +533,7 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
                     portalStats.global.workers += coinStats.workerCount;
                     
     
-                    var oneHourStat = {
+                    var tenMinutesStat = {
                         workersCount:coinStats.workerCount,
                         hashrateString:configHelper.getReadableHashRateString(coinStats.hashrate),
                         hashrate:Math.round(coinStats.hashrate * 100) / 100,
@@ -546,7 +546,7 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
                         blocksConfirmed:coinStats.blocks.confirmed,
                         date:statGatherTime
                     }
-                    globalOneHourCommands.push(['zadd',coinStats.name+':stat:global:tenMinutes',statGatherTime,JSON.stringify(oneHourStat)]);
+                    globalOneHourCommands.push(['zadd',coinStats.name+':stat:global:tenMinutes',statGatherTime,JSON.stringify(tenMinutesStat)]);
                     
                     deleteGlobalOneHourCommands.push(['zremrangebyscore',coinStats.name+':stat:global:tenMinutes','-inf','('+statGatherTime - (configHelper.hashRateStatTenMinutes/1000)]);
                     

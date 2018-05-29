@@ -10,8 +10,7 @@ var floger = require('../libs/logFileUtil')
 
 var logLevels = floger.levels;
 var logFilePath = floger.filePathes.paymentProcessor
-    
-
+var confirmedBlocksLog = floger.filePathes.confirmedBlocks
 
 module.exports = function(logger){
     var poolConfigs = JSON.parse(process.env.pools);
@@ -451,13 +450,31 @@ function SetupForPool(logger, poolOptions, setupFinished){
                                    we owe each miner based on the shares they submitted during that block round. */
                                 var reward = parseInt(round.reward * magnitude);
 
-
-
+                                
                                 var totalShares = Object.keys(workerShares).reduce(function(p, c){
                                     return p + parseFloat(workerShares[c])
                                 }, 0);
 
                                 
+                                var blockInformation = {};
+                                redisClient.zscore(coin+':blocksConfirmedInformation',round.height,function(error,result){
+                                    if(error){
+                                        floger.fileLogger(logLevels.error,"Can't get blocksinformation because of redis from blocksconfirmedInformation with coin and round " + coin+" "+round.height+" ",confirmedBlocksLog);
+                                    }else if(res == null){
+                                    }else{
+                                        var result = JSON.parse(result);
+                                        blockInformation['startTime'] = result.startDate;
+                                        blockInformation['endTime'] = result.endDate;
+                                        blockInformation['reward'] = reward;
+                                        blockInformation['blockHash'] = (round.blockHash) ? round.blockHash : null;
+                                        blockInformation['txHash'] = (round.txHash) ? round.txHash : null;
+                                        redisClient.zadd(coin+':blocksConfirmedInformation',round.height,JSON.stringify(blockInformation),function(err,res){
+                                            if(err){
+                                                floger.fileLogger(logLevels.error,"couldn't update blocksconfirmed information for coin: " + coin+" and details are:"+JSON.stringify(blockInformation)+" . It's advisable to run it manually", confirmedBlocksLog);
+                                            }
+                                        })
+                                    }
+                                })
                                 for (var workerAddress in workerShares){
                                     var percent = parseFloat(workerShares[workerAddress]) / totalShares;
                                     var workerRewardTotal = Math.floor(reward * percent);
@@ -559,6 +576,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                             }
                             return;
                         case 'generate':
+                            
                             movePendingCommands.push(['smove', coin + ':blocksPending', coin + ':blocksConfirmed', r.serialized]);
                             roundsToDelete.push(coin + ':shares:round' + r.height);
                             return;
@@ -595,6 +613,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                                 + coin + '_finalRedisCommands.txt must be ran manually');
                         
                         fs.writeFile(coin + '_finalRedisCommands.txt', JSON.stringify(finalRedisCommands), function(err){
+                            floger.fileLogger(logLevels.error, "couldn't write to file finalreddiscommands error.fucked up" + JSON.stringify(error), logFilePath)
                             logger.error('Could not write finalRedisCommands.txt, you are fucked.');
                         });
                     }
@@ -610,7 +629,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                 + timeSpentRPC + 'ms daemon RPC');
 
         });
-    };
+    };o
 
 
     
