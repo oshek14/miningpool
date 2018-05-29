@@ -60,7 +60,7 @@ var trySend = function (withholdPercent, coin, coinConfig) {
                     userPaymentObject.value = toSend;
                     userPaymentObject.address = address;
                     userPaymentObject.time = Date.now()/1000 | 0;
-                    userPaymentSchedule.push(['hset', coin + 'userPayouts', userKeys[i], JSON.stringify(userPaymentObject)]);
+                    userPaymentSchedule.push(['sadd', coin + ':userPayouts:' + userKeys[i], JSON.stringify(userPaymentObject)]);
                     balanceChangeCommands.push(['hincrbyfloat', coin + ":balances:userBalances", userKeys[i], -1 * toSend])
                 }
                 if(totalSent > 0){
