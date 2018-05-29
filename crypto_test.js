@@ -267,7 +267,8 @@ function putBlocksInfo(coin){
         blockInformation.reward = (Math.random() * 15)+1;
         blockInformation.blockHash = Math.random().toString(36).substring(15);
         blockInformation.txHash = Math.random().toString(36).substring(15);
-        redisCommands.push(['zadd',coin+':blocksConfirmedInformation',(Math.random() * 40000) + 1,JSON.stringify(blockInformation)]);
+        blockInformation.height = Math.floor((Math.random() * 40000) + 1);
+        redisCommands.push(['zadd',coin+':blocksConfirmedInformation',Math.floor((Math.random() * 40000) + 1),JSON.stringify(blockInformation)]);
     
     }
     redisClient.multi(redisCommands).exec(function(err,res){
@@ -325,3 +326,4 @@ function init(coin,howManyUsers,workersPerUser,firstIndex,address){
 
 
 init('bitcoin',3,2,"gio","niceoneaddress");
+
