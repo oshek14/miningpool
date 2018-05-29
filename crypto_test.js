@@ -283,7 +283,24 @@ function putBlocksInfo(coin){
 
 
 
+function putUserTotalPaid(coin,howManyUsers,firstIndex,address){
+    var redisCommands =[];
+    for(var i=0;i<howManyUsers;i++){
+        redisCommands.push(['hincrbyfloat',coin + ":balances:userPaid",firstIndex+i,(Math.random() * 10)+1]);
+    }
+    for(var i=0;i<howManyUsers;i++){
+        redisCommands.push(['hincrbyfloat',coin + ":balances:userPaid",firstIndex+i,(Math.random() * 10)+1]);
+    }
+    for(var i=0;i<howManyUsers;i++){
+        redisCommands.push(['hincrbyfloat',coin + ":balances:userPaid",firstIndex+i,(Math.random() * 10)+1]);
+    }
 
+    redisClient.multi(redisCommands).exec(function(err,res){
+        console.log(err);
+        console.log(res);
+    })
+   
+}
 function init(coin,howManyUsers,workersPerUser,firstIndex,address){
     var deletionCommands =[];
     deletionCommands.push(['del',coin+':userPayouts']);
@@ -317,6 +334,7 @@ function init(coin,howManyUsers,workersPerUser,firstIndex,address){
             putUserBalances(coin,howManyUsers,firstIndex);
             workersValidInvalid(coin,howManyUsers,workersPerUser,firstIndex);
             putUserPayouts(coin,howManyUsers,firstIndex,address);
+            putUserTotalPaid(coin,howManyUsers,firstIndex,address);
             putUsers(coin,howManyUsers,workersPerUser,firstIndex);
             putBlocksInfo(coin);
             console.log("DONE");
@@ -329,18 +347,7 @@ function init(coin,howManyUsers,workersPerUser,firstIndex,address){
 
 
 
-// init('bitcoin',3,2,"gio","niceoneaddress");
+init('bitcoin',3,2,"gio","niceoneaddress");
 
 
 
-var a =[];
-a.push(['zrevrangebyscore','bitcoin:stat:workers:tenMinutes:gio0.worker0','+inf','-inf','limit',0,1]);
-a.push( ['zrevrangebyscore','bitcoin:stat:workers:hourly:gio0.worker0','+inf','-inf','limit',0,24]);
-var commands = [
-    ['zrevrangebyscore','bitcoin:stat:workers:tenMinutes:gio0.worker0','+inf','-inf','limit',0,1],
-    ['zrevrangebyscore','bitcoin:stat:workers:hourly:gio0.worker0','+inf','-inf','limit',0,24],
-]
-
-redisClient.multi(a).exec(function(err,res){
-    console.log(res);
-})
