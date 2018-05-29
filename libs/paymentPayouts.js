@@ -52,7 +52,7 @@ var trySend = function (withholdPercent, coin, coinConfig) {
                 var userPaymentSchedule = [];
                 var balanceChangeCommands = [];
                 for(var i = 0; i < middleRes.length; i++){
-                    var address = JSON.parse(middleRes[i]).address[coin];
+                    var address = JSON.parse(middleRes[i]).coins[coin].address;
                     var toSend = outsideRes[userKeys[i]] * (1 - withholdPercent);
                     addressAmounts[address] = toSend;
                     totalSent += toSend;
@@ -102,7 +102,7 @@ var trySend = function (withholdPercent, coin, coinConfig) {
                                             + '% of reward from miners to cover transaction fees. '
                                             + 'Fund pool wallet with coins to prevent this from happening', logFilePath)
                                     }
-                                    redisClient.multi(balanceChangeCommands).exec(function(insideErr,middleRes){
+                                    redisClient.multi(balanceChangeCommands).exec(function(insideErr,middleResTwo){
                                         if(insideErr){
                                             logger.debug(logSystem, logComponent, 'can not update database after payout for coin: ' + coin +' so we should stop payment cron job');
                                             floger.fileLogger(logLevels.error, 'can not update database after payout for coin: ' + coin +' so we should stop payment cron job' , logFilePath)
@@ -110,7 +110,7 @@ var trySend = function (withholdPercent, coin, coinConfig) {
                                         }
                                     })
                                     userPaymentSchedule.push(['hincrbyfloat',coin + ":stats", "totalPaid", totalSent]);
-                                    redisClient.multi(userPaymentSchedule).exec(function(insideErr,middleRes){
+                                    redisClient.multi(userPaymentSchedule).exec(function(insideErr,middleResTwo){
                                         if(insideErr){
                                             logger.debug(logSystem, logComponent, 'can not update total paied statistics after payout for coin: ' + coin);
                                             floger.fileLogger(logLevels.error, 'can not update total paied statistics after payout for coin: ' + coin , logFilePath)

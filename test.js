@@ -1,7 +1,15 @@
-var s = 0;
 
-for(var i = 0; i < 5000000000; i++){
-    s++;
-}
+var redis = require('redis');
 
-console.log(s);
+
+var redisClient = redis.createClient("6777", "165.227.143.126");
+var async = require('async');
+
+var CronJob = require('cron').CronJob;
+
+
+var redisCommands = [];
+
+// redisCommands.push(
+//     ['hget', ]
+// )
