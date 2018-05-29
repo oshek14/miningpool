@@ -245,10 +245,14 @@ function putUsers(coin,howManyUsers,howManyWorkers,firstIndex){
         }
         var json = {
             password:'123456',
-            address:{
-                bitcoin:'msxzy8MrSQKAjBrp8XfHK1bvF6iAr5FTBR',
+            workersCount:howManyWorkers,
+            coins:{
+                [coin]:{
+                    address:'msxzy8MrSQKAjBrp8XfHK1bvF6iAr5FTBR',
+                    workers:userWorkers
+                }
             },
-            workers:userWorkers
+           
         }
         redisCommands.push(['hset','users',firstIndex+j,JSON.stringify(json)]);
     }
@@ -265,8 +269,8 @@ function putBlocksInfo(coin){
         blockInformation.startTime= Date.now() - (Math.floor((Math.random() * 15) + 1))*60*1000;
         blockInformation.endTime = Date.now();
         blockInformation.reward = (Math.random() * 15)+1;
-        blockInformation.blockHash = "000basdll" + Math.random().toString(36).substring(15);
-        blockInformation.txHash = "sshera" + Math.random().toString(36).substring(15);
+        blockInformation.blockHash = Math.random().toString(36).substring(15);
+        blockInformation.txHash = Math.random().toString(36).substring(15);
         blockInformation.height = Math.floor((Math.random() * 40000) + 1);
         redisCommands.push(['zadd',coin+':blocksConfirmedInformation',Math.floor((Math.random() * 40000) + 1),JSON.stringify(blockInformation)]);
     
@@ -325,4 +329,5 @@ function init(coin,howManyUsers,workersPerUser,firstIndex,address){
 
 
 
-init('litecoin',3,2,"gio","niceoneaddress");
+init('bitcoin',3,2,"gio","niceoneaddress");
+
