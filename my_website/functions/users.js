@@ -11,7 +11,7 @@ module.exports = {
             if(error) callback(500);
             else if(result == null) callback(404);
             else
-                var parsedData = JSON.parse(res);
+                var parsedData = JSON.parse(result);
                 finalData['basicInfo'] = parsedData;
                 var workers = parsedData.coins[coin_name].workers;
                 var workersLength = workers.length;
