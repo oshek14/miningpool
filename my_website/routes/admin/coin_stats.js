@@ -101,6 +101,15 @@ router.get('/coin_payment_history',(req,res)=>{
     })
 })
 
+router.get('/coin_blocks_history',(req,res)=>{ 
+    var coin = req.query.coin
+    var algo = req.query.algo
+    coinsHelper.getBlocksHistory(coin, algo, function(data) {
+        if (data === 500)  data.send({status: 500});
+        else res.send({status: 200, data: data})
+    })
+})
+
 
 module.exports = router;
 
