@@ -14,7 +14,7 @@ router.all("/*",(req,res,next)=>{
 })
 
 
-router.get('/users_stat',(req,res)=>{
+router.get('/users_stats',(req,res)=>{
     usersHelper.getUsersStats(function(data) {
         if (data === 500)  res.send({status: 500});
         else res.send({status: 200, data: data})
