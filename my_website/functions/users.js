@@ -25,15 +25,10 @@ module.exports = {
                 }
                 
                 redisClient.multi(redisCommands).exec(function(err,res){
-                    console.log(err);
-                    console.log(res);
                     if(err || res==null) {
-                        console.log("z");
-                        console.log("this is",finalData);
-                        callback(finalData);
+                       callback(finalData);
                     }
                     else{
-                        console.log("s");
                         finalData['result'] = res;
                         callback(finalData);
                     }

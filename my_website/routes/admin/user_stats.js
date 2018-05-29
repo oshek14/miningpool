@@ -25,14 +25,12 @@ router.get('/user_stats',(req,res)=>{
             res.send({status:500});
         }
         else {
-            console.log(result);
-            var z = [];
-            z.push('a');
-            z.push(result);
+            
+            
             console.log(typeof result);
             console.log(result.length);
             
-            res.send({status:200,data:result,s:z});
+            res.send({status:200,data:result});
         }
     })
 })
