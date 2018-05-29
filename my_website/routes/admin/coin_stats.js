@@ -29,7 +29,7 @@ router.get('/active_coins',(req,res)=>{
         var coins={};
         var keys = Object.keys(data);
         for(var i=0;i<keys.length;i++)
-           coins[keys[i]] = data[keys[i]].coin.algorithm;
+            coins[keys[i]] = data[keys[i]].coin.algorithm;
         
         res.send({status:200,data:coins});
     })

@@ -331,5 +331,18 @@ function init(coin,howManyUsers,workersPerUser,firstIndex,address){
 
 
 
-init('bitcoin',3,2,"gio","niceoneaddress");
+// init('bitcoin',3,2,"gio","niceoneaddress");
 
+
+
+var a =[];
+a.push(['zrevrangebyscore','bitcoin:stat:workers:tenMinutes:gio0.worker0','+inf','-inf','limit',0,1]);
+a.push( ['zrevrangebyscore','bitcoin:stat:workers:hourly:gio0.worker0','+inf','-inf','limit',0,24]);
+var commands = [
+    ['zrevrangebyscore','bitcoin:stat:workers:tenMinutes:gio0.worker0','+inf','-inf','limit',0,1],
+    ['zrevrangebyscore','bitcoin:stat:workers:hourly:gio0.worker0','+inf','-inf','limit',0,24],
+]
+
+redisClient.multi(a).exec(function(err,res){
+    console.log(res);
+})
