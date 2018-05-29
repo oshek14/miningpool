@@ -23,6 +23,7 @@ router.get('/user_stat',(req,res)=>{
         if(result == 500) res.send({status:500});
         else res.send({status:200,data:result});
     })
+})
 
 router.get('/users_stats',(req,res)=>{
     usersHelper.getUsersStats(function(data) {
