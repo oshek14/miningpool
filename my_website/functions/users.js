@@ -5,7 +5,7 @@ module.exports = {
     //get user stats depending on coin_name
     getUserStats:function(coin_name,user_name,callback){
         var redisClient = redis.createClient("6777",'165.227.143.126');
-        var finalData = [];
+        var finalData = {};
         
         redisClient.hget('users',user_name,function(error,result){
             if(error) {callback(500);}
