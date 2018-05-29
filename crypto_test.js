@@ -351,9 +351,7 @@ function init(coin,howManyUsers,workersPerUser,firstIndex,address){
 
 
 
-// init('bitcoin',3,2,"gio","niceoneaddress");
+init('bitcoin',3,2,"gio","niceoneaddress");
 
 
-redisClient.smembers("bitcoin:userPayouts:g*",function(err,res){
-    console.log(res);
-})
+
