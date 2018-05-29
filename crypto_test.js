@@ -245,10 +245,14 @@ function putUsers(coin,howManyUsers,howManyWorkers,firstIndex){
         }
         var json = {
             password:'123456',
-            address:{
-                bitcoin:'msxzy8MrSQKAjBrp8XfHK1bvF6iAr5FTBR',
+            workersCount:howManyWorkers,
+            coins:{
+                [coin]:{
+                    address:'msxzy8MrSQKAjBrp8XfHK1bvF6iAr5FTBR',
+                    workers:userWorkers
+                }
             },
-            workers:userWorkers
+           
         }
         redisCommands.push(['hset','users',firstIndex+j,JSON.stringify(json)]);
     }
@@ -267,7 +271,8 @@ function putBlocksInfo(coin){
         blockInformation.reward = (Math.random() * 15)+1;
         blockInformation.blockHash = Math.random().toString(36).substring(15);
         blockInformation.txHash = Math.random().toString(36).substring(15);
-        redisCommands.push(['zadd',coin+':blocksConfirmedInformation',(Math.random() * 40000) + 1,JSON.stringify(blockInformation)]);
+        blockInformation.height = Math.floor((Math.random() * 40000) + 1);
+        redisCommands.push(['zadd',coin+':blocksConfirmedInformation',Math.floor((Math.random() * 40000) + 1),JSON.stringify(blockInformation)]);
     
     }
     redisClient.multi(redisCommands).exec(function(err,res){
@@ -325,3 +330,4 @@ function init(coin,howManyUsers,workersPerUser,firstIndex,address){
 
 
 init('bitcoin',3,2,"gio","niceoneaddress");
+
