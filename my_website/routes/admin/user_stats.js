@@ -16,7 +16,7 @@ router.all("/*",(req,res,next)=>{
 
 
 
-router.get('/user_stat',(req,res)=>{
+router.get('/user_stats',(req,res)=>{
     var coin_name = req.query.coin_name;
     var user_name = req.query.user_name;
     usersHelper.getUserStats(coin_name,user_name,function(result){
