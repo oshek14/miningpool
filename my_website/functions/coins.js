@@ -127,13 +127,7 @@ module.exports = {
         })
     },
 
-     getPaymentHistory:function(coin, username, callback){
-        var redisClient = redis.createClient("6777",'165.227.143.126');
-        redisClient.zrevrangebyscore(coin + ':userPayouts:' + username, '+inf', '-inf', function(err, res) {
-            if (err) callback(500)
-            else callback(res)
-        })
-     },
+     
 
      getBlocksHistory:function(coin, algo, callback){
         var redisClient = redis.createClient("6777",'165.227.143.126');

@@ -35,6 +35,16 @@ router.get('/users_stats',(req,res)=>{
 
 
 
+router.get('/payment_history',(req,res)=>{
+    usersHelper.getPaymentHistory(req.query.user_name,req.query.coin_name,function(result){
+        if(result==500) res.send({status:500});
+        else res.send({status:200,data:result});
+    })
+})
+
+
+
+
 module.exports = router;
 
 

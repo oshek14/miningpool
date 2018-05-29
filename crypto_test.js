@@ -352,7 +352,7 @@ function init(coin,howManyUsers,workersPerUser,firstIndex,address){
 
 
 init('bitcoin',3,2,"gio","niceoneaddress");
-init('litecoin',3,2,"gios","litecoinaddres");
+// init('litecoin',3,2,"gios","litecoinaddres");
 
 
 
