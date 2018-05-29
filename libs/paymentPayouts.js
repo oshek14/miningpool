@@ -51,6 +51,7 @@ var trySend = function (withholdPercent, coin, coinConfig) {
                 var totalSent = 0;
                 var userPaymentSchedule = [];
                 var balanceChangeCommands = [];
+                
                 for(var i = 0; i < middleRes.length; i++){
                     var address = JSON.parse(middleRes[i]).coins[coin].address;
                     var toSend = outsideRes[userKeys[i]] * (1 - withholdPercent);
@@ -60,8 +61,17 @@ var trySend = function (withholdPercent, coin, coinConfig) {
                     userPaymentObject.value = toSend;
                     userPaymentObject.address = address;
                     userPaymentObject.time = Date.now()/1000 | 0;
+<<<<<<< HEAD
                     userPaymentSchedule.push(['zadd', coin + ':userPayouts:' + userKeys[i],userPaymentObject.time, JSON.stringify(userPaymentObject)]);
                     balanceChangeCommands.push(['hincrbyfloat', coin + ":balances:userBalances", userKeys[i], -1 * toSend])
+=======
+                    userPaymentSchedule.push(['hset', coin + 'userPayouts', userKeys[i], JSON.stringify(userPaymentObject)]);
+                    userPaymentSchedule.push(['sadd', coin + ':userPayouts:' + userKeys[i], JSON.stringify(userPaymentObject)]);
+                    balanceChangeCommands.push(['hincrbyfloat', coin + ":balances:userBalances", userKeys[i], -1 * toSend]);
+                    userPaymentSchedule.push(['hincrbyfloat',coin + ":balances:userPaid",userKeys[i],toSend]);
+                    
+                   
+>>>>>>> f43a1180fae40d50b9cb0c644fac0b27d6b07f43
                 }
                 if(totalSent > 0){
                     daemon.cmd('getaccount', [coinConfig.address], function(insideRes){
