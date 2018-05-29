@@ -94,8 +94,8 @@ router.get('/coin_payment_stats',(req,res)=>{
 
 router.get('/coin_payment_history',(req,res)=>{ 
     var coin = req.query.coin
-    var algo = req.query.algo
-    coinsHelper.getPaymentHistory(coin, algo, function(data) {
+    var algo = req.query.username
+    coinsHelper.getPaymentHistory(coin, username, function(data) {
         if (data === 500)  res.send({status: 500});
         else res.send({status: 200, data: data})
     })

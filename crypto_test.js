@@ -227,7 +227,7 @@ function putUserPayouts(coin,howManyUsers,firstIndex,address){
         userPaymentObject.value = (Math.random() * 10) + 1;
         userPaymentObject.address = address;
         userPaymentObject.time = Date.now()/1000 | 0;
-        userPayouts.push(['sadd',coin + ':userPayouts:' + firstIndex+j,JSON.stringify(userPaymentObject)]);
+        userPayouts.push(['zadd',coin + ':userPayouts:' + firstIndex+j,userPaymentObject.time, JSON.stringify(userPaymentObject)]);
     }
     redisClient.multi(userPayouts).exec(function(err,res){
         console.log(err);
