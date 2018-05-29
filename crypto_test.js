@@ -326,4 +326,7 @@ function init(coin,howManyUsers,workersPerUser,firstIndex,address){
 
 
 init('bitcoin',3,2,"gio","niceoneaddress");
+<<<<<<< HEAD
 
+=======
+>>>>>>> 06169189de2aa0d8f0dc2d5afe95ff421cb7f951

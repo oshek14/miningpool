@@ -34,8 +34,8 @@ module.exports = function(logger){
 
 var trySend = function (withholdPercent, coin, coinConfig) {
 
-    redisClient.hgetall(coin + ":balances:userBalances", function(err,outsideRes){  //{ gio1: '3.11', gio2: '4.88', gio3: '7.12' }
-        if(err){
+    redisClient.hgetall(coin + ":balances:userBalances", function(outsideErr,outsideRes){  //{ gio1: '3.11', gio2: '4.88', gio3: '7.12' }
+        if(outsideErr){
             floger.fileLogger(logLevels.error, "paymentPayouts:can't execute redis commands for coin" + coin, logFilePath)
         }else{
             var daemon = new Stratum.daemon.interface([coinConfig.paymentProcessing.daemon], function(severity, message){
@@ -47,9 +47,10 @@ var trySend = function (withholdPercent, coin, coinConfig) {
                 userAddressCommand.push(['hget', 'users', userKeys[i]]);
             }
             var addressAmounts = {};
-            redisClient.multi(userAddressCommand).exec(function(err,middleRes){
+            redisClient.multi(userAddressCommand).exec(function(middleErr,middleRes){
                 var totalSent = 0;
                 var userPaymentSchedule = [];
+                var balanceChangeCommands = [];
                 for(var i = 0; i < middleRes.length; i++){
                     var address = JSON.parse(middleRes[i]).address[coin];
                     var toSend = outsideRes[userKeys[i]] * (1 - withholdPercent);
@@ -59,7 +60,8 @@ var trySend = function (withholdPercent, coin, coinConfig) {
                     userPaymentObject.value = toSend;
                     userPaymentObject.address = address;
                     userPaymentObject.time = Date.now()/1000 | 0;
-                    userPaymentSchedule.push(['hset', coin + 'userPayouts', userKeys[i], JSON.stringify(userPaymentObject)])
+                    userPaymentSchedule.push(['hset', coin + 'userPayouts', userKeys[i], JSON.stringify(userPaymentObject)]);
+                    balanceChangeCommands.push(['hincrbyfloat', coin + ":balances:userBalances", userKeys[i], -1 * toSend])
                 }
                 if(totalSent > 0){
                     daemon.cmd('getaccount', [coinConfig.address], function(insideRes){
@@ -100,19 +102,19 @@ var trySend = function (withholdPercent, coin, coinConfig) {
                                             + '% of reward from miners to cover transaction fees. '
                                             + 'Fund pool wallet with coins to prevent this from happening', logFilePath)
                                     }
-                                    redisClient.del(coin + ":balances:userBalances", function(err,outsideRes){
-                                        if(err){
+                                    redisClient.multi(balanceChangeCommands).exec(function(insideErr,middleRes){
+                                        if(insideErr){
                                             logger.debug(logSystem, logComponent, 'can not update database after payout for coin: ' + coin +' so we should stop payment cron job');
                                             floger.fileLogger(logLevels.error, 'can not update database after payout for coin: ' + coin +' so we should stop payment cron job' , logFilePath)
                                             paymentJob.stop();
                                         }
                                     })
                                     userPaymentSchedule.push(['hincrbyfloat',coin + ":stats", "totalPaid", totalSent]);
-                                    redisClient.multi(userPaymentSchedule).exec(function(err,middleRes){
-                                        if(err){
+                                    redisClient.multi(userPaymentSchedule).exec(function(insideErr,middleRes){
+                                        if(insideErr){
                                             logger.debug(logSystem, logComponent, 'can not update total paied statistics after payout for coin: ' + coin);
                                             floger.fileLogger(logLevels.error, 'can not update total paied statistics after payout for coin: ' + coin , logFilePath)
-                                            fs.writeFile(coin + '_paymentStatUpdate.txt', JSON.stringify(userPaymentSchedule), function(err){
+                                            fs.writeFile(coin + '_paymentStatUpdate.txt', JSON.stringify(userPaymentSchedule), function(fileError){
                                                 logger.error('Could not write paymentStatUpdate.txt.');
                                                 floger.fileLogger(logLevels.error, 'Could not write paymentStatUpdate.txt.' , logFilePath)
                                             });
