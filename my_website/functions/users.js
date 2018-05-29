@@ -8,7 +8,7 @@ module.exports = {
     },
 
     // get all user
-    getUsersStats:function(){
+    getUsersStats:function(callback){
         var redisClient = redis.createClient("6777", "165.227.143.126");
         redisClient.hgetall('users' , function(err,res){
             if (err) callback(500)
