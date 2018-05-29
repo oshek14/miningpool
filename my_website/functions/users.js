@@ -30,6 +30,7 @@ module.exports = {
                     }
                     else{
                         finalData['result'] = res;
+                        finalData['commandsNum'] = 3;
                         callback(finalData);
                     }
                 })
