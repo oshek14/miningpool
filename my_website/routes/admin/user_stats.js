@@ -28,7 +28,8 @@ router.get('/user_stats',(req,res)=>{
             
             
             console.log(typeof result);
-            console.log(Object.keys(result).length);
+            console.log(Object.keys(result));
+            console.log(result);
             
             res.send({status:200,data:result});
         }
