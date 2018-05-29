@@ -21,9 +21,10 @@ app.use(function (req, res, next) {
 
 var coinsStats = require('./my_website/routes/admin/coin_stats');
 var workersStats = require('./my_website/routes/admin/worker_stats');
-
+var usersStats = require('./my_website/routes/admin/user_stats');
 app.use('/admin/coins',coinsStats);
 app.use('/admin/workers',workersStats);
+app.use('/admin/users',usersStats);
 
 http.listen(4500,()=>{
     console.log("listen on 4500 port");
