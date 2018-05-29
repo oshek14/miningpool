@@ -62,8 +62,11 @@ var trySend = function (withholdPercent, coin, coinConfig) {
                     userPaymentObject.address = address;
                     userPaymentObject.time = Date.now()/1000 | 0;
                     userPaymentSchedule.push(['hset', coin + 'userPayouts', userKeys[i], JSON.stringify(userPaymentObject)]);
+                    userPaymentSchedule.push(['sadd', coin + ':userPayouts:' + userKeys[i], JSON.stringify(userPaymentObject)]);
                     balanceChangeCommands.push(['hincrbyfloat', coin + ":balances:userBalances", userKeys[i], -1 * toSend]);
                     userPaymentSchedule.push(['hincrbyfloat',coin + ":balances:userPaid",userKeys[i],toSend]);
+                    
+                   
                 }
                 if(totalSent > 0){
                     daemon.cmd('getaccount', [coinConfig.address], function(insideRes){

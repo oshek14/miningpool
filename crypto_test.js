@@ -227,7 +227,7 @@ function putUserPayouts(coin,howManyUsers,firstIndex,address){
         userPaymentObject.value = (Math.random() * 10) + 1;
         userPaymentObject.address = address;
         userPaymentObject.time = Date.now()/1000 | 0;
-        userPayouts.push(['hset',coin + ':userPayouts',firstIndex+j,JSON.stringify(userPaymentObject)]);
+        userPayouts.push(['sadd',coin + ':userPayouts:' + firstIndex+j,JSON.stringify(userPaymentObject)]);
     }
     redisClient.multi(userPayouts).exec(function(err,res){
         console.log(err);
@@ -303,7 +303,10 @@ function putUserTotalPaid(coin,howManyUsers,firstIndex,address){
 }
 function init(coin,howManyUsers,workersPerUser,firstIndex,address){
     var deletionCommands =[];
-    deletionCommands.push(['del',coin+':userPayouts']);
+    for(var j=0;j<howManyUsers;j++){ 
+        deletionCommands.push(['del',coin+':userPayouts:'+ firstIndex+j]);
+    }
+    deletionCommands.push(['del',coin+':balances:userPaid']);
     deletionCommands.push(['del',coin+':existingWorkers']);
     deletionCommands.push(['del',coin+':balances:userBalances']);
     deletionCommands.push(['del',coin+':workers:invalidShares']);
@@ -347,7 +350,9 @@ function init(coin,howManyUsers,workersPerUser,firstIndex,address){
 
 
 
-init('bitcoin',3,2,"gio","niceoneaddress");
+// init('bitcoin',3,2,"gio","niceoneaddress");
 
 
-
+redisClient.smembers("bitcoin:userPayouts:g*",function(err,res){
+    console.log(res);
+})
