@@ -8,8 +8,6 @@ var async = require('async');
 var CronJob = require('cron').CronJob;
 
 
-var redisCommands = [];
-
-// redisCommands.push(
-//     ['hget', ]
-// )
+redisClient.hgetall('users' , function(err,res){
+    console.log(res);
+})
