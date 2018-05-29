@@ -8,9 +8,9 @@ module.exports = {
         var finalData = [];
         
         redisClient.hget('users',user_name,function(error,result){
-            if(error) callback(500);
-            else if(result == null) callback(404);
-            else
+            if(error) {callback(500);}
+            else if(result == null) {callback(404);}
+            else{
                 var parsedData = JSON.parse(result);
                 finalData['basicInfo'] = parsedData;
                 var workers = parsedData.coins[coin_name].workers;
@@ -33,6 +33,7 @@ module.exports = {
                         callback(finalData);
                     }
                 })
+            }
                 
         })
        
