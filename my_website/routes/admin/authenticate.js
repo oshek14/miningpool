@@ -5,7 +5,8 @@ var redis = require('redis');
 var jwt = require('jsonwebtoken');
 require('../../passport')(passport);
 
-router.post('/signin', function(req, res) {
+router.get('/signin', function(req, res) {
+    console.log('ssss')
   var email = req.body.email
   console.log(email)
 })
