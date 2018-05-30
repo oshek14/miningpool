@@ -376,8 +376,14 @@ function init(coin,howManyUsers,workersPerUser,firstIndex,address){
 
 
 
-init('bitcoin',1,2,"gio","niceoneaddress");
+// init('bitcoin',1,2,"gio","niceoneaddress");
+// var redisCommands = [];
+// // redisCommands.push(['zadd','bitcoin'+':blocksConfirmedInformation', 'NX',Date.now()/1000,125]);
+// // // redisClient.multi(redisCommands).exec(function(err,res){
+// // //     console.log(err);
+// // //     console.log(res);
+// // // })
 
-
-
-
+// redisClient.zadd('bitcoin'+':blocksConfirmedInformation',1234,125,function(err,res){
+//     console.log(res);
+// })
