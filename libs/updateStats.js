@@ -42,7 +42,7 @@ module.exports = function(logger){
     }, null, true, null);
 
     //RUNS EVERY DAY EVERY ten minutes 
-    var tenMinutesJob = new CronJob('00 */1 * * * *', function() {
+    var tenMinutesJob = new CronJob('00 */10 * * * *', function() {
         saveStatsEveryTenMinutes(portalConfig,poolConfigs,redisClients);
     }, null, true, null);
     
@@ -443,17 +443,17 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
                             name: coinName,
                             symbol: poolConfigs[coinName].coin.symbol.toUpperCase(),
                             algorithm: poolConfigs[coinName].coin.algorithm,
-                            hashrates: replies[i + 1],
+                            hashrates: replies[i + 0],
                             poolStats: {
-                                validShares: replies[i + 2] ? (replies[i + 2].validShares || 0) : 0,
-                                validBlocks: replies[i + 2] ? (replies[i + 2].validBlocks || 0) : 0,
-                                invalidShares: replies[i + 2] ? (replies[i + 2].invalidShares || 0) : 0,
-                                totalPaid: replies[i + 2] ? (replies[i + 2].totalPaid || 0) : 0
+                                validShares: replies[i + 1] ? (replies[i + 1].validShares || 0) : 0,
+                                validBlocks: replies[i + 1] ? (replies[i + 1].validBlocks || 0) : 0,
+                                invalidShares: replies[i + 1] ? (replies[i + 1].invalidShares || 0) : 0,
+                                totalPaid: replies[i + 1] ? (replies[i + 1].totalPaid || 0) : 0
                             },
                             blocks: {
-                                pending: replies[i + 3],
-                                confirmed: replies[i + 4],
-                                orphaned: replies[i + 5]
+                                pending: replies[i + 2],
+                                confirmed: replies[i + 3],
+                                orphaned: replies[i + 4]
                             }
                         };
                         allCoinStats[coinStats.name] = (coinStats);
