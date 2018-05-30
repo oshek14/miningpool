@@ -4,6 +4,7 @@ const router = express.Router();
 var redis = require('redis');
 var jwt = require('jsonwebtoken');
 require('../../passport')(passport);
+var secret = "asdasgasgasgfausyuiasfhiausfi"
 
 router.post('/signin', function(req, res) {
     var redisClient = redis.createClient("6777", "165.227.143.126");
@@ -13,7 +14,15 @@ router.post('/signin', function(req, res) {
         if (err) {
             res.send({status: 500})
         } else if (res) {
-            console.log(res)
+            var parsedRes = JSON.parse(res)
+            if (parsedRes.password === password) {
+                var token = jwt.sign(parsedRes, secret);
+                res.send({status: 200, token: token})
+            } else {
+                res.send({status: 500})
+            }
+        } else {
+            res.send({status: 500})
         }
      })
 })
