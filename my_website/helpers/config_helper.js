@@ -46,7 +46,7 @@ module.exports = {
             poolOptions.fileName = file;
             poolConfigFiles.push(poolOptions);
         });
-        console.log(poolConfigFiles);
+        
         poolConfigFiles.forEach(function(poolOptions){
             poolOptions.coinFileName = poolOptions.coin;
             var coinFilePath = coinDir + poolOptions.coinFileName;
@@ -67,6 +67,7 @@ module.exports = {
                 }
             }
             configs[poolOptions.coin.name] = poolOptions;
+            console.log(configs);
             callback(configs);
         });
     },
