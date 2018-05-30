@@ -58,9 +58,10 @@ module.exports = {
                     var clonedOption = {};
                     if (toCloneOption.constructor === Object)
                         extend(true, clonedOption, toCloneOption);
-                    else
+                    else { 
                         clonedOption = toCloneOption;
-                    poolOptions[option] = clonedOption;
+                        poolOptions[option] = clonedOption;
+                    }
                 }
             }
             configs[poolOptions.coin.name] = poolOptions;
