@@ -26,7 +26,7 @@ var authenticate = require('./my_website/routes/admin/authenticate')
 app.use('/admin/coins',coinsStats);
 app.use('/admin/workers',workersStats);
 app.use('/admin/users',usersStats);
-app.use('/admin/authenticate',usersStats);
+app.use('/admin/authenticate', authenticate);
 
 http.listen(4500,()=>{
     console.log("listen on 4500 port");
