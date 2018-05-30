@@ -141,8 +141,7 @@ module.exports = function(logger){
 
                     redisClient.hget("users",user_name,function(err,res){
                         if(err || res == null){
-
-                            authCallback(true);
+                            authCallback(false);
                         } else{ 
                             var parsedData = JSON.parse(res);
                             user_address = parsedData.coins['bitcoin'].address;
