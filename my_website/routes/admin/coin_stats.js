@@ -26,7 +26,7 @@ router.get('/coins_graph',(req,res)=>{
 /* get all active coins that is true in each pool_configs json file */
 router.get('/active_coins',(req,res)=>{
     configHelper.getPoolConfigs(function(data) {
-        console.log(data);
+       // console.log(data);
         var coins={};
         var keys = Object.keys(data);
         for(var i=0;i<keys.length;i++)
