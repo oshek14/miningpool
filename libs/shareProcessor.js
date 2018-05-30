@@ -91,7 +91,7 @@ module.exports = function(logger, poolConfig){
             the value of it becomes shareData.difficulty. if finds it, 
             the value becomes = what was the value plus shareData.difficulty */
             redisCommands.push(['hincrbyfloat', coin + ':shares:roundCurrent', shareData.worker, shareData.difficulty]);
-            redisCommands.push(['zadd', 'NX',coin + coin+':blocksConfirmedInformation', shareData.height, Date.now()/1000]);
+            redisCommands.push(['zadd', 'NX',coin+':blocksConfirmedInformation', shareData.height, Date.now()/1000]);
             
             /* it looks for coin+':stats' table, finds validShares key and makes it bigger than 1 */
             redisCommands.push(['hincrby', coin + ':stats', 'validShares', 1]);
