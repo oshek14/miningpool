@@ -9,8 +9,10 @@ var secret = require('../../passport/constants')
 router.post('/signin', passport.authenticate('jwt', { session: false}), function(req, res) {
     console.log('sasas')
     // var redisClient = redis.createClient("6777", "165.227.143.126");
-    // var email = req.body.email
-    // var password = req.body.password
+    var email = req.body.email
+    var password = req.body.password
+    console.log(email)
+    console.log(password)
     //  redisClient.hget('administrators', email , function(err, result) {
     //     if (err) {
     //         res.send({status: 500})
