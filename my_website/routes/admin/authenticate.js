@@ -4,7 +4,7 @@ const router = express.Router();
 var redis = require('redis');
 var jwt = require('jsonwebtoken');
 require('../../passport')(passport);
-var secret = "asdasgasgasgfausyuiasfhiausfi"
+var secret = require('../../passport/constants')
 
 router.post('/signin', passport.authenticate('jwt', { session: false}), function(req, res) {
     console.log('sasas')
