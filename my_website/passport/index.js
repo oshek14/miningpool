@@ -22,7 +22,6 @@ module.exports = function(passport) {
             } else if (result) {
                 var parsedRes = JSON.parse(result)
                 if (parsedRes.password === password) {
-                    var token = jwt.sign(parsedRes, secret);
                     done(null, jwt_payload)
                 } else {
                    done(null, false)
