@@ -410,8 +410,7 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
             var windowTime = statGatherTime - (configHelper.hashRateStatTenMinutes/1000 );
             var redisCommands = [];
             var redisCommandTemplates = [
-                ['zremrangebyscore', ':hashrate', '-inf', '(' + windowTime],
-                ['zrangebyscore', ':hashrate', windowTime, '+inf'],
+                ['zrangebyscore', ':hashrate', '('+windowTime, '+inf'],
                 ['hgetall', ':stats'],
                 ['scard', ':blocksPending'],
                 ['scard', ':blocksConfirmed'],
@@ -547,7 +546,6 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
                         date:statGatherTime
                     }
                     globalOneHourCommands.push(['zadd',coinStats.name+':stat:global:tenMinutes',statGatherTime,JSON.stringify(tenMinutesStat)]);
-                    
                     deleteGlobalOneHourCommands.push(['zremrangebyscore',coinStats.name+':stat:global:tenMinutes','-inf','('+statGatherTime - (configHelper.hashRateStatTenMinutes/1000)]);
                     
                     
