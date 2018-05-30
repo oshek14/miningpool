@@ -42,7 +42,7 @@ module.exports = function(logger){
     }, null, true, null);
 
     //RUNS EVERY DAY EVERY ten minutes 
-    var tenMinutesJob = new CronJob('35 53 20 * * *', function() {
+    var tenMinutesJob = new CronJob('00 */1 * * * *', function() {
         saveStatsEveryTenMinutes(portalConfig,poolConfigs,redisClients);
     }, null, true, null);
     
