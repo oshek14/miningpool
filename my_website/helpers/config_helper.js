@@ -67,9 +67,10 @@ module.exports = {
                 }
             }
             configs[poolOptions.coin.name] = poolOptions;
-            console.log(configs);
-            callback(configs);
+            
+            
         });
+        callback(configs);
     },
     getCoinConfig : function(coin){
         return JSON.parse(JSON.minify(fs.readFileSync(coinDir+coin,{encoding:'utf8'})));
