@@ -4,10 +4,10 @@ var ExtractJwt = require('passport-jwt').ExtractJwt;
 module.exports = function(passport) {
     console.log('aqaa')
     var opts = {};
-    opts.jwtFromRequest = ExtractJwt.fromHeader();
+    opts.jwtFromRequest = ExtractJwt.fromHeader('token');
     opts.secretOrKey = "asdasgasgasgfausyuiasfhiausfi";
     passport.use(new JwtStrategy(opts, function(jwt_payload, done) {
         console.log('aqaa2')
-        console.log(jwt_payload)
+        done(null, true)
     }));
 };
