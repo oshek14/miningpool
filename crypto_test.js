@@ -238,9 +238,9 @@ function putUserPayouts(coin,howManyUsers,firstIndex,address){
 
 function putUsers(coin,howManyUsers,howManyWorkers,firstIndex){
     var redisCommands = [];
-    for(var j=0;j<howManyUsers;j++){
+    for(var j=1;j<=howManyUsers;j++){
         var userWorkers=[];
-        for(var i=0;i<howManyWorkers;i++){
+        for(var i=1;i<=howManyWorkers;i++){
             userWorkers.push('worker'+i);
         }
         var json = {
@@ -363,7 +363,7 @@ function init(coin,howManyUsers,workersPerUser,firstIndex,address){
             // workersValidInvalid(coin,howManyUsers,workersPerUser,firstIndex);
             // putUserPayouts(coin,howManyUsers,firstIndex,address);
             // putUserTotalPaid(coin,howManyUsers,firstIndex,address);
-            // putUsers(coin,howManyUsers,workersPerUser,firstIndex);
+             putUsers(coin,howManyUsers,workersPerUser,firstIndex);
             // putBlocksInfo(coin);
             // console.log("DONE");
         }else{
@@ -375,7 +375,7 @@ function init(coin,howManyUsers,workersPerUser,firstIndex,address){
 
 
 
-init('bitcoin',3,2,"gio","niceoneaddress");
+init('bitcoin',1,2,"gio","niceoneaddress");
 
 
 

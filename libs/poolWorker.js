@@ -148,7 +148,7 @@ module.exports = function(logger){
                             if(password != "x" &&  password != "123" && password != parsedData.password){
                                 authCallback(false);
                             }
-                            if(worker_name == null || !parsedData.workers.includes(worker_name)){
+                            if(worker_name == null || !parsedData.coins['bitcoin'].workers.includes(worker_name)){
                                 //default
                             }
 
