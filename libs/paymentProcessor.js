@@ -224,7 +224,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
 
                     var workers = {};
                     
-                    var rounds = results[1].map(function(r){
+                    var rounds = results[0].map(function(r){
                         var details = r.split(':');
                         return {
                             blockHash: details[0],

@@ -1,6 +1,7 @@
 var redis = require('redis');
 var Stratum = require('stratum-pool');
 var db = require('./mysql_conn.js');
+var floger = require('../libs/logFileUtil')
 
 var logLevels = floger.levels;
 var logFilePath = floger.filePathes.shareProcessor
