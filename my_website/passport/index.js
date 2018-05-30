@@ -4,7 +4,7 @@ var ExtractJwt = require('passport-jwt').ExtractJwt;
 module.exports = function(passport) {
     console.log('aqaa')
     var opts = {};
-    opts.jwtFromRequest = ExtractJwt.fromHeader('token');
+    opts.jwtFromRequest = ExtractJwt.fromHeader('authorization');
     opts.secretOrKey = "asdasgasgasgfausyuiasfhiausfi";
     passport.use(new JwtStrategy(opts, function(jwt_payload, done) {
         console.log('aqaa2')
