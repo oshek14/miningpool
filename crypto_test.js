@@ -372,9 +372,7 @@ function init(coin,howManyUsers,workersPerUser,firstIndex,address){
     })
     
 }
-var tenMinutesJob = new CronJob('00 01 21 * * *', function() {
-    console.log("gio");
-}, null, true, null);
+
 
 
 
