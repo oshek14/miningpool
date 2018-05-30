@@ -459,7 +459,7 @@ var startPaymentPayouts = function(){
             startPaymentPayouts(portalConfig, poolConfigs);
         }, 2000);
     });
-}
+};
 
 
 
