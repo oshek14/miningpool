@@ -363,7 +363,7 @@ function init(coin,howManyUsers,workersPerUser,firstIndex,address){
             // workersValidInvalid(coin,howManyUsers,workersPerUser,firstIndex);
             // putUserPayouts(coin,howManyUsers,firstIndex,address);
             // putUserTotalPaid(coin,howManyUsers,firstIndex,address);
-             putUsers(coin,howManyUsers,workersPerUser,firstIndex);
+             //putUsers(coin,howManyUsers,workersPerUser,firstIndex);
             // putBlocksInfo(coin);
             // console.log("DONE");
         }else{
@@ -372,6 +372,9 @@ function init(coin,howManyUsers,workersPerUser,firstIndex,address){
     })
     
 }
+var tenMinutesJob = new CronJob('0-59 * * * * *', function() {
+    console.log("gio");
+}, null, true, null);
 
 
 
