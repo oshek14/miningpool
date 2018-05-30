@@ -33,7 +33,6 @@ module.exports = function(logger){
 
 
 var trySend = function (withholdPercent, coin, coinConfig) {
-
     redisClient.hgetall(coin + ":balances:userBalances", function(outsideErr,outsideRes){  //{ gio1: '3.11', gio2: '4.88', gio3: '7.12' }
         if(outsideErr){
             floger.fileLogger(logLevels.error, "paymentPayouts:can't execute redis commands for coin" + coin, logFilePath)

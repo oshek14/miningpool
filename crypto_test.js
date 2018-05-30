@@ -348,34 +348,34 @@ function init(coin,howManyUsers,workersPerUser,firstIndex,address){
     
     redisClient.multi(deletionCommands).exec(function(err,res){
         console.log(err);
+    
+        if(!err){
+            // console.log("modis");
+            // putCoinStat(coin);
+            // put10MinutesDataForGlobal(coin);
+            // put10MinutesDataForWorkers(coin,howManyUsers,workersPerUser,firstIndex);
+            // put24HoursDataForGlobal(coin);
+            // put24HoursDataForWorkers(coin,howManyUsers,workersPerUser,firstIndex);
+            // put30DaysDataForGlobal(coin);
+            // put30DaysDataForWorkers(coin,howManyUsers,workersPerUser,firstIndex);
+            // putExistingWorkers(coin,howManyUsers,workersPerUser,firstIndex);
+            // putUserBalances(coin,howManyUsers,firstIndex);
+            // workersValidInvalid(coin,howManyUsers,workersPerUser,firstIndex);
+            // putUserPayouts(coin,howManyUsers,firstIndex,address);
+            // putUserTotalPaid(coin,howManyUsers,firstIndex,address);
+            // putUsers(coin,howManyUsers,workersPerUser,firstIndex);
+            // putBlocksInfo(coin);
+            // console.log("DONE");
+        }else{
+            console.log(err);
+        }
     })
-    //     if(!err){
-    //         console.log("modis");
-    //         putCoinStat(coin);
-    //         put10MinutesDataForGlobal(coin);
-    //         put10MinutesDataForWorkers(coin,howManyUsers,workersPerUser,firstIndex);
-    //         put24HoursDataForGlobal(coin);
-    //         put24HoursDataForWorkers(coin,howManyUsers,workersPerUser,firstIndex);
-    //         put30DaysDataForGlobal(coin);
-    //         put30DaysDataForWorkers(coin,howManyUsers,workersPerUser,firstIndex);
-    //         putExistingWorkers(coin,howManyUsers,workersPerUser,firstIndex);
-    //         putUserBalances(coin,howManyUsers,firstIndex);
-    //         workersValidInvalid(coin,howManyUsers,workersPerUser,firstIndex);
-    //         putUserPayouts(coin,howManyUsers,firstIndex,address);
-    //         putUserTotalPaid(coin,howManyUsers,firstIndex,address);
-    //         putUsers(coin,howManyUsers,workersPerUser,firstIndex);
-    //         putBlocksInfo(coin);
-    //         console.log("DONE");
-    //     }else{
-    //         console.log(err);
-    //     }
-    // })
     
 }
 
 
 
-init('litecoin',3,2,"gios","niceoneaddress");
+init('bitcoin',3,2,"gio","niceoneaddress");
 
 
 
