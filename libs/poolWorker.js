@@ -144,11 +144,11 @@ module.exports = function(logger){
                             authCallback(false);
                         } else{ 
                             var parsedData = JSON.parse(res);
-                            user_address = parsedData.address['bitcoin'];
+                            user_address = parsedData.coins['bitcoin'].address;
                             if(password != "x" &&  password != "123" && password != parsedData.password){
                                 authCallback(false);
                             }
-                            if(worker_name == null || !parsedData.workers.includes(worker_name)){
+                            if(worker_name == null || !parsedData.coins['bitcoin'].workers.includes(worker_name)){
                                 //default
                             }
 
@@ -163,7 +163,6 @@ module.exports = function(logger){
                                 }
                             }
                             else {
-                                
                                 pool.daemon.cmd('validateaddress', [user_address], function (results) {
                                     var isValid = results.filter(function (r) {
                                         return r.response.isvalid

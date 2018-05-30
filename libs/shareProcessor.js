@@ -1,6 +1,7 @@
 var redis = require('redis');
 var Stratum = require('stratum-pool');
 var db = require('./mysql_conn.js');
+var floger = require('../libs/logFileUtil')
 
 var logLevels = floger.levels;
 var logFilePath = floger.filePathes.shareProcessor
@@ -90,8 +91,9 @@ module.exports = function(logger, poolConfig){
             looks for the shareData.worker address as key, if doesn't find it, 
             the value of it becomes shareData.difficulty. if finds it, 
             the value becomes = what was the value plus shareData.difficulty */
+            
             redisCommands.push(['hincrbyfloat', coin + ':shares:roundCurrent', shareData.worker, shareData.difficulty]);
-            redisCommands.push(['zadd', 'NX',coin + coin+':blocksConfirmedInformation', shareData.height, Date.now()/1000]);
+            redisCommands.push(['zadd',coin+':blocksConfirmedInformation', 'NX', Date.now()/1000,shareData.height]);
             
             /* it looks for coin+':stats' table, finds validShares key and makes it bigger than 1 */
             redisCommands.push(['hincrby', coin + ':stats', 'validShares', 1]);
@@ -126,13 +128,13 @@ module.exports = function(logger, poolConfig){
                 all the information that was in roundCurrent stays in round+which round (just only name changes) */
             var dateNow = Date.now()/1000 | 0;
            
-            redisClient.zscore(coin+':blocksConfirmedInformation',shareData.height,function(error,result){
+            connection.zscore(coin+':blocksConfirmedInformation',shareData.height,function(error,result){
                 if(error){
                     floger.fileLogger(logLevels.error,"Can't get blocksinformation because of redis from blocksconfirmedInformation with coin and round " + coin+" "+shareData.height+" ",logFilePath);
                 }else if(result == null){
                     floger.fileLogger(logLevels.error,"It mustn't be null but it is . needs more testing on this one" + coin+" "+shareData.height+" ",logFilePath);
                 }else{
-                   redisClient.zadd(coin+':blocksConfirmedInformation',shareData.height,JSON.stringify({startDate:result,endDate:dateNow}),function(err,res){
+                    connection.zadd(coin+':blocksConfirmedInformation',JSON.stringify({startDate:result,endDate:dateNow}),shareData.height,function(err,res){
                         if(err){
                             floger.fileLogger(logLevels.error,"couldn't update blocksconfirmed information for coin: " + coin+" and details are:"+JSON.stringify({startDate:result,endDate:dateNow})+" . It's advisable to run it manually", logFilePath);
                         }

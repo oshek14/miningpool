@@ -193,7 +193,7 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
         client.client.multi(redisCommands).exec(function(err, replies){
             if (err){
                 floger.fileLogger(logLevels.error, "saveStatsEveryHour:couldn't execute first multi command", logFilePath);
-                logger.error(logSystem, 'Global', 'error with getting global stats ' + JSON.stringify(err));
+                logger.error("updateStats", 'Global', 'error with getting global stats ' + JSON.stringify(err));
                 callback(err);
             }
             else{
@@ -225,7 +225,7 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
     }, function(err){
             if (err){
                 floger.fileLogger(logLevels.error, "saveStatsEveryHour:couldn't execute first multi command - callback", logFilePath);
-                logger.error(logSystem, 'Global', 'error getting all stats' + JSON.stringify(err));
+                logger.error("updateStats", 'Global', 'error getting all stats' + JSON.stringify(err));
                 callback();
                 return;
             }
@@ -392,7 +392,7 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
             redisStats.multi(statHistoryCommands).exec(function(err, replies){
                 if (err){
                     floger.fileLogger(logLevels.error, "saveStatsEveryHour:couldn't execute last multi command, fucked up...", logFilePath);
-                    logger.error(logSystem, 'Historics', 'Error adding stats to historics ' + JSON.stringify(err));
+                    logger.error("updateStats", 'Historics', 'Error adding stats to historics ' + JSON.stringify(err));
                 }
             });
             
@@ -410,8 +410,7 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
             var windowTime = statGatherTime - (configHelper.hashRateStatTenMinutes/1000 );
             var redisCommands = [];
             var redisCommandTemplates = [
-                ['zremrangebyscore', ':hashrate', '-inf', '(' + windowTime],
-                ['zrangebyscore', ':hashrate', windowTime, '+inf'],
+                ['zrangebyscore', ':hashrate', '('+windowTime, '+inf'],
                 ['hgetall', ':stats'],
                 ['scard', ':blocksPending'],
                 ['scard', ':blocksConfirmed'],
@@ -432,29 +431,29 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
             client.client.multi(redisCommands).exec(function(err, replies){
                 if (err){
                     floger.fileLogger(logLevels.error, "saveStatsEveryTenMinutes:couldn't execute first multi command", logFilePath);
-                    logger.error(logSystem, 'Global', 'error with getting global stats ' + JSON.stringify(err));
+                    logger.error("updateStats", 'Global', 'error with getting global stats ' + JSON.stringify(err));
                     callback(err);
                 }
                 else{
                     
                     for(var i = 0; i < replies.length; i += commandsPerCoin){
                         var coinName = client.coins[i / commandsPerCoin | 0];
-                        existingWorkers[coinName] = replies[i+6];
+                        existingWorkers[coinName] = replies[i+5];
                         var coinStats = {
                             name: coinName,
                             symbol: poolConfigs[coinName].coin.symbol.toUpperCase(),
                             algorithm: poolConfigs[coinName].coin.algorithm,
-                            hashrates: replies[i + 1],
+                            hashrates: replies[i + 0],
                             poolStats: {
-                                validShares: replies[i + 2] ? (replies[i + 2].validShares || 0) : 0,
-                                validBlocks: replies[i + 2] ? (replies[i + 2].validBlocks || 0) : 0,
-                                invalidShares: replies[i + 2] ? (replies[i + 2].invalidShares || 0) : 0,
-                                totalPaid: replies[i + 2] ? (replies[i + 2].totalPaid || 0) : 0
+                                validShares: replies[i + 1] ? (replies[i + 1].validShares || 0) : 0,
+                                validBlocks: replies[i + 1] ? (replies[i + 1].validBlocks || 0) : 0,
+                                invalidShares: replies[i + 1] ? (replies[i + 1].invalidShares || 0) : 0,
+                                totalPaid: replies[i + 1] ? (replies[i + 1].totalPaid || 0) : 0
                             },
                             blocks: {
-                                pending: replies[i + 3],
-                                confirmed: replies[i + 4],
-                                orphaned: replies[i + 5]
+                                pending: replies[i + 2],
+                                confirmed: replies[i + 3],
+                                orphaned: replies[i + 4]
                             }
                         };
                         allCoinStats[coinStats.name] = (coinStats);
@@ -465,7 +464,7 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
         }, function(err){
                 if (err){
                     floger.fileLogger(logLevels.error, "saveStatsEveryTenMinutes:couldn't execute first multi command,callback", logFilePath);
-                    logger.error(logSystem, 'Global', 'error getting all stats' + JSON.stringify(err));
+                    logger.error("updateStats", 'Global', 'error getting all stats' + JSON.stringify(err));
                     callback();
                     return;
                 }
@@ -482,6 +481,7 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
     
                 Object.keys(allCoinStats).forEach(function(coin){
                     var coinStats = allCoinStats[coin];
+                    console.log(coinStats);
                     coinStats.workers = {};
                     coinStats.shares = 0;
                     coinStats.invalidShares=0;
@@ -547,7 +547,6 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
                         date:statGatherTime
                     }
                     globalOneHourCommands.push(['zadd',coinStats.name+':stat:global:tenMinutes',statGatherTime,JSON.stringify(tenMinutesStat)]);
-                    
                     deleteGlobalOneHourCommands.push(['zremrangebyscore',coinStats.name+':stat:global:tenMinutes','-inf','('+statGatherTime - (configHelper.hashRateStatTenMinutes/1000)]);
                     
                     

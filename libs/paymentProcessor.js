@@ -209,7 +209,6 @@ function SetupForPool(logger, poolOptions, setupFinished){
             function(callback){
                 startRedisTimer();
                 redisClient.multi([
-                    //['hgetall', coin + ':balances:workerBalances'],
                     ['smembers', coin + ':blocksPending']
                 ]).exec(function(error, results){
                     endRedisTimer();
@@ -224,15 +223,8 @@ function SetupForPool(logger, poolOptions, setupFinished){
 
 
                     var workers = {};
-                    // for (var w in results[0]){
-                    //     workers[w] = {balance: coinsToSatoshies(parseFloat(results[0][w]))};
-                    // }
-
-                    /* workers = [worker_id:{balance:coinToSatoshi(balance_from_redis_for_this_user)}]; */
-
-
                     
-                    var rounds = results[1].map(function(r){
+                    var rounds = results[0].map(function(r){
                         var details = r.split(':');
                         return {
                             blockHash: details[0],
@@ -314,11 +306,9 @@ function SetupForPool(logger, poolOptions, setupFinished){
                         return;
                     }
                     var addressAccount;
-                    var arr = [];
+                   
                     txDetails.forEach(function(tx, i){
-                        arr.push(tx.result.confirmations);
-                        
-                       if (i === txDetails.length - 1){
+                        if (i === txDetails.length - 1){
                             addressAccount = tx.result;
                             return;
                         }
@@ -402,6 +392,18 @@ function SetupForPool(logger, poolOptions, setupFinished){
                 });
             },
 
+            // 1) momaqvs pendingebidan
+            // 2) vawyob round massivs pendingebis blockebis hashebit
+            // 3) vigeb titoeuli roundis status
+            // 4) vtoveb mxolod isets,romelic aris kicked,generate,orphan,
+            // danarhcnebs vagdeb am roundebidan da meore cdaze rom wamova mere daitvlis.
+            // radgan iset roundebs romlebic kicked,generate,orphan araa isev pendingshi datovebs
+            // 5)  tu kicked an orphan aris workershares rac qonda am roundistvistvis daimaxsovrebs
+            // da mag datas gadaitans roundCurrentshi rom ar daikargos. tu generate aris
+            // gamotvlis rewards, blockhistoryshi chaamatebs chems datas, titoeul workeris rewards gamotvlis
+            // da sheinaxavs ,da mere userbalancebshi sheinaxavs useris workerebis rewardebis jams.address
+            // mere gadaitans pendingidan xan confirmeshi xan kickedshi an orhapneshi
+
 
             /* Does a batch redis call to get shares contributed to each round. Then calculates the reward
                amount owned to each miner for each round. */
@@ -461,6 +463,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                                     if(error){
                                         floger.fileLogger(logLevels.error,"Can't get blocksinformation because of redis from blocksconfirmedInformation with coin and round " + coin+" "+round.height+" ",confirmedBlocksLog);
                                     }else if(res == null){
+                                        floger.fileLogger(logLevels.error,"Can't get something really wrong blocksinformation because of redis from blocksconfirmedInformation with coin and round " + coin+" "+round.height+" ",confirmedBlocksLog);
                                     }else{
                                         var result = JSON.parse(result);
                                         blockInformation.startTime = result.startDate;
@@ -469,7 +472,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                                         blockInformation.blockHash = (round.blockHash) ? round.blockHash : null;
                                         blockInformation.txHash = (round.txHash) ? round.txHash : null;
                                         blockInformation.height = round.height;
-                                        redisClient.zadd(coin+':blocksConfirmedInformation',round.height,JSON.stringify(blockInformation),function(err,res){
+                                        redisClient.zadd(coin+':blocksConfirmedInformation',JSON.stringify(blockInformation),round.height,function(err,res){
                                             if(err){
                                                 floger.fileLogger(logLevels.error,"couldn't update blocksconfirmed information for coin: " + coin+" and details are:"+JSON.stringify(blockInformation)+" . It's advisable to run it manually", confirmedBlocksLog);
                                             }
@@ -510,7 +513,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
              if not sending the balance, the differnce should be +(the amount they earned this round)
              */
             function(workers, rounds, addressAccount, callback) {
-                var workersBalanceUpdates = [];
+                
                 var usersBalanceUpdates = [];
                 var redisCommands = [];
                 var usersPerWorker = {};
@@ -520,16 +523,14 @@ function SetupForPool(logger, poolOptions, setupFinished){
                         worker.reward = worker.reward || 0;
                         var username = w.split(".")[0];
 
-                        if(!username in usersPerWorker) usersPerWorker[username] = 0;
+                        if(!(username in usersPerWorker)) usersPerWorker[username] = 0;
                         else usersPerWorker[username] += worker.reward;
-                        
-                        //if(worker.reward>0) workersBalanceUpdates.push(['hincrbyfloat',coin + ':balances:workerBalances',w,satoshisToCoins(worker.reward)]);
                     }
                     for(var username in usersPerWorker){
                         usersBalanceUpdates.push(['hincrbyfloat',coin + ':balances:userBalances',username,satoshisToCoins(usersPerWorker[username])]);
                     }
 
-                    if(workersBalanceUpdates.length > 0) redisCommands.concat(workersBalanceUpdates);
+                    
                     if(usersBalanceUpdates.length > 0) redisCommands.concat(usersBalanceUpdates);
 
 
@@ -565,7 +566,6 @@ function SetupForPool(logger, poolOptions, setupFinished){
                 };
 
                 rounds.forEach(function(r){
-
                     switch(r.category){
                         case 'kicked':
                             movePendingCommands.push(['smove', coin + ':blocksPending', coin + ':blocksKicked', r.serialized]);
@@ -577,7 +577,6 @@ function SetupForPool(logger, poolOptions, setupFinished){
                             }
                             return;
                         case 'generate':
-                            
                             movePendingCommands.push(['smove', coin + ':blocksPending', coin + ':blocksConfirmed', r.serialized]);
                             roundsToDelete.push(coin + ':shares:round' + r.height);
                             return;
@@ -630,7 +629,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                 + timeSpentRPC + 'ms daemon RPC');
 
         });
-    };o
+    };
 
 
     
