@@ -1,1 +1,1 @@
-export default "asdasgasgasgfausyuiasfhiausfi"
+module.exports = "asdasgasgasgfausyuiasfhiausfi"
