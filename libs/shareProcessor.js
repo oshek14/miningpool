@@ -91,6 +91,7 @@ module.exports = function(logger, poolConfig){
             looks for the shareData.worker address as key, if doesn't find it, 
             the value of it becomes shareData.difficulty. if finds it, 
             the value becomes = what was the value plus shareData.difficulty */
+            console.log("modis");
             redisCommands.push(['hincrbyfloat', coin + ':shares:roundCurrent', shareData.worker, shareData.difficulty]);
             redisCommands.push(['zadd', 'NX',coin+':blocksConfirmedInformation', shareData.height, Date.now()/1000]);
             
