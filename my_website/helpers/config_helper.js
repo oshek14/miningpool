@@ -38,6 +38,7 @@ module.exports = {
     getPoolConfigs : function(callback){
         var poolConfigFiles=[];
         var configs=[];
+        var poolOptions
         fs.readdirSync(configDir).forEach(function(file){
             if (!fs.existsSync(configDir + file) || path.extname(configDir + file) !== '.json')  return;
             var poolOptions = JSON.parse(JSON.minify(fs.readFileSync(configDir + file, {encoding: 'utf8'})));
@@ -45,7 +46,7 @@ module.exports = {
             poolOptions.fileName = file;
             poolConfigFiles.push(poolOptions);
         });
-        console.log(poolOptions);
+        console.log(poolConfigFiles);
         poolConfigFiles.forEach(function(poolOptions){
             poolOptions.coinFileName = poolOptions.coin;
             var coinFilePath = coinDir + poolOptions.coinFileName;
