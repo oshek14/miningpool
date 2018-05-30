@@ -11,6 +11,7 @@ var CliListener = require('./libs/cliListener.js');
 var PoolWorker = require('./libs/poolWorker.js');
 var PaymentProcessor = require('./libs/paymentProcessor.js');
 var Website = require('./libs/website.js');
+var paymentPayouts = require('./libs/paymentPayouts')
 var ProfitSwitch = require('./libs/profitSwitch.js');
 var UpdateStats = require('./libs/updateStats');
 //var algos = require('stratum-pool/lib/algoProperties.js');
@@ -76,8 +77,8 @@ if (cluster.isWorker){
         case 'paymentProcessor':
             new PaymentProcessor(logger);
             break;
-        case 'website':
-            new Website(logger);
+        case 'paymentPayouts':
+            new paymentPayouts(logger);
             break;
         case 'profitSwitch':
             new ProfitSwitch(logger);
@@ -445,6 +446,20 @@ var updateStats = function(){
     });
 };
 
+var startPaymentPayouts = function(){
+    var worker = cluster.fork({
+        workerType: 'paymentPayouts',
+        pools: JSON.stringify(poolConfigs),
+        portalConfig: JSON.stringify(portalConfig)
+    });
+    
+    worker.on('exit', function(code, signal){
+        logger.error('Master', 'Payouts', 'PaymentPayouts process died, spawning replacement...');
+        setTimeout(function(){
+            startPaymentPayouts(portalConfig, poolConfigs);
+        }, 2000);
+    });
+}
 
 
 
@@ -454,7 +469,7 @@ var updateStats = function(){
     poolConfigs = buildPoolConfigs();
     spawnPoolWorkers();
     startPaymentProcessor();
-    //startWebsite();
+    startPaymentPayouts();
     updateStats();
     startProfitSwitch();
     startCliListener();
