@@ -33,7 +33,7 @@ module.exports = {
                     }
                     else{
                         finalData['result'] = res;
-                        finalData['commandsNum'] = 6;
+                        finalData['commandsNum'] = 3;
                         callback(finalData);
                     }
                 })
