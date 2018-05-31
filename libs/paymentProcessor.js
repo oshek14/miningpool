@@ -465,7 +465,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                                     }else if(blockResult == null){
                                         floger.fileLogger(logLevels.error,"Can't get something really wrong blocksinformation because of redis from blocksconfirmedInformation with coin and round " + coin+" "+round.height+" ",confirmedBlocksLog);
                                     }else{
-                                        var result = JSON.parse(blockResult[0]);
+                                        var result = JSON.parse(blockResult);
                                         blockInformation.startTime = result.startDate;
                                         blockInformation.endTime = result.endDate;
                                         blockInformation.reward = reward;

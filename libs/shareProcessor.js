@@ -132,7 +132,7 @@ module.exports = function(logger, poolConfig){
                 }else if(result == null){
                     floger.fileLogger(logLevels.error,"It mustn't be null but it is . needs more testing on this one" + coin+" "+shareData.height+" ",logFilePath);
                 }else{
-                    connection.hset(coin+':blocksConfirmedInformation',shareData.height,JSON.stringify({startDate:result[0],endDate:dateNow / 1000 | 0}),function(err,res){
+                    connection.hset(coin+':blocksConfirmedInformation',shareData.height,JSON.stringify({startDate:result,endDate:dateNow / 1000 | 0}),function(err,res){
                         if(err){
                             floger.fileLogger(logLevels.error,"couldn't update blocksconfirmed information for coin: " + coin+" and details are:"+JSON.stringify({startDate:result,endDate:dateNow})+" . It's advisable to run it manually", logFilePath);
                         }
