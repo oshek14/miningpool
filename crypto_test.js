@@ -351,20 +351,20 @@ function init(coin,howManyUsers,workersPerUser,firstIndex,address){
     
         if(!err){
             console.log("modis");
-            putCoinStat(coin);
-            put10MinutesDataForGlobal(coin);
-            put10MinutesDataForWorkers(coin,howManyUsers,workersPerUser,firstIndex);
-            put24HoursDataForGlobal(coin);
-            put24HoursDataForWorkers(coin,howManyUsers,workersPerUser,firstIndex);
-            put30DaysDataForGlobal(coin);
-            put30DaysDataForWorkers(coin,howManyUsers,workersPerUser,firstIndex);
+            // putCoinStat(coin);
+            // put10MinutesDataForGlobal(coin);
+            // put10MinutesDataForWorkers(coin,howManyUsers,workersPerUser,firstIndex);
+            // put24HoursDataForGlobal(coin);
+            // put24HoursDataForWorkers(coin,howManyUsers,workersPerUser,firstIndex);
+            // put30DaysDataForGlobal(coin);
+            // put30DaysDataForWorkers(coin,howManyUsers,workersPerUser,firstIndex);
              putExistingWorkers(coin,howManyUsers,workersPerUser,firstIndex);
-            putUserBalances(coin,howManyUsers,firstIndex);
-            workersValidInvalid(coin,howManyUsers,workersPerUser,firstIndex);
-            putUserPayouts(coin,howManyUsers,firstIndex,address);
-            putUserTotalPaid(coin,howManyUsers,firstIndex,address);
+            // putUserBalances(coin,howManyUsers,firstIndex);
+            // workersValidInvalid(coin,howManyUsers,workersPerUser,firstIndex);
+            // putUserPayouts(coin,howManyUsers,firstIndex,address);
+           // putUserTotalPaid(coin,howManyUsers,firstIndex,address);
              putUsers(coin,howManyUsers,workersPerUser,firstIndex);
-            putBlocksInfo(coin);
+            //putBlocksInfo(coin);
             console.log("DONE");
         }else{
             console.log(err);
