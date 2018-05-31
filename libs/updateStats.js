@@ -547,7 +547,7 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
                         date:statGatherTime
                     }
                     globalOneHourCommands.push(['zadd',coinStats.name+':stat:global:tenMinutes',statGatherTime,JSON.stringify(tenMinutesStat)]);
-                    deleteGlobalOneHourCommands.push(['zremrangebyscore',coinStats.name+':stat:global:tenMinutes','-inf','('+statGatherTime - (configHelper.hashRateStatTenMinutes/1000)]);
+                    deleteGlobalOneHourCommands.push(['zremrangebyscore',coinStats.name+':stat:global:tenMinutes','-inf',statGatherTime]);
                     
                     
                     /* algorithm specific global stats */
@@ -593,7 +593,7 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
                         }
                         
                         workersOneHourCommands.push(['zadd',coinStats.name+":stat:workers:tenMinutes:"+workersExisting[i],statGatherTime,JSON.stringify(workerData)])
-                        deleteWorkerOneHourCommands.push(['zremrangebyscore',coinStats.name+":stat:workers:tenMinutes:"+workersExisting[i],'-inf','('+statGatherTime - (configHelper.hashRateStatTenMinutes/1000)]);
+                        deleteWorkerOneHourCommands.push(['zremrangebyscore',coinStats.name+":stat:workers:tenMinutes:"+workersExisting[i],'-inf',statGatherTime]);
                         
                         
                     }
