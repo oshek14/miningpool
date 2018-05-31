@@ -87,3 +87,5 @@ var PoolLogger = function (configuration) {
 };
 
 module.exports = PoolLogger;
+
+
