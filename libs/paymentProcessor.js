@@ -459,20 +459,20 @@ function SetupForPool(logger, poolOptions, setupFinished){
 
                                 
                                 var blockInformation = {};
-                                redisClient.zscore(coin+':blocksConfirmedInformation',round.height,function(error,result){
-                                    if(error){
+                                redisClient.hget(coin+':blocksConfirmedInformation',round.height,function(blockError,blockResult){
+                                    if(blockError){
                                         floger.fileLogger(logLevels.error,"Can't get blocksinformation because of redis from blocksconfirmedInformation with coin and round " + coin+" "+round.height+" ",confirmedBlocksLog);
-                                    }else if(res == null){
+                                    }else if(blockResult == null){
                                         floger.fileLogger(logLevels.error,"Can't get something really wrong blocksinformation because of redis from blocksconfirmedInformation with coin and round " + coin+" "+round.height+" ",confirmedBlocksLog);
                                     }else{
-                                        var result = JSON.parse(result);
+                                        var result = JSON.parse(blockResult[0]);
                                         blockInformation.startTime = result.startDate;
                                         blockInformation.endTime = result.endDate;
                                         blockInformation.reward = reward;
                                         blockInformation.blockHash = (round.blockHash) ? round.blockHash : null;
                                         blockInformation.txHash = (round.txHash) ? round.txHash : null;
                                         blockInformation.height = round.height;
-                                        redisClient.zadd(coin+':blocksConfirmedInformation',JSON.stringify(blockInformation),round.height,function(err,res){
+                                        redisClient.hset(coin+':blocksConfirmedInformation',round.height,JSON.stringify(blockInformation),function(err,res){
                                             if(err){
                                                 floger.fileLogger(logLevels.error,"couldn't update blocksconfirmed information for coin: " + coin+" and details are:"+JSON.stringify(blockInformation)+" . It's advisable to run it manually", confirmedBlocksLog);
                                             }

@@ -93,7 +93,7 @@ module.exports = function(logger, poolConfig){
             the value becomes = what was the value plus shareData.difficulty */
             
             redisCommands.push(['hincrbyfloat', coin + ':shares:roundCurrent', shareData.worker, shareData.difficulty]);
-            redisCommands.push(['zadd',coin+':blocksConfirmedInformation', 'NX', Date.now()/1000 | 0,shareData.height]);
+            redisCommands.push(['hsetnx',coin+':blocksConfirmedInformation', shareData.height, Date.now()/1000 | 0]);
             
             /* it looks for coin+':stats' table, finds validShares key and makes it bigger than 1 */
             redisCommands.push(['hincrby', coin + ':stats', 'validShares', 1]);
@@ -126,13 +126,13 @@ module.exports = function(logger, poolConfig){
         if (isValidBlock){
             /* when block is finished, it means round is over, so roundcurrent becomes round+which round it was 
                 all the information that was in roundCurrent stays in round+which round (just only name changes) */
-            connection.zscore(coin+':blocksConfirmedInformation',shareData.height,function(error,result){
+            connection.hget(coin+':blocksConfirmedInformation',shareData.height,function(error,result){
                 if(error){
                     floger.fileLogger(logLevels.error,"Can't get blocksinformation because of redis from blocksconfirmedInformation with coin and round " + coin+" "+shareData.height+" ",logFilePath);
                 }else if(result == null){
                     floger.fileLogger(logLevels.error,"It mustn't be null but it is . needs more testing on this one" + coin+" "+shareData.height+" ",logFilePath);
                 }else{
-                    connection.zadd(coin+':blocksConfirmedInformation',JSON.stringify({startDate:result,endDate:dateNow / 1000 | 0}),shareData.height,function(err,res){
+                    connection.hset(coin+':blocksConfirmedInformation',shareData.height,JSON.stringify({startDate:result[0],endDate:dateNow / 1000 | 0}),function(err,res){
                         if(err){
                             floger.fileLogger(logLevels.error,"couldn't update blocksconfirmed information for coin: " + coin+" and details are:"+JSON.stringify({startDate:result,endDate:dateNow})+" . It's advisable to run it manually", logFilePath);
                         }
