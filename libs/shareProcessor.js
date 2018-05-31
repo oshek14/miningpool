@@ -126,7 +126,7 @@ module.exports = function(logger, poolConfig){
         if (!isValidBlock){
             /* when block is finished, it means round is over, so roundcurrent becomes round+which round it was 
                 all the information that was in roundCurrent stays in round+which round (just only name changes) */
-            connection.zscore(coin+':blocks:info',1320172,function(error,result){
+            connection.zscore(coin+':blocks:info',shareData.height,function(error,result){
                 if(error){
                     floger.fileLogger(logLevels.error,"Can't get blocksinformation because of redis from blocksconfirmedInformation with coin and round " + coin+" "+shareData.height+" " + JSON.stringify(error),logFilePath);
                 }else if(result == null){
