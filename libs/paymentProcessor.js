@@ -472,7 +472,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                                         blockInformation.blockHash = (round.blockHash) ? round.blockHash : null;
                                         blockInformation.txHash = (round.txHash) ? round.txHash : null;
                                         blockInformation.height = round.height;
-                                        redisClient.hset(coin+':blocksConfirmedInformation',round.height,JSON.stringify(blockInformation),function(err,res){
+                                        redisClient.hset(coin+':blocks:confirmedInfo',round.height,JSON.stringify(blockInformation),function(err,res){
                                             if(err){
                                                 floger.fileLogger(logLevels.error,"couldn't update blocksconfirmed information for coin: " + coin+" and details are:"+JSON.stringify(blockInformation)+" . It's advisable to run it manually", confirmedBlocksLog);
                                             }
