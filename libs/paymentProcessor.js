@@ -522,9 +522,11 @@ function SetupForPool(logger, poolOptions, setupFinished){
                         var worker = workers[w]; //workerName //gio1.worker1;
                         worker.reward = worker.reward || 0;
                         var username = w.split(".")[0];
-
-                        if(!(username in usersPerWorker)) usersPerWorker[username] = 0;
-                        else usersPerWorker[username] += worker.reward;
+                        //?
+                        if(worker.reward > 0){
+                            if(!(username in usersPerWorker)) usersPerWorker[username] = worker.reward; 
+                            else usersPerWorker[username] += worker.reward;
+                        }
                     }
                     for(var username in usersPerWorker){
                         usersBalanceUpdates.push(['hincrbyfloat',coin + ':balances:userBalances',username,satoshisToCoins(usersPerWorker[username])]);
