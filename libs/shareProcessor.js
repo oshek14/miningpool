@@ -128,7 +128,7 @@ module.exports = function(logger, poolConfig){
                 all the information that was in roundCurrent stays in round+which round (just only name changes) */
             connection.zscore(coin+':blocks:info',shareData.height,function(error,result){
                 if(error){
-                    floger.fileLogger(logLevels.error,"Can't get blocksinformation because of redis from blocksconfirmedInformation with coin and round " + coin+" "+shareData.height+" ",logFilePath);
+                    floger.fileLogger(logLevels.error,"Can't get blocksinformation because of redis from blocksconfirmedInformation with coin and round " + coin+" "+shareData.height+" " + JSON.stringify(error),logFilePath);
                 }else if(result == null){
                     floger.fileLogger(logLevels.error,"It mustn't be null but it is . needs more testing on this one" + coin+" "+shareData.height+" ",logFilePath);
                 }else{
