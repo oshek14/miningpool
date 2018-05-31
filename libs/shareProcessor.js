@@ -133,10 +133,6 @@ module.exports = function(logger, poolConfig){
                     floger.fileLogger(logLevels.error,"It mustn't be null but it is . needs more testing on this one" + coin+" "+shareData.height+" ",logFilePath);
                 }else{
                     floger.fileLogger(logLevels.error,"awesome",logFilePath);
-                    connection.hset(coin+':blocks:confirmedInfo', shareData.height, JSON.stringify({startDate:result,endDate:dateNow / 1000 | 0}),function(err1,res1){
-                        console.log(err1);
-                        console.log(res1);
-                    })
                     redisCommands.push(['hset',coin+':blocks:confirmedInfo', shareData.height, JSON.stringify({startDate:result,endDate:dateNow / 1000 | 0})]);
                     redisCommands.push(['zremrangebyscore',coin+':blocks:info','-inf','('+(dateNow / 1000 | 0)]);
                 }
@@ -153,6 +149,8 @@ module.exports = function(logger, poolConfig){
         }
 
         connection.multi(redisCommands).exec(function(err, replies){
+            console.log(err);
+            console.log(replies);
             if (err){
                 floger.fileLogger(logLevels.error,'Error with share processor multi ' + JSON.stringify(err), logFilePath)
                 logger.error(logSystem, logComponent, logSubCat, 'Error with share processor multi ' + JSON.stringify(err));
