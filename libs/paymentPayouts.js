@@ -51,6 +51,7 @@ var trySend = function (withholdPercent, coin, coinConfig) {
                 var totalSent = 0;
                 var userPaymentSchedule = [];
                 var balanceChangeCommands = [];
+                var singleUserPayoutCommands = [];
                 for(var i = 0; i < userAddressRes.length; i++){
                     var address = JSON.parse(userAddressRes[i]).coins[coin].address;
                     var toSend = balancesRes[userKeys[i]] * (1 - withholdPercent);
@@ -61,7 +62,8 @@ var trySend = function (withholdPercent, coin, coinConfig) {
                     userPaymentObject.address = address;
                     userPaymentObject.time = Date.now()/1000 | 0;
                     userPaymentSchedule.push(['zadd', coin + ':userPayouts:' + userKeys[i], userPaymentObject.time, JSON.stringify(userPaymentObject)]);
-                    balanceChangeCommands.push(['hincrbyfloat', coin + ":balances:userBalances", userKeys[i], -1 * toSend])
+                    balanceChangeCommands.push(['hincrbyfloat', coin + ":balances:userBalances", userKeys[i], -1 * toSend]);
+                    singleUserPayoutCommands.push(['hincrbyfloat',coin + ":balances:userPaid", userKeys[i], toSend])
                 }
                 if(totalSent > 0){
                     daemon.cmd('getaccount', [coinConfig.address], function(getaccountRes){
@@ -110,6 +112,7 @@ var trySend = function (withholdPercent, coin, coinConfig) {
                                         }
                                     })
                                     userPaymentSchedule.push(['hincrbyfloat',coin + ":stats", "totalPaid", totalSent]);
+                                    userPaymentSchedule = userPaymentSchedule.concat(singleUserPayoutCommands);
                                     redisClient.multi(userPaymentSchedule).exec(function(insideErr,res){
                                         if(insideErr){
                                             logger.debug(logSystem, logComponent, 'can not update total paied statistics after payout for coin: ' + coin);
