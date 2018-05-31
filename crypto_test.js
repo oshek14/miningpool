@@ -373,10 +373,10 @@ function init(coin,howManyUsers,workersPerUser,firstIndex,address){
     
 }
 
-var tenMinutesJob = new CronJob('05 */3 * * * *', function() {
-    console.log("asdasdasdasdasdasdasdasdasdasd");
-    //saveStatsEveryTenMinutes(portalConfig,poolConfigs,redisClients);
-}, null, true, null);
+// var tenMinutesJob = new CronJob('05 */3 * * * *', function() {
+//     console.log("asdasdasdasdasdasdasdasdasdasd");
+//     //saveStatsEveryTenMinutes(portalConfig,poolConfigs,redisClients);
+// }, null, true, null);
 
 
 
@@ -402,3 +402,12 @@ var tenMinutesJob = new CronJob('05 */3 * * * *', function() {
 //    console.log(err);
 //     console.log(res);
 // })
+var command = [];
+command.push(['hset',
+    'bitcoin:blocks:confirmedInfo',
+    13204293,
+    JSON.stringify({"startDate":"1527798697","endDate":1527798971})]);
+redisClient.multi(command).exec(function(err,res){
+console.log(err);
+console.log(res);
+})
