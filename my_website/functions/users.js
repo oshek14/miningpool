@@ -20,7 +20,7 @@ module.exports = {
                 redisCommands.push(['hget',coin_name+':balances:userBalances',user_name]);
                 redisCommands.push(['scard',coin_name+':existingWorkers']);
                 redisCommands.push(['hget',coin + ":balances:userPaid",user_name]);
-                
+
                 for(var i=0;i<workersLength;i++){
                     redisCommands.push(['zrevrangebyscore',coin_name+':stat:workers:hourly:'+user_name+'.'+workers[i],'+inf','-inf','limit',0,24])
                     redisCommands.push(['zrevrangebyscore',coin_name+':stat:workers:daily:'+user_name+'.'+workers[i],'+inf','-inf','limit',0,30])
@@ -33,7 +33,7 @@ module.exports = {
                     }
                     else{
                         finalData['result'] = res;
-                        finalData['commandsNum'] = 3;
+                        finalData['commandsNum'] = 6;
                         callback(finalData);
                     }
                 })
