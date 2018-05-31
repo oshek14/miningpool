@@ -135,6 +135,7 @@ module.exports = function(logger, poolConfig){
                     floger.fileLogger(logLevels.error,"awesome",logFilePath);
                     redisCommands.push(['hset',coin+':blocks:confirmedInfo', shareData.height, JSON.stringify({startDate:result,endDate:dateNow / 1000 | 0})]);
                     redisCommands.push(['zremrangebyscore',coin+':blocks:info','-inf','('+(dateNow / 1000 | 0)]);
+                    console.log(redisCommands);
                 }
             })
             
