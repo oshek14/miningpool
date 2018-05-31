@@ -376,8 +376,8 @@ function init(coin,howManyUsers,workersPerUser,firstIndex,address){
 
 
 
-init('bitcoin',1,2,"gio","niceoneaddress");
-init('litecoin',1,2,"nika","addresslitecoin");
+// init('bitcoin',1,2,"gio","niceoneaddress");
+// init('litecoin',1,2,"nika","addresslitecoin");
 // var redisCommands = [];
 // redisCommands.push(['zadd','bitcoin'+':blocksConfirmedInformation', 'NX',Date.now()/1000,125]);
 // // redisClient.multi(redisCommands).exec(function(err,res){
@@ -389,7 +389,7 @@ init('litecoin',1,2,"nika","addresslitecoin");
 //     console.log(err);
 //     console.log(res);
 // })
-// redisClient.zadd('bitcoin'+':blocksConfirmedInformation',JSON.stringify({startDate:1,endDate:2/ 1000 | 0}),1257,function(err,res){
-//    console.log(err);
-//     console.log(res);
-// })
+redisClient.zrangebyscore('bitcoin'+':blocksConfirmedInformation',1708,function(err,res){
+   console.log(err);
+    console.log(res);
+})
