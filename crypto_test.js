@@ -276,7 +276,7 @@ function putBlocksInfo(coin){
         blockInformation.blockHash = Math.random().toString(36).substring(15);
         blockInformation.txHash = Math.random().toString(36).substring(15);
         blockInformation.height = Math.floor((Math.random() * 40000) + 1);
-        redisCommands.push(['zadd',coin+':blocksConfirmedInformation',Math.floor((Math.random() * 40000) + 1),JSON.stringify(blockInformation)]);
+        redisCommands.push(['hset',coin+':blocks:confirmedInfo',Math.floor((Math.random() * 40000) + 1),JSON.stringify(blockInformation)]);
     
     }
     redisClient.multi(redisCommands).exec(function(err,res){
@@ -376,7 +376,7 @@ function init(coin,howManyUsers,workersPerUser,firstIndex,address){
 
 
 
-// init('bitcoin',1,2,"gio","niceoneaddress");
+init('bitcoin',1,2,"gio","niceoneaddress");
 // init('litecoin',1,2,"nika","addresslitecoin");
 // var redisCommands = [];
 // redisCommands.push(['zadd','bitcoin'+':blocksConfirmedInformation', 'NX',Date.now()/1000,125]);
@@ -389,7 +389,7 @@ function init(coin,howManyUsers,workersPerUser,firstIndex,address){
 //     console.log(err);
 //     console.log(res);
 // })
-redisClient.zrangebyscore('bitcoin'+':blocksConfirmedInformation','-inf',2386,function(err,res){
-   console.log(err);
-    console.log(res);
-})
+// redisClient.zrangebyscore('bitcoin'+':blocksConfirmedInformation','-inf',2386,function(err,res){
+//    console.log(err);
+//     console.log(res);
+// })
