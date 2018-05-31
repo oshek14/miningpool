@@ -373,14 +373,19 @@ function init(coin,howManyUsers,workersPerUser,firstIndex,address){
     
 }
 
+var tenMinutesJob = new CronJob('05 */3 * * * *', function() {
+    console.log("asdasdasdasdasdasdasdasdasdasd");
+    //saveStatsEveryTenMinutes(portalConfig,poolConfigs,redisClients);
+}, null, true, null);
+
 
 
 
 //init('bitcoin',1,2,"gio","niceoneaddress");
-redisClient.zscore('bitcoin'+':blocks:info',8888,function(error,result){
-    console.log(result);
+// redisClient.zscore('bitcoin'+':blocks:info',8888,function(error,result){
+//     console.log(result);
 
-})
+// })
 // init('litecoin',1,2,"nika","addresslitecoin");
 // var redisCommands = [];
 // redisCommands.push(['zadd','bitcoin'+':blocksConfirmedInformation', 'NX',Date.now()/1000,125]);
