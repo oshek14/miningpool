@@ -376,18 +376,18 @@ function init(coin,howManyUsers,workersPerUser,firstIndex,address){
 
 
 
-//init('bitcoin',1,2,"gio","niceoneaddress");
-var redisCommands = [];
+init('bitcoin',1,2,"gio","niceoneaddress");
+// var redisCommands = [];
 // redisCommands.push(['zadd','bitcoin'+':blocksConfirmedInformation', 'NX',Date.now()/1000,125]);
 // // redisClient.multi(redisCommands).exec(function(err,res){
 // //     console.log(err);
 // //     console.log(res);
 // // })
-redisCommands.push(['hget','bitcoin:blocksConfirmedInformation',"gio1"]);
-redisClient.multi(redisCommands).exec(function(err,res){
-    console.log(err);
-    console.log(typeof res[0]);
-})
+// redisCommands.push(['hget','bitcoin:blocksConfirmedInformation',"gio1"]);
+// redisClient.hget('bitcoin:blocksConfirmedInformation','gio1',function(err,res){
+//     console.log(err);
+//     console.log(res);
+// })
 // redisClient.zadd('bitcoin'+':blocksConfirmedInformation',JSON.stringify({startDate:1,endDate:2/ 1000 | 0}),1257,function(err,res){
 //    console.log(err);
 //     console.log(res);
