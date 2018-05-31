@@ -389,7 +389,7 @@ function init(coin,howManyUsers,workersPerUser,firstIndex,address){
 //     console.log(err);
 //     console.log(res);
 // })
-redisClient.zrangebyscore('bitcoin'+':blocksConfirmedInformation',1708,function(err,res){
+redisClient.zrangebyscore('bitcoin'+':blocksConfirmedInformation','-inf',2386,function(err,res){
    console.log(err);
     console.log(res);
 })

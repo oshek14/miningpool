@@ -459,7 +459,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
 
                                 
                                 var blockInformation = {};
-                                redisClient.hget(coin+':blocksConfirmedInformation',round.height,function(blockError,blockResult){
+                                redisClient.hget(coin+':blocks:confirmedInfo',round.height,function(blockError,blockResult){
                                     if(blockError){
                                         floger.fileLogger(logLevels.error,"Can't get blocksinformation because of redis from blocksconfirmedInformation with coin and round " + coin+" "+round.height+" ",confirmedBlocksLog);
                                     }else if(blockResult == null){

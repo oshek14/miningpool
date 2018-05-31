@@ -132,7 +132,7 @@ module.exports = function(logger, poolConfig){
                 }else if(result == null){
                     floger.fileLogger(logLevels.error,"It mustn't be null but it is . needs more testing on this one" + coin+" "+shareData.height+" ",logFilePath);
                 }else{
-                    redisCommands.push(['hset',coin+':blocks:confirmedInfo',shareData.height,JSON.stringify({startDate:result,endDate:dateNow / 1000 | 0}]);
+                    redisCommands.push(['hset',coin+':blocks:confirmedInfo', shareData.height, JSON.stringify({startDate:result[0],endDate:dateNow / 1000 | 0})]);
                     redisCommands.push(['zremrangebyscore',coin+':blocks:info','-inf','('+shareData.height]);
                 }
             })
