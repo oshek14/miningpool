@@ -178,7 +178,6 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
         var windowTime = statGatherTime -  (configHelper.hashRateStatTime / 1000);
         var redisCommands = [];
         var redisCommandTemplates = [
-            ['zremrangebyscore', ':hashrate', '-inf', '(' + windowTime],
             ['zrangebyscore', ':hashrate', windowTime, '+inf'],
             ['hgetall', ':stats'],
             ['scard', ':blocksPending'],
