@@ -132,11 +132,12 @@ module.exports = function(logger, poolConfig){
                 }else if(result == null){
                     floger.fileLogger(logLevels.error,"It mustn't be null but it is . needs more testing on this one" + coin+" "+shareData.height+" ",logFilePath);
                 }else{
-                    floger.fileLogger(logLevels.error,"awesome",logFilePath);
-                    redisCommands.push(['hset',coin+':blocks:confirmedInfo', shareData.height, JSON.stringify({startDate:result,endDate:dateNow / 1000 | 0})]);
-                    redisCommands.push(['hset',coin+':blocks:confirmedInfo',Math.floor((Math.random() * 10) + 1), JSON.stringify({startDate:result,endDate:dateNow / 1000 | 0})]);
-                    redisCommands.push(['zremrangebyscore',coin+':blocks:info','-inf','('+(dateNow / 1000 | 0)]);
-                    console.log(redisCommands);
+                    connection.multi([
+                        ['hset',coin+':blocks:confirmedInfo', shareData.height, JSON.stringify({startDate:result,endDate:dateNow / 1000 | 0})],
+                        ['zremrangebyscore',coin+':blocks:info','-inf','('+(dateNow / 1000 | 0)],
+                    ]).exec(function(blocksInfoError,blocksInfoRes){
+                        if(blocksInfoError) floger.fileLogger(logLevels.error,"couldn't add confirmedinfo and remove from blocks inf because of error-"+JSON.stringify(blocksInfoError),logFilePath);
+                    })
                 }
             })
             
@@ -151,8 +152,6 @@ module.exports = function(logger, poolConfig){
         }
 
         connection.multi(redisCommands).exec(function(err, replies){
-            console.log(err);
-            console.log(replies);
             if (err){
                 floger.fileLogger(logLevels.error,'Error with share processor multi ' + JSON.stringify(err), logFilePath)
                 logger.error(logSystem, logComponent, logSubCat, 'Error with share processor multi ' + JSON.stringify(err));
