@@ -123,15 +123,16 @@ module.exports = function(logger, poolConfig){
             it will overwrite 5 to 1 ,if not it will add new one */
         redisCommands.push(['zadd', coin + ':hashrate', dateNow / 1000 | 0, hashrateData.join(':')]);
         
-        if (isValidBlock){
+        if (!isValidBlock){
             /* when block is finished, it means round is over, so roundcurrent becomes round+which round it was 
                 all the information that was in roundCurrent stays in round+which round (just only name changes) */
-            connection.zscore(coin+':blocks:info',shareData.height,function(error,result){
+            connection.zscore(coin+':blocks:info',1320172,function(error,result){
                 if(error){
                     floger.fileLogger(logLevels.error,"Can't get blocksinformation because of redis from blocksconfirmedInformation with coin and round " + coin+" "+shareData.height+" " + JSON.stringify(error),logFilePath);
                 }else if(result == null){
                     floger.fileLogger(logLevels.error,"It mustn't be null but it is . needs more testing on this one" + coin+" "+shareData.height+" ",logFilePath);
                 }else{
+                    floger.fileLogger(logLevels.error,"awesome",logFilePath);
                     redisCommands.push(['hset',coin+':blocks:confirmedInfo', shareData.height, JSON.stringify({startDate:result,endDate:dateNow / 1000 | 0})]);
                     redisCommands.push(['zremrangebyscore',coin+':blocks:info','-inf','('+(dateNow / 1000 | 0)]);
                 }
