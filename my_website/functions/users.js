@@ -16,6 +16,11 @@ module.exports = {
                 var workersLength = workers.length;
                 var redisCommands =[];
                
+            
+                redisCommands.push(['hget',coin_name+':balances:userBalances',user_name]);
+                redisCommands.push(['scard',coin_name+':existingWorkers']);
+                redisCommands.push(['hget',coin_name + ":balances:userPaid",user_name]);
+
                 for(var i=0;i<workersLength;i++){
                     redisCommands.push(['zrevrangebyscore',coin_name+':stat:workers:hourly:'+user_name+'.'+workers[i],'+inf','-inf','limit',0,24])
                     redisCommands.push(['zrevrangebyscore',coin_name+':stat:workers:daily:'+user_name+'.'+workers[i],'+inf','-inf','limit',0,30])
@@ -51,8 +56,6 @@ module.exports = {
         var redisClient = redis.createClient("6777",'165.227.143.126');
         var redisCommands = [
             ['zrevrangebyscore',coin_name+':userPayouts:'+user_name,'+inf','-inf'],
-            ['hget',coin_name+':balances:userBalances',user_name],
-            ['scard',coin_name+':existingWorkers']
         ]
         redisClient.multi(redisCommands).exec(function(err,res){
             if (err) callback(500)
