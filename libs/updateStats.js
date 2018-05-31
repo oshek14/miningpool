@@ -42,7 +42,8 @@ module.exports = function(logger){
     }, null, true, null);
 
     //RUNS EVERY DAY EVERY ten minutes 
-    var tenMinutesJob = new CronJob('00 */10 * * * *', function() {
+    var tenMinutesJob = new CronJob('05 */10 * * * *', function() {
+        console.log("asdasdasdasdasdasdasdasdasdasd");
         saveStatsEveryTenMinutes(portalConfig,poolConfigs,redisClients);
     }, null, true, null);
     
@@ -409,6 +410,7 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
 
 
     function saveStatsEveryTenMinutes(portalConfig,poolConfigs,redisClients){
+        console.log("modiiiiiiiiiiiiiiis");
         var statGatherTime = Date.now() / 1000 | 0;
         var allCoinStats = {};
         var existingWorkers = [];
