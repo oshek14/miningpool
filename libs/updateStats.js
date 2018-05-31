@@ -6,7 +6,7 @@ var floger = require('../libs/logFileUtil')
 var CronJob = require('cron').CronJob;
 
 
-var logLevels = floger.levels
+var logLevels = floger.levels                  
 var logFilePath = floger.filePathes.updateStats
 
 module.exports = function(logger){
@@ -76,41 +76,48 @@ function calculateStatsForDay(portalConfig,poolConfigs){
                     for(var i=0;i<workersKeys.length;i++){
                         getCommandsQuery.push(['zrevrangebyscore', coin+":stat:workers:hourly:"+workersKeys[i],'+inf','-inf', 'limit', 0, 24]);
                     }
-        
+            
                     var workersGlobalCommands = [];
-                    redisClient.multi(getCommandsQuery).exec(function(err,res){
-                        for(var i=0; i<res.length; i++){
-                            var data = res[i];
-                            var worker = workersKeys[i]
-                            var averageData = {
-                                shares: 0,
-                                sharesCount:0,
-                                invalidSharesCount:0,
-                                invalidShares: 0,
-                                hashrate: 0,
-                                hashrateString:'0',
-                                date:gatherTime,
+                    if(getCommandsQuery.length > 0){
+                        redisClient.multi(getCommandsQuery).exec(function(getCommandsErr, getCommandsRes){
+                            if(getCommandsErr){
+                                floger.fileLogger(logLevels.error, "can not get last 24 info from " + coin + ":stat:workers:hourly workers", logFilePath);
                             }
-                            for (var j = 0; j < data.length; j++) {
-                                var parsedData = JSON.parse(data[j])
-                                averageData.shares += parsedData.shares;
-                                averageData.invalidShares += parsedData.invalidShares;
-                                averageData.hashrate += parsedData.hashrate / 24
-                                averageData.invalidSharesCount += parsedData.invalidSharesCount;
-                                averageData.sharesCount += parsedData.sharesCount;
-                            }
-                        
-                            averageData.hashrate = Math.round(averageData.hashrate * 100) / 100
-                            averageData.hashrateString = configHelper.getReadableHashRateString(averageData.hashrate);
-                            
-                            workersGlobalCommands.push(['zadd',coin+':stat:workers:daily:'+worker,gatherTime,JSON.stringify(averageData)]);
-                        }
-                        redisClient.multi(workersGlobalCommands).exec(function(err,res){
-                            if(err){
-                                floger.fileLogger(logLevels.error, "calculateStatsForDay:couldn't execute workersGlobalCommands push command", logFilePath);
+                            else{
+                                for(var i=0; i<getCommandsRes.length; i++){
+                                    var data = getCommandsRes[i];
+                                    var worker = workersKeys[i]
+                                    var averageData = {
+                                        shares: 0,
+                                        sharesCount:0,
+                                        invalidSharesCount:0,
+                                        invalidShares: 0,
+                                        hashrate: 0,
+                                        hashrateString:'0',
+                                        date:gatherTime,
+                                    }
+                                    for (var j = 0; j < data.length; j++) {
+                                        var parsedData = JSON.parse(data[j])
+                                        averageData.shares += parsedData.shares;
+                                        averageData.invalidShares += parsedData.invalidShares;
+                                        averageData.hashrate += parsedData.hashrate / 24
+                                        averageData.invalidSharesCount += parsedData.invalidSharesCount;
+                                        averageData.sharesCount += parsedData.sharesCount;
+                                    }
+                                
+                                    averageData.hashrate = Math.round(averageData.hashrate * 100) / 100
+                                    averageData.hashrateString = configHelper.getReadableHashRateString(averageData.hashrate);
+                                    
+                                    workersGlobalCommands.push(['zadd',coin+':stat:workers:daily:'+worker,gatherTime,JSON.stringify(averageData)]);
+                                }
+                                redisClient.multi(workersGlobalCommands).exec(function(workerGlobalsErr,workerGlobalsRes){
+                                    if(workerGlobalsErr){
+                                        floger.fileLogger(logLevels.error, "calculateStatsForDay:couldn't execute workersGlobalCommands push command", logFilePath);
+                                    }
+                                })
                             }
                         })
-                    })
+                    }
                 
                     var globalDaily = {
                         workersCount: 0,
@@ -144,8 +151,8 @@ function calculateStatsForDay(portalConfig,poolConfigs){
                     globalDaily.hashrate = Math.round(globalDaily.hashrate * 100)/100;
                     globalDaily.hashrateString = configHelper.getReadableHashRateString(globalDaily.hashrate);
                     var globalDailyCommands = ['zadd',coin+':stat:global:daily',gatherTime,JSON.stringify(globalDaily)];
-                    redisClient.zadd(coin+':stat:global:daily',gatherTime,JSON.stringify(globalDaily),function(err,res){
-                        if(err){
+                    redisClient.zadd(coin+':stat:global:daily',gatherTime,JSON.stringify(globalDaily),function(globalDaylyErr,globalDaylyRes){
+                        if(globalDaylyErr){
                             floger.fileLogger(logLevels.error, "calculateStatsForDay:couldn't execute globalDailyCommands push command", logFilePath);
                         }
                     });
@@ -389,8 +396,8 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
             if(deleteWorkerOneHourCommands.length > 0) statHistoryCommands = statHistoryCommands.concat(deleteWorkerOneHourCommands);
             if(deleteGlobalOneHourCommands.length > 0) statHistoryCommands = statHistoryCommands.concat(deleteGlobalOneHourCommands);
 
-            redisStats.multi(statHistoryCommands).exec(function(err, replies){
-                if (err){
+            redisStats.multi(statHistoryCommands).exec(function(errTwo, replies){
+                if (errTwo){
                     floger.fileLogger(logLevels.error, "saveStatsEveryHour:couldn't execute last multi command, fucked up...", logFilePath);
                     logger.error("updateStats", 'Historics', 'Error adding stats to historics ' + JSON.stringify(err));
                 }
@@ -627,8 +634,8 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
                 if(deleteWorkerOneHourCommands.length > 0) statHistoryCommands = statHistoryCommands.concat(deleteWorkerOneHourCommands);
                 if(deleteGlobalOneHourCommands.length > 0) statHistoryCommands = statHistoryCommands.concat(deleteGlobalOneHourCommands);
     
-                redisStats.multi(statHistoryCommands).exec(function(err, replies){
-                    if (err){
+                redisStats.multi(statHistoryCommands).exec(function(errTwo, replies){
+                    if (errTwo){
                         floger.fileLogger(logLevels.error, "saveStatsEveryTenMinutes:couldn't execute last multi command,fucked up", logFilePath);
                     }
                 });

@@ -6,8 +6,6 @@ var jwt = require('jsonwebtoken');
 require('../../passport')(passport);
 var secret = require('../../passport/constants')
 
-//middleware: passport.authenticate('jwt', { session: false})
-
 router.post('/signin', function(req, res) {
     var redisClient = redis.createClient("6777", "165.227.143.126");
     var email = req.body.email
@@ -27,6 +25,10 @@ router.post('/signin', function(req, res) {
             res.send({status: 500})
         }
      })
+})
+
+router.post('/verify_token', passport.authenticate('jwt', { session: false}), function(req, res) {
+    res.send({status: 200})
 })
 
 module.exports = router;
