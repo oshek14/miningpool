@@ -8,7 +8,9 @@ var async = require('async');
 
 
 redisClient.multi([
-    ['sunion', 'bitcoin:userPayouts:*']
+    ['zadd', 'oksad:aksomd','INCR', 1222, 'asdasd'],
+    ['zadd', 'oksad:aksomd','INCR', 1222, 'sss'],
+    ['zadd', 'oksad:aksomd','INCR', 1222, 'aaaaa']
 ]).exec(function(err,res){
     console.log(res)
 })

@@ -151,8 +151,8 @@ function calculateStatsForDay(portalConfig,poolConfigs){
                     globalDaily.hashrate = Math.round(globalDaily.hashrate * 100)/100;
                     globalDaily.hashrateString = configHelper.getReadableHashRateString(globalDaily.hashrate);
                     var globalDailyCommands = ['zadd',coin+':stat:global:daily',gatherTime,JSON.stringify(globalDaily)];
-                    redisClient.zadd(coin+':stat:global:daily',gatherTime,JSON.stringify(globalDaily),function(globalDaylyErr,globalDaylyRes){
-                        if(globalDaylyErr){
+                    redisClient.zadd(coin+':stat:global:daily',gatherTime,JSON.stringify(globalDaily),function(globalDailyErr,globalDailyRes){
+                        if(globalDailyErr){
                             floger.fileLogger(logLevels.error, "calculateStatsForDay:couldn't execute globalDailyCommands push command", logFilePath);
                         }
                     });
@@ -632,7 +632,7 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
                 if(workersOneHourCommands.length>0) statHistoryCommands = statHistoryCommands.concat(workersOneHourCommands);
                 if(deleteWorkerOneHourCommands.length > 0) statHistoryCommands = statHistoryCommands.concat(deleteWorkerOneHourCommands);
                 if(deleteGlobalOneHourCommands.length > 0) statHistoryCommands = statHistoryCommands.concat(deleteGlobalOneHourCommands);
-    
+
                 redisStats.multi(statHistoryCommands).exec(function(errTwo, replies){
                     if (errTwo){
                         floger.fileLogger(logLevels.error, "saveStatsEveryTenMinutes:couldn't execute last multi command,fucked up", logFilePath);

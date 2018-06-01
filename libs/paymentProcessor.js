@@ -353,7 +353,6 @@ function SetupForPool(logger, poolOptions, setupFinished){
                         if (round.category === 'generate') {
                             round.reward = generationTx.amount || generationTx.value;
                         }
-
                     });
                     
                     var canDeleteShares = function(r){
@@ -472,7 +471,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                                         blockInformation.blockHash = (round.blockHash) ? round.blockHash : null;
                                         blockInformation.txHash = (round.txHash) ? round.txHash : null;
                                         blockInformation.height = round.height;
-                                        redisClient.hset(coin+':blocksConfirmedInformation',round.height,JSON.stringify(blockInformation),function(err,res){
+                                        redisClient.hset(coin+':blocks:confirmedInfo',round.height,JSON.stringify(blockInformation),function(err,res){
                                             if(err){
                                                 floger.fileLogger(logLevels.error,"couldn't update blocksconfirmed information for coin: " + coin+" and details are:"+JSON.stringify(blockInformation)+" . It's advisable to run it manually", confirmedBlocksLog);
                                             }
@@ -517,6 +516,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                 var usersBalanceUpdates = [];
                 var redisCommands = [];
                 var usersPerWorker = {};
+                
                 var trySend = function () {
                     for (var w in workers) {
                         var worker = workers[w]; //workerName //gio1.worker1;
