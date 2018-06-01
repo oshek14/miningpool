@@ -73,8 +73,7 @@ router.get('/coin_stats',(req,res)=>{
 
 router.get('/coin_last_stats',(req,res)=>{ 
     var coin = req.query.coin
-    var algo = req.query.algo
-    coinsHelper.getLastStats(coin, algo, function(coinsLastStats){
+    coinsHelper.getLastStats(coin, function(coinsLastStats){
         if(coinsLastStats == 500)
             res.send({status:500});
         else 
@@ -84,8 +83,7 @@ router.get('/coin_last_stats',(req,res)=>{
 
 router.get('/coin_payment_stats',(req,res)=>{ 
     var coin = req.query.coin
-    var algo = req.query.algo
-    coinsHelper.getPoolInfoForCoin(coin, algo, function(poolInfo,result){
+    coinsHelper.getPoolInfoForCoin(coin, function(poolInfo,result){
         if(poolInfo == 500)
             res.send({status: 500});
         else 
@@ -104,8 +102,7 @@ router.get('/coin_payment_history',(req,res)=>{
 
 router.get('/coin_blocks_history',(req,res)=>{ 
     var coin = req.query.coin
-    var algo = req.query.algo
-    coinsHelper.getBlocksHistory(coin, algo, function(data) {
+    coinsHelper.getBlocksHistory(coin, function(data) {
         if (data === 500)  res.send({status: 500});
         else res.send({status: 200, data: data})
     })

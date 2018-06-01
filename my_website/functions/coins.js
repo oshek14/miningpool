@@ -75,7 +75,7 @@ module.exports = {
         })
     },
 
-    getLastStats: function(coin, algo, callback) {
+    getLastStats: function(coin, callback) {
         var redisClient = redis.createClient("6777",'165.227.143.126');
         redisComands = [
             ['zrevrangebyscore', coin + ':stat:global:tenMinutes', '+inf','-inf', 'limit', 0, 1],
@@ -101,7 +101,7 @@ module.exports = {
     },
 
    
-    getPoolInfoForCoin:function(coin,algo,callback){
+    getPoolInfoForCoin:function(coin,callback){
         var poolInfoForCoin ={};
         configHelper.getBalanceFromAddress(coin,function(poolBalance,poolAccount){
             if(poolBalance == 500){
@@ -129,7 +129,7 @@ module.exports = {
 
      
 
-     getBlocksHistory:function(coin, algo, callback){
+     getBlocksHistory:function(coin, callback){
         var redisClient = redis.createClient("6777",'165.227.143.126');
         redisClient.hgetall(coin + ':blocks:confirmedInfo',function(err, res) {
             if (err) callback(500)

@@ -16,9 +16,9 @@ router.all("/*",(req,res,next)=>{
 
 router.get('/workers_stats',(req,res)=>{
     var coin_name = req.query.coin_name;
-    var algorithm = req.query.algorithm;
+    
     /* all worker stat */
-    workersHelper.getWorkersStats(coin_name,algorithm,function(data){
+    workersHelper.getWorkersStats(coin_name,function(data){
         if(data == 500) res.send({status:500});
         else res.send({status:200,data:data});
     })

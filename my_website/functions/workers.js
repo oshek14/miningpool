@@ -2,7 +2,7 @@ var redis = require('redis');
 module.exports = {
     
     /* get all workers */
-    getWorkersStats:function(coin_name,algorithm,callback){
+    getWorkersStats:function(coin_name,callback){
         var redisCommands = [];
         var date  = Date.now();
         var redisClient = redis.createClient("6777",'165.227.143.126');
