@@ -389,6 +389,8 @@ function SetupForPool(logger, poolOptions, setupFinished){
                         }
                     });
 
+                    console.log("Rounds", rounds)
+
                     //* here we have rounds that has category that has kicked,orphan,generate. if other ones,it's deleted
                     // from that rounds. if round is kicked,or orphan it has another option canDeleteShares.
                     // if round is generate, it has option reward= generatonTx.amount || generationTx.value;
