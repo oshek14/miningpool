@@ -133,7 +133,7 @@ module.exports = function(logger, poolConfig){
                     //floger.fileLogger(logLevels.error,"It mustn't be null but it is . needs more testing on this one" + coin+" "+shareData.height+" ",logFilePath);
                 }else{
                     connection.multi([
-                        ['hset',coin+':blocks:confirmedInfo', shareData.height, JSON.stringify({startDate:result,endDate:dateNow / 1000 | 0})],
+                        ['hset',coin+':blocks:confirmedInfo', shareData.height, JSON.stringify({startTime:result,endTime:dateNow / 1000 | 0})],
                         ['zremrangebyscore',coin+':blocks:info','-inf',(dateNow / 1000 | 0)],
                     ]).exec(function(blocksInfoError,blocksInfoRes){
                         if(blocksInfoError) floger.fileLogger(logLevels.error,"couldn't add confirmedinfo and remove from blocks inf because of error-"+JSON.stringify(blocksInfoError),logFilePath);

@@ -334,7 +334,6 @@ function init(coin,howManyUsers,workersPerUser,firstIndex,address){
     deletionCommands.push(['del',coin+':workers:invalidShares']);
     deletionCommands.push(['del',coin+':workers:validShares']);
     deletionCommands.push(['del','users']);
-    deletionCommands.push(['del',coin+':blocksConfirmedInformation'])
     deletionCommands.push(['del',coin+':stat:global:daily']);
     deletionCommands.push(['del',coin+':stat:global:hourly']);
     deletionCommands.push(['del',coin+':stat:global:tenMinutes']);
