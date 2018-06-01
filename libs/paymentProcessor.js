@@ -445,16 +445,6 @@ function SetupForPool(logger, poolOptions, setupFinished){
                         }
 
                         
-                        var totalShares = Object.keys(workerShares).reduce(function(p, c){
-                            return p + parseFloat(workerShares[c])
-                        }, 0);
-
-                        for (var workerAddress in workerShares){
-                            var percent = parseFloat(workerShares[workerAddress]) / totalShares;
-                            var workerRewardTotal = Math.floor(20 * percent);
-                            var worker = workers[workerAddress] = (workers[workerAddress] || {});
-                            worker.reward = (worker.reward || 0) + workerRewardTotal;
-                        }
 
                         switch (round.category){
                             case 'kicked':
