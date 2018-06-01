@@ -435,6 +435,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                         category:kicked,
                         canDeleteShares:function();
                         }] */
+                    console.log(rounds)
                     rounds.forEach(function(round, i){
                         var workerShares = allWorkerShares[i];
 
@@ -442,20 +443,6 @@ function SetupForPool(logger, poolOptions, setupFinished){
                             logger.error(logSystem, logComponent, 'No worker shares for round: '
                                 + round.height + ' blockHash: ' + round.blockHash);
                             return;
-                        }
-
-                        var totalShares = Object.keys(workerShares).reduce(function(p, c){
-                            return p + parseFloat(workerShares[c])
-                        }, 0);
-
-
-                        console.log(workerShares)
-                        for (var workerAddress in workerShares){
-                            var percent = parseFloat(workerShares[workerAddress]) / totalShares;
-                            var workerRewardTotal = Math.floor(12 * percent);
-                            var worker = workers[workerAddress] = (workers[workerAddress] || {});
-                            worker.reward = (worker.reward || 0) + workerRewardTotal;
-                            console.log(worker.reward)
                         }
 
                         switch (round.category){
