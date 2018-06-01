@@ -215,6 +215,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                 redisClient.multi([
                     ['smembers', coin + ':blocksPending']
                 ]).exec(function(error, results){
+                    console.log("smembers blocksPending result", results)
                     endRedisTimer();
 
                     if (error){
@@ -237,6 +238,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                             serialized: r
                         };
                     });
+                    console.log("Rounds", rounds)
                     /* rounds looks like this  it will be array of jsons
                     {   blockHash: '0000000000011267f79129257d841ab1036a478d095f1a7ba8ec6b57b30c3741',
                         txHash: '2d493dd70a0dcece8ef20eb5656d5f6413b00a21eaa984cc9a991bda13b9e167',
@@ -413,10 +415,11 @@ function SetupForPool(logger, poolOptions, setupFinished){
             function(workers, rounds, addressAccount, callback){
 
                 console.log("step7")
+                console.log("Round Height", r.height)
                 var shareLookups = rounds.map(function(r){
                     return ['hgetall', coin + ':shares:round' + r.height]
                 });
-
+                console.log("shareLookups", shareLookups)
                 startRedisTimer();
                 redisClient.multi(shareLookups).exec(function(error, allWorkerShares){
                     endRedisTimer();
