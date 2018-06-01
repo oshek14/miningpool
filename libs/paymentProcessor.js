@@ -489,6 +489,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                                         })
                                     }
                                 })
+                                console.log("WorkerShares ", workerShares)
                                 for (var workerAddress in workerShares){
                                     var percent = parseFloat(workerShares[workerAddress]) / totalShares;
                                     var workerRewardTotal = Math.floor(reward * percent);
