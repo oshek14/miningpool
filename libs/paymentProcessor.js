@@ -449,12 +449,13 @@ function SetupForPool(logger, poolOptions, setupFinished){
                         }, 0);
 
 
-
+                        console.log(workerShares)
                         for (var workerAddress in workerShares){
                             var percent = parseFloat(workerShares[workerAddress]) / totalShares;
                             var workerRewardTotal = Math.floor(12 * percent);
                             var worker = workers[workerAddress] = (workers[workerAddress] || {});
                             worker.reward = (worker.reward || 0) + workerRewardTotal;
+                            console.log(worker.reward)
                         }
 
                         switch (round.category){
