@@ -553,7 +553,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                     }
 
                     
-                    if(usersBalanceUpdates.length > 0) redisCommands.concat(usersBalanceUpdates);
+                    if(usersBalanceUpdates.length > 0) redisCommands = redisCommands.concat(usersBalanceUpdates);
 
 
                     if(redisCommands.length > 0){
