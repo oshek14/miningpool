@@ -253,6 +253,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                It also adds the block reward amount to the round object - which the daemon gives also gives us. */
             function(workers, rounds, callback){
                 console.log("step6")
+                console.log("Rounds", rounds)
                 var batchRPCcommand = rounds.map(function(r){
                     return ['gettransaction', [r.txHash]];
                 });
