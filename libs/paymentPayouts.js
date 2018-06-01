@@ -9,11 +9,15 @@ var CronJob = require('cron').CronJob;
 var logLevels = floger.levels
 var logFilePath = floger.filePathes.paymentPayouts
 var paymentJob;
+var redisClient;
 
 module.exports = function(logger){
 
     var poolConfigs = JSON.parse(process.env.pools);
+    var portalConfig = JSON.parse(process.env.portalConfig);
 
+    redisClient = redis.createClient(portalConfig.defaultPoolConfigs.redis.port,portalConfig.defaultPoolConfigs.redis.host);
+    
     var coins = {};
     var redisCommands = [];
 
@@ -33,7 +37,6 @@ module.exports = function(logger){
 
 
 var trySend = function (withholdPercent, coin, coinConfig) {
-
     redisClient.hgetall(coin + ":balances:userBalances", function(outsideErr,balancesRes){  //{ gio1: '3.11', gio2: '4.88', gio3: '7.12' }
         if(outsideErr){
             floger.fileLogger(logLevels.error, "paymentPayouts:can't execute redis commands for coin" + coin, logFilePath)

@@ -463,9 +463,9 @@ function SetupForPool(logger, poolOptions, setupFinished){
                                         floger.fileLogger(logLevels.error,"Can't get something really wrong blocksinformation because of redis from blocksconfirmedInformation with coin and round " + coin+" "+round.height+" ",confirmedBlocksLog);
                                     }else{
                                         var result = JSON.parse(blockResult);
-                                        blockInformation.startTime = result.startDate;
-                                        blockInformation.endTime = result.endDate;
-                                        blockInformation.reward = reward;
+                                        blockInformation.startTime = result.startTime;
+                                        blockInformation.endTime = result.endTime;
+                                        blockInformation.reward = satoshisToCoins(reward);
                                         blockInformation.blockHash = (round.blockHash) ? round.blockHash : null;
                                         blockInformation.txHash = (round.txHash) ? round.txHash : null;
                                         blockInformation.height = round.height;
