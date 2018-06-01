@@ -545,6 +545,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                             else usersPerWorker[username] += worker.reward;
                         }
                     }
+                    console.log("Workers ", workers)
                     console.log("UsersPerWorker ", usersPerWorker)
                     for(var username in usersPerWorker){
                         console.log("----------------===========here should come==========------------------------");
