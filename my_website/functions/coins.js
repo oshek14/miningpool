@@ -2,11 +2,14 @@
 var redis = require('redis')
 var configHelper = require('../helpers/config_helper')
 var Stratum = require('stratum-pool');
+var redisPort = configHelper.portalConfig.defaultPoolConfigs.redis.port;
+var redisHost = configHelper.portalConfig.defaultPoolConfigs.redis.host;
+var redisClient = redis.createClient(redisPort, redisHost);
+
 module.exports = {
     getStatsForEachCoin:function(pool_configs,callback){
         var poolConfigsData = {};
         var coinStats = {};
-        var redisClient = redis.createClient("6777",'165.227.143.126');
         var redisCommands = [];
         var commandsPerCoin = 6;
         var data = pool_configs;
@@ -60,7 +63,6 @@ module.exports = {
     },
 
     getCoinStatsForGraph:function(coins, timeInterval, intervalCounts, interval,callback){
-        var redisClient = redis.createClient("6777",'165.227.143.126');
         var redisComands = []
         for (var i = 0; i < coins.length; i++) {
             var coin = coins[i]
@@ -76,7 +78,6 @@ module.exports = {
     },
 
     getLastStats: function(coin, callback) {
-        var redisClient = redis.createClient("6777",'165.227.143.126');
         redisComands = [
             ['zrevrangebyscore', coin + ':stat:global:tenMinutes', '+inf','-inf', 'limit', 0, 1],
             ['zrevrangebyscore', coin + ':stat:global:hourly', '+inf', '-inf', 'limit', 0, 1],
@@ -112,7 +113,6 @@ module.exports = {
                 poolInfoForCoin['account'] = poolAccount;
             }
 
-            var redisClient = redis.createClient("6777",'165.227.143.126');
             var commands = [
                 ['hgetall', coin+':stats'],
                 ['hgetall', coin+':balances:userBalances'],
@@ -130,7 +130,6 @@ module.exports = {
      
 
      getBlocksHistory:function(coin, callback){
-        var redisClient = redis.createClient("6777",'165.227.143.126');
         redisClient.hgetall(coin + ':blocks:confirmedInfo',function(err, res) {
             if (err) callback(500)
             else callback(res)

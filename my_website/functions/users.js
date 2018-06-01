@@ -1,10 +1,13 @@
 var redis = require('redis');
+var configHelper = require('../helpers/config_helper')
+var redisPort = configHelper.portalConfig.defaultPoolConfigs.redis.port;
+var redisHost = configHelper.portalConfig.defaultPoolConfigs.redis.host;
+var redisClient = redis.createClient(redisPort, redisHost);
 
 module.exports = {
 
     //get user stats depending on coin_name
     getUserStats:function(coin_name,user_name,callback){
-        var redisClient = redis.createClient("6777",'165.227.143.126');
         var finalData = {};
         redisClient.hget('users',user_name,function(error,result){
             if(error) {callback(500);}
@@ -45,7 +48,6 @@ module.exports = {
 
     // get all user
     getUsersStats:function(callback){
-        var redisClient = redis.createClient("6777", "165.227.143.126");
         redisClient.hgetall('users' , function(err,res){
             if (err) callback(500)
             else callback(res)
@@ -53,7 +55,6 @@ module.exports = {
     },
 
     getPaymentHistory:function(coin_name, user_name, callback){
-        var redisClient = redis.createClient("6777",'165.227.143.126');
         var redisCommands = [
             ['zrevrangebyscore',coin_name+':userPayouts:'+user_name,'+inf','-inf'],
         ]

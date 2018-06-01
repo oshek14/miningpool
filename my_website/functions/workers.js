@@ -1,11 +1,15 @@
 var redis = require('redis');
+var configHelper = require('../helpers/config_helper')
+var redisPort = configHelper.portalConfig.defaultPoolConfigs.redis.port;
+var redisHost = configHelper.portalConfig.defaultPoolConfigs.redis.host;
+var redisClient = redis.createClient(redisPort, redisHost);
+
 module.exports = {
     
     /* get all workers */
     getWorkersStats:function(coin_name,callback){
         var redisCommands = [];
         var date  = Date.now();
-        var redisClient = redis.createClient("6777",'165.227.143.126');
         redisClient.smembers(coin_name+':existingWorkers',function(error,workersKeys){
             if(error) callback(500);
             else
@@ -21,7 +25,6 @@ module.exports = {
 
     /* get stat for one worker gio1.worker1 */
     getWorkerStats:function(coin_name,worker_name,callback){
-        var redisClient = redis.createClient("6777",'165.227.143.126');
         var redisCommands = [
             ['zrevrangebyscore',coin_name+":stat:workers:tenMinutes:"+worker_name,'+inf','-inf','limit',0,1],
             ['zrevrangebyscore',coin_name+":stat:workers:hourly:"+worker_name,'+inf','-inf','limit',0,1],
@@ -36,7 +39,6 @@ module.exports = {
     },
 
     getWorkerStatsForGraph:function(coin, worker, timeInterval, intervalCounts, interval, callback){
-        var redisClient = redis.createClient("6777",'165.227.143.126');
         var redisComands = []
         redisComands.push(['zrevrangebyscore', coin + ":stat:workers:" + timeInterval + ":" + worker, '+inf', (Date.now() - interval*intervalCounts)/1000, 'limit', 0, intervalCounts])
         redisClient.multi(redisComands).exec(function(err, res) {

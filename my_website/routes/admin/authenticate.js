@@ -5,9 +5,12 @@ var redis = require('redis');
 var jwt = require('jsonwebtoken');
 require('../../passport')(passport);
 var secret = require('../../passport/constants')
+var configHelper = require('../../helpers/config_helper')
+var redisPort = configHelper.portalConfig.defaultPoolConfigs.redis.port;
+var redisHost = configHelper.portalConfig.defaultPoolConfigs.redis.host;
+var redisClient = redis.createClient(redisPort, redisHost);
 
 router.post('/signin', function(req, res) {
-    var redisClient = redis.createClient("6777", "165.227.143.126");
     var email = req.body.email
     var password = req.body.password
      redisClient.hget('administrators', email , function(err, result) {
