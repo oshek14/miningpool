@@ -444,6 +444,19 @@ function SetupForPool(logger, poolOptions, setupFinished){
                             return;
                         }
 
+                        var totalShares = Object.keys(workerShares).reduce(function(p, c){
+                            return p + parseFloat(workerShares[c])
+                        }, 0);
+
+
+
+                        for (var workerAddress in workerShares){
+                            var percent = parseFloat(workerShares[workerAddress]) / totalShares;
+                            var workerRewardTotal = Math.floor(12 * percent);
+                            var worker = workers[workerAddress] = (workers[workerAddress] || {});
+                            worker.reward = (worker.reward || 0) + workerRewardTotal;
+                        }
+
                         switch (round.category){
                             case 'kicked':
                             case 'orphan':
@@ -522,11 +535,16 @@ function SetupForPool(logger, poolOptions, setupFinished){
                 var usersPerWorker = {};
                 
                 var trySend = function () {
+                    console.log(workers)
                     for (var w in workers) {
                         var worker = workers[w]; //workerName //gio1.worker1;
+                        console.log(worker)
+                        
                         worker.reward = worker.reward || 0;
                         var username = w.split(".")[0];
                         //?
+                    console.log(worker.reward)
+                        
                         if(worker.reward > 0){
                             if(!(username in usersPerWorker)) usersPerWorker[username] = worker.reward; 
                             else usersPerWorker[username] += worker.reward;
