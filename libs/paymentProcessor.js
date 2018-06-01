@@ -238,7 +238,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                             serialized: r
                         };
                     });
-                    console.log("Rounds", rounds)
+                   
                     /* rounds looks like this  it will be array of jsons
                     {   blockHash: '0000000000011267f79129257d841ab1036a478d095f1a7ba8ec6b57b30c3741',
                         txHash: '2d493dd70a0dcece8ef20eb5656d5f6413b00a21eaa984cc9a991bda13b9e167',
@@ -441,7 +441,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                         category:kicked,
                         canDeleteShares:function();
                         }] */
-                    console.log(rounds)
+                    console.log("Rounds", rounds)
                     rounds.forEach(function(round, i){
                         var workerShares = allWorkerShares[i];
 
@@ -529,7 +529,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                 var usersPerWorker = {};
                 
                 var trySend = function () {
-                    console.log(workers)
+                    console.log("Workers ", workers)
                     for (var w in workers) {
                         var worker = workers[w]; //workerName //gio1.worker1;
                         console.log(worker)
@@ -537,14 +537,16 @@ function SetupForPool(logger, poolOptions, setupFinished){
                         worker.reward = worker.reward || 0;
                         var username = w.split(".")[0];
                         //?
-                    console.log(worker.reward)
+                        console.log("Worker Reward", worker.reward)
                         
                         if(worker.reward > 0){
                             if(!(username in usersPerWorker)) usersPerWorker[username] = worker.reward; 
                             else usersPerWorker[username] += worker.reward;
                         }
                     }
+                    console.log("UsersPerWorker ", usersPerWorker)
                     for(var username in usersPerWorker){
+                        console.log("----------------===========here should come==========------------------------");
                         usersBalanceUpdates.push(['hincrbyfloat',coin + ':balances:userBalances',username,satoshisToCoins(usersPerWorker[username])]);
                     }
 
