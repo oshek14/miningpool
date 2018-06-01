@@ -528,11 +528,14 @@ function SetupForPool(logger, poolOptions, setupFinished){
                 var usersPerWorker = {};
                 
                 var trySend = function () {
+                    console.log(workers)
                     for (var w in workers) {
                         var worker = workers[w]; //workerName //gio1.worker1;
+                        console.log(worker)
                         worker.reward = worker.reward || 0;
                         var username = w.split(".")[0];
                         //?
+                        console.log(worker.reward);
                         if(worker.reward > 0){
                             if(!(username in usersPerWorker)) usersPerWorker[username] = worker.reward; 
                             else usersPerWorker[username] += worker.reward;
