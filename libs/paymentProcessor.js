@@ -85,7 +85,6 @@ function SetupForPool(logger, poolOptions, setupFinished){
 
     async.parallel([
         function(callback){
-            console.log("step1")
             daemon.cmd('validateaddress', [poolOptions.address], function(result) {
                 if (result.error){
                     logger.error(logSystem, logComponent, 'Error with payment processing daemon ' + JSON.stringify(result.error));
@@ -117,7 +116,6 @@ function SetupForPool(logger, poolOptions, setupFinished){
             }, true);
         },
         function(callback){
-            console.log("step2")
             daemon.cmd('getbalance', [], function(result){
                 /* the result is the following:
                 {   error: null,
@@ -159,7 +157,6 @@ function SetupForPool(logger, poolOptions, setupFinished){
             }, true, true);
         }
     ], function(err){
-        console.log("step3")
         if (err){
             setupFinished(false);
             return;
@@ -190,7 +187,6 @@ function SetupForPool(logger, poolOptions, setupFinished){
        when rounding and whatnot. When we are storing numbers for only humans to see, store in whole coin units. */
 
     var processPayments = function(){
-        console.log("step4")
         var startPaymentProcess = Date.now();
 
         var timeSpentRPC = 0;
@@ -210,12 +206,10 @@ function SetupForPool(logger, poolOptions, setupFinished){
             /* Call redis to get an array of rounds - which are coinbase transactions 
                and block heights from submitted blocks. */
             function(callback){
-                console.log("step5")
                 startRedisTimer();
                 redisClient.multi([
                     ['smembers', coin + ':blocksPending']
                 ]).exec(function(error, results){
-                    console.log("smembers blocksPending result", results)
                     endRedisTimer();
 
                     if (error){
@@ -252,8 +246,6 @@ function SetupForPool(logger, poolOptions, setupFinished){
             /* Does a batch rpc call to daemon with all the transaction hashes to see if they are confirmed yet.
                It also adds the block reward amount to the round object - which the daemon gives also gives us. */
             function(workers, rounds, callback){
-                console.log("step6")
-                console.log("Rounds", rounds)
                 var batchRPCcommand = rounds.map(function(r){
                     return ['gettransaction', [r.txHash]];
                 });
@@ -389,8 +381,6 @@ function SetupForPool(logger, poolOptions, setupFinished){
                         }
                     });
 
-                    console.log("Rounds", rounds)
-
                     //* here we have rounds that has category that has kicked,orphan,generate. if other ones,it's deleted
                     // from that rounds. if round is kicked,or orphan it has another option canDeleteShares.
                     // if round is generate, it has option reward= generatonTx.amount || generationTx.value;
@@ -417,12 +407,10 @@ function SetupForPool(logger, poolOptions, setupFinished){
                amount owned to each miner for each round. */
             function(workers, rounds, addressAccount, callback){
 
-                console.log("step7")
                 var shareLookups = rounds.map(function(r){
                     return ['hgetall', coin + ':shares:round' + r.height]
                     
                 });
-                console.log("shareLookups", shareLookups)
                 startRedisTimer();
                 redisClient.multi(shareLookups).exec(function(error, allWorkerShares){
                     endRedisTimer();
@@ -441,7 +429,6 @@ function SetupForPool(logger, poolOptions, setupFinished){
                         category:kicked,
                         canDeleteShares:function();
                         }] */
-                    console.log("Rounds", rounds)
                     rounds.forEach(function(round, i){
                         var workerShares = allWorkerShares[i];
 
@@ -489,7 +476,6 @@ function SetupForPool(logger, poolOptions, setupFinished){
                                         })
                                     }
                                 })
-                                console.log("WorkerShares ", workerShares)
                                 for (var workerAddress in workerShares){
                                     var percent = parseFloat(workerShares[workerAddress]) / totalShares;
                                     var workerRewardTotal = Math.floor(reward * percent);
@@ -524,31 +510,27 @@ function SetupForPool(logger, poolOptions, setupFinished){
              if not sending the balance, the differnce should be +(the amount they earned this round)
              */
             function(workers, rounds, addressAccount, callback) {
-                console.log("step8")
                 var usersBalanceUpdates = [];
                 var redisCommands = [];
                 var usersPerWorker = {};
                 
                 var trySend = function () {
-                    console.log("Workers ", workers)
                     for (var w in workers) {
                         var worker = workers[w]; //workerName //gio1.worker1;
-                        console.log(worker)
                         
                         worker.reward = worker.reward || 0;
                         var username = w.split(".")[0];
                         //?
-                        console.log("Worker Reward", worker.reward)
+
                         
                         if(worker.reward > 0){
                             if(!(username in usersPerWorker)) usersPerWorker[username] = worker.reward; 
                             else usersPerWorker[username] += worker.reward;
                         }
                     }
-                    console.log("Workers ", workers)
-                    console.log("UsersPerWorker ", usersPerWorker)
+
                     for(var username in usersPerWorker){
-                        console.log("----------------===========here should come==========------------------------");
+
                         usersBalanceUpdates.push(['hincrbyfloat',coin + ':balances:userBalances',username,satoshisToCoins(usersPerWorker[username])]);
                     }
 
@@ -578,7 +560,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                 var movePendingCommands = [];
                 var roundsToDelete = [];
                 var orphanMergeCommands = [];
-                console.log("step9")
+       
                 var moveSharesToCurrent = function(r){
                     var workerShares = r.workerShares;
                     Object.keys(workerShares).forEach(function(worker){
@@ -644,7 +626,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
             }
 
         ], function(){
-            console.log("step10")
+
             var paymentProcessTime = Date.now() - startPaymentProcess;
             logger.debug(logSystem, logComponent, 'Finished interval - time spent: '
                 + paymentProcessTime + 'ms total, ' + timeSpentRedis + 'ms redis, '
