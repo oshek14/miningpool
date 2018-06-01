@@ -86,6 +86,12 @@ function SetupForPool(logger, poolOptions, setupFinished){
     async.parallel([
         function(callback){
             console.log("step1")
+            var k1 = 443;
+            var k6 = 443;
+            var k5 = 443;
+            var k4 = 443;
+            var k3 = 443;
+            var k2 = 443;
             daemon.cmd('validateaddress', [poolOptions.address], function(result) {
                 if (result.error){
                     logger.error(logSystem, logComponent, 'Error with payment processing daemon ' + JSON.stringify(result.error));
@@ -444,8 +450,6 @@ function SetupForPool(logger, poolOptions, setupFinished){
                             return;
                         }
 
-                        
-
                         switch (round.category){
                             case 'kicked':
                             case 'orphan':
@@ -531,7 +535,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                         worker.reward = worker.reward || 0;
                         var username = w.split(".")[0];
                         //?
-                        console.log(worker.reward);
+                        console.log(worker.reward)
                         if(worker.reward > 0){
                             if(!(username in usersPerWorker)) usersPerWorker[username] = worker.reward; 
                             else usersPerWorker[username] += worker.reward;
