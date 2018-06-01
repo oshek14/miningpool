@@ -415,9 +415,9 @@ function SetupForPool(logger, poolOptions, setupFinished){
             function(workers, rounds, addressAccount, callback){
 
                 console.log("step7")
-                console.log("Round Height", r.height)
                 var shareLookups = rounds.map(function(r){
                     return ['hgetall', coin + ':shares:round' + r.height]
+                    
                 });
                 console.log("shareLookups", shareLookups)
                 startRedisTimer();
