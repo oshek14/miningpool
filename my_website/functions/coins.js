@@ -131,7 +131,7 @@ module.exports = {
 
      getBlocksHistory:function(coin, algo, callback){
         var redisClient = redis.createClient("6777",'165.227.143.126');
-        redisClient.hgetall(coin + ':blocksConfirmedInformation',function(err, res) {
+        redisClient.hgetall(coin + ':blocks:confirmedInfo',function(err, res) {
             if (err) callback(500)
             else callback(res)
         })
