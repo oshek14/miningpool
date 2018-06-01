@@ -35,6 +35,7 @@ module.exports = {
     statHistoryLifetime:statHistoryLifetime,
     deleteHourlyRange:deleteHourlyRange,
     hashRateStatTenMinutes:hashRateStatTenMinutes,
+    portalConfig:portalConfig,
     getPoolConfigs : function(callback){
         var poolConfigFiles=[];
         var configs=[];
