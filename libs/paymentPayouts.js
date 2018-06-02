@@ -74,6 +74,7 @@ var trySend = function (withholdPercent, coin, coinConfig) {
                     singleUserPayoutCommands.push(['hincrbyfloat',coin + ":balances:userPaid", userKeys[i], toSend])
                 }
                 if(totalSent > 0){
+                    console.log("------===========Addressss===========-----------", coinConfig.address)
                     daemon.cmd('getaccount', [coinConfig.address], function(getaccountRes){
                         if(!getaccountRes){
                             console.log('one', 'can not get coin address account for ' + coin);
