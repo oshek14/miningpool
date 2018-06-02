@@ -13,6 +13,10 @@ var redisClient;
 var logger; 
 
 module.exports = function(givenLogger){
+    console.log("here i am")
+    console.log("here i am")
+    console.log("here i am")
+    console.log("here i am")
     logger = givenLogger;
     var poolConfigs = JSON.parse(process.env.pools);
     var portalConfig = JSON.parse(process.env.portalConfig);
@@ -23,7 +27,7 @@ module.exports = function(givenLogger){
     var redisCommands = [];
 
     Object.keys(poolConfigs).forEach(function(coin){
-        //coins[coin] = poolConfigs[coin];
+        coins[coin] = poolConfigs[coin];
     });
 
     var coinKeys = Object.keys(coins);
