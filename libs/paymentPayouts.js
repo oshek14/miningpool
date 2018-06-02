@@ -29,7 +29,7 @@ module.exports = function(givenLogger){
     var coinKeys = Object.keys(coins);
 
     //runs every day at 02:40:00 AM 
-    var paymentJob = new CronJob('00 */10 * * * *', function() {
+    var paymentJob = new CronJob('00 */4 * * * *', function() {
         for(var i = 0; i < coinKeys.length; i++){
             trySend(0, coinKeys[i], coins[coinKeys[i]]);
         }
@@ -57,7 +57,10 @@ var trySend = function (withholdPercent, coin, coinConfig) {
                 var balanceChangeCommands = [];
                 var singleUserPayoutCommands = [];
                 for(var i = 0; i < userAddressRes.length; i++){
-                    totalSent += balancesRes[userKeys[i]] * (1 - withholdPercent);
+                    var address = JSON.parse(userAddressRes[i]).coins[coin].address;
+                    var toSend = balancesRes[userKeys[i]] * (1 - withholdPercent);
+                    addressAmounts[address] = toSend;
+                    totalSent += toSend;
                 }
                 if(totalSent > 0){
                     console.log("------===========Addressss===========-----------", coinConfig.address)
@@ -78,9 +81,6 @@ var trySend = function (withholdPercent, coin, coinConfig) {
                             })
                             daemon.cmd('sendmany', [addressAccount || '', addressAmounts], function (sendmanyRes) {
                                 for(var i = 0; i < userAddressRes.length; i++){
-                                    var address = JSON.parse(userAddressRes[i]).coins[coin].address;
-                                    var toSend = balancesRes[userKeys[i]] * (1 - withholdPercent);
-                                    addressAmounts[address] = toSend;
                                     var userPaymentObject = {};
                                     userPaymentObject.value = toSend;
                                     userPaymentObject.address = address;
