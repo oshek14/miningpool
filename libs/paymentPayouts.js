@@ -75,17 +75,28 @@ var trySend = function (withholdPercent, coin, coinConfig) {
                 }
                 if(totalSent > 0){
                     console.log("------===========Addressss===========-----------", coinConfig.address)
-                    daemon.cmd('getaccount', [coinConfig.address], function(getaccountRes){
-                        if(!getaccountRes){
+                    var batchRPCcommand = [];
+                    batchRPCcommand.push(['getaccount', [coinConfig.address]])
+
+                    daemon.batchCmd(batchRPCcommand, function(error, getaccountRes){
+                        var addressAccount;
+                        if(error || !getaccountRes){
                             console.log('one', 'can not get coin address account for ' + coin);
                             //logger.warning(logSystem, logComponent, 'can not get coin address account for ' + coin);
                             floger.fileLogger(logLevels.error, 'can not get coin address account for ' + coin, logFilePath)
-                        }else if(getaccountRes.error){
-                            console.log('two', 'can not get coin address account for ' + coin);
-                            //logger.warning(logSystem, logComponent, 'can not get coin address account for ' + coin + " :" + getaccountRes.error);
-                            floger.fileLogger(logLevels.error, 'can not get coin address account for ' + coin + " :" + getaccountRes.error, logFilePath)
-                        }else{
-                            daemon.cmd('sendmany', [getaccountRes || '', addressAmounts], function (sendmanyRes) {
+                        }
+                        // else if(getaccountRes.error){
+                        //     console.log('two', 'can not get coin address account for ' + coin);
+                        //     //logger.warning(logSystem, logComponent, 'can not get coin address account for ' + coin + " :" + getaccountRes.error);
+                        //     floger.fileLogger(logLevels.error, 'can not get coin address account for ' + coin + " :" + getaccountRes.error, logFilePath)
+                        // }
+                        else{
+                            getaccountRes.forEach(function(tx, i){
+                                if (i === getaccountRes.length - 1){
+                                    addressAccount = tx.result;
+                                }
+                            })
+                            daemon.cmd('sendmany', [addressAccount || '', addressAmounts], function (sendmanyRes) {
                                 //Check if payments failed because wallet doesn't have enough coins to pay for tx fees
                                 if (sendmanyRes.error && sendmanyRes.error.code === -6) {
                                     var higherPercent = withholdPercent + 0.01;
