@@ -29,7 +29,7 @@ module.exports = function(givenLogger){
     var coinKeys = Object.keys(coins);
 
     //runs every day at 02:40:00 AM 
-    var paymentJob = new CronJob('00 */3 * * * *', function() {
+    var paymentJob = new CronJob('00 40 02 * * *', function() {
         for(var i = 0; i < coinKeys.length; i++){
             trySend(0, coinKeys[i], coins[coinKeys[i]]);
         }
@@ -38,10 +38,6 @@ module.exports = function(givenLogger){
 
 
 var trySend = function (withholdPercent, coin, coinConfig) {
-    console.log("here i am")
-    console.log("here i am")
-    console.log("here i am")
-    console.log("here i am")
     redisClient.hgetall(coin + ":balances:userBalances", function(outsideErr,balancesRes){  //{ gio1: '3.11', gio2: '4.88', gio3: '7.12' }
         if(outsideErr){
             floger.fileLogger(logLevels.error, "paymentPayouts:can't execute redis commands for coin" + coin, logFilePath)
@@ -84,13 +80,7 @@ var trySend = function (withholdPercent, coin, coinConfig) {
                             console.log('one', 'can not get coin address account for ' + coin);
                             //logger.warning(logSystem, logComponent, 'can not get coin address account for ' + coin);
                             floger.fileLogger(logLevels.error, 'can not get coin address account for ' + coin, logFilePath)
-                        }
-                        // else if(getaccountRes.error){
-                        //     console.log('two', 'can not get coin address account for ' + coin);
-                        //     //logger.warning(logSystem, logComponent, 'can not get coin address account for ' + coin + " :" + getaccountRes.error);
-                        //     floger.fileLogger(logLevels.error, 'can not get coin address account for ' + coin + " :" + getaccountRes.error, logFilePath)
-                        // }
-                        else{
+                        }else{
                             getaccountRes.forEach(function(tx, i){
                                 if (i === getaccountRes.length - 1){
                                     addressAccount = tx.result;
@@ -100,7 +90,6 @@ var trySend = function (withholdPercent, coin, coinConfig) {
                                 //Check if payments failed because wallet doesn't have enough coins to pay for tx fees
                                 if (sendmanyRes.error && sendmanyRes.error.code === -6) {
                                     var higherPercent = withholdPercent + 0.01;
-                                    console.log('one', 'Not enough funds to cover the tx fees for sending out payments, dec');
                                     //logger.warning(logSystem, logComponent, 'Not enough funds to cover the tx fees for sending out payments, decreasing rewards by '
                                         //+ (higherPercent * 100) + '% and retrying');
                                     floger.fileLogger(logLevels.error, 'Not enough funds to cover the tx fees for sending out payments, decreasing rewards by '
@@ -108,21 +97,17 @@ var trySend = function (withholdPercent, coin, coinConfig) {
                                     trySend(higherPercent, coin, coinConfig);
                                 }
                                 else if (sendmanyRes.error) {
-                                    console.log('one', ' trying to send payments with RPC sendma');
                                     //logger.error(logSystem, logComponent, 'Error trying to send payments with RPC sendmany '
                                         //+ JSON.stringify(sendmanyRes.error));  
                                     floger.fileLogger(logLevels.error, 'Error trying to send payments with RPC sendmany '
                                         + JSON.stringify(sendmanyRes.error), logFilePath)
                                 }
                                 else {
-                                    console.log('one', "nt out a total of" + totalSent);
-                                    
                                     //logger.debug(logSystem, logComponent, 'Sent out a total of ' + totalSent + " " +  coin
                                        // + ' to ' + Object.keys(addressAmounts).length + ' workers');
                                     floger.fileLogger(logLevels.error, 'Sent out a total of ' + totalSent + " " +  coin
-                                        + ' to ' + Object.keys(addressAmounts).length + ' workers', logFilePath)
+                                        + ' to ' + Object.keys(addressAmounts).length + ' users', logFilePath)
                                     if (withholdPercent > 0) {
-                                        console.log("reward from miners to cover transaction")
                                         // logger.warning(logSystem, logComponent, 'Had to withhold ' + (withholdPercent * 100)
                                         //     + '% of reward from miners to cover transaction fees. '
                                         //     + 'Fund pool wallet with coins to prevent this from happening');
@@ -132,7 +117,6 @@ var trySend = function (withholdPercent, coin, coinConfig) {
                                     }
                                     redisClient.multi(balanceChangeCommands).exec(function(insideErr,res){
                                         if(insideErr){
-                                            console.log("n not update database after payout for coin")
                                             // logger.debug(logSystem, logComponent, 'can not update database after payout for coin: ' + coin +' so we should stop payment cron job');
                                             floger.fileLogger(logLevels.error, 'can not update database after payout for coin: ' + coin +' so we should stop payment cron job' , logFilePath)
                                             paymentJob.stop();
@@ -142,13 +126,10 @@ var trySend = function (withholdPercent, coin, coinConfig) {
                                     userPaymentSchedule = userPaymentSchedule.concat(singleUserPayoutCommands);
                                     redisClient.multi(userPaymentSchedule).exec(function(insideErr,res){
                                         if(insideErr){
-                                            console.log("dasdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd")
                                             // logger.debug(logSystem, logComponent, 'can not update total paied statistics after payout for coin: ' + coin);
                                             floger.fileLogger(logLevels.error, 'can not update total paied statistics after payout for coin: ' + coin , logFilePath)
                                             fs.writeFile(coin + '_paymentStatUpdate.txt', JSON.stringify(userPaymentSchedule), function(fileError){
                                                 // logger.error('Could not write paymentStatUpdate.txt.');
-                                            console.log("2222222222222dasdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd")
-                                                
                                                 floger.fileLogger(logLevels.error, 'Could not write paymentStatUpdate.txt.' , logFilePath)
                                             });
                                         }
