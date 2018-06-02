@@ -10,9 +10,10 @@ var logLevels = floger.levels
 var logFilePath = floger.filePathes.paymentPayouts
 var paymentJob;
 var redisClient;
+var logger; 
 
-module.exports = function(logger){
-
+module.exports = function(givenLogger){
+    logger = givenLogger;
     var poolConfigs = JSON.parse(process.env.pools);
     var portalConfig = JSON.parse(process.env.portalConfig);
 
