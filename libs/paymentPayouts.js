@@ -45,7 +45,7 @@ var trySend = function (withholdPercent, coin, coinConfig) {
                 logger[severity](logSystem, logComponent, message);
             })
             var userKeys = Object.keys(balancesRes); // [ 'gio1', 'gio2', 'gio3' ]
-            userAddressCommand = {};
+            userAddressCommand = [];
             for(var i = 0; i < userKeys.length; i++){
                 userAddressCommand.push(['hget', 'users', userKeys[i]]);
             }
