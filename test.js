@@ -8,9 +8,7 @@ var async = require('async');
 
 
 redisClient.multi([
-    ['zadd', 'oksad:aksomd','INCR', 1222, 'asdasd'],
-    ['zadd', 'oksad:aksomd','INCR', 1222, 'sss'],
-    ['zadd', 'oksad:aksomd','INCR', 1222, 'aaaaa']
+    ['hincrbyfloat','bitcoin' + ':balances:userBalances',"gio1",0.000001]
 ]).exec(function(err,res){
     console.log(res)
 })

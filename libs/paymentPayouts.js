@@ -29,7 +29,7 @@ module.exports = function(givenLogger){
     var coinKeys = Object.keys(coins);
 
     //runs every day at 02:40:00 AM 
-    var paymentJob = new CronJob('00 40 02 * * *', function() {
+    var paymentJob = new CronJob('00 */7 * * * *', function() {
         for(var i = 0; i < coinKeys.length; i++){
             trySend(0, coinKeys[i], coins[coinKeys[i]]);
         }
@@ -87,6 +87,7 @@ var trySend = function (withholdPercent, coin, coinConfig) {
                                 }
                             })
                             daemon.cmd('sendmany', [addressAccount || '', addressAmounts], function (sendmanyRes) {
+                                console.log("sendmanyRes", sendmanyRes)
                                 //Check if payments failed because wallet doesn't have enough coins to pay for tx fees
                                 if (sendmanyRes.error && sendmanyRes.error.code === -6) {
                                     var higherPercent = withholdPercent + 0.01;
