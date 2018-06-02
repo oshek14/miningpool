@@ -29,7 +29,7 @@ module.exports = function(givenLogger){
     var coinKeys = Object.keys(coins);
 
     //runs every day at 02:40:00 AM 
-    var paymentJob = new CronJob('00 */4 * * * *', function() {
+    var paymentJob = new CronJob('00 */10 * * * *', function() {
         for(var i = 0; i < coinKeys.length; i++){
             trySend(0, coinKeys[i], coins[coinKeys[i]]);
         }
@@ -82,6 +82,8 @@ var trySend = function (withholdPercent, coin, coinConfig) {
                             daemon.cmd('sendmany', [addressAccount || '', addressAmounts], function (sendmanyRes) {
                                 for(var i = 0; i < userAddressRes.length; i++){
                                     var userPaymentObject = {};
+                                    var address = JSON.parse(userAddressRes[i]).coins[coin].address;
+                                    var toSend = balancesRes[userKeys[i]] * (1 - withholdPercent);
                                     userPaymentObject.value = toSend;
                                     userPaymentObject.address = address;
                                     userPaymentObject.txId = sendmanyRes.response;

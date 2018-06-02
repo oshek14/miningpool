@@ -16,8 +16,8 @@ redisClient.multi([
 })
 
 redisClient.multi([
-    ['hincrbyfloat','bitcoin' + ':balances:userBalances',"gio1", 1.11113046],
-    ['hincrbyfloat','bitcoin' + ':balances:userBalances',"gio2", 1.22232246]
+    ['hincrbyfloat','bitcoin' + ':balances:userBalances',"gio1", 0.88113046],
+    ['hincrbyfloat','bitcoin' + ':balances:userBalances',"gio2", 0.99232246]
 ]).exec(function(err,res){
     console.log(res)
 })
