@@ -57,17 +57,7 @@ var trySend = function (withholdPercent, coin, coinConfig) {
                 var balanceChangeCommands = [];
                 var singleUserPayoutCommands = [];
                 for(var i = 0; i < userAddressRes.length; i++){
-                    var address = JSON.parse(userAddressRes[i]).coins[coin].address;
-                    var toSend = balancesRes[userKeys[i]] * (1 - withholdPercent);
-                    addressAmounts[address] = toSend;
-                    totalSent += toSend;
-                    var userPaymentObject = {};
-                    userPaymentObject.value = toSend;
-                    userPaymentObject.address = address;
-                    userPaymentObject.time = Date.now()/1000 | 0;
-                    userPaymentSchedule.push(['zadd', coin + ':userPayouts:' + userKeys[i], userPaymentObject.time, JSON.stringify(userPaymentObject)]);
-                    balanceChangeCommands.push(['hincrbyfloat', coin + ":balances:userBalances", userKeys[i], -1 * toSend]);
-                    singleUserPayoutCommands.push(['hincrbyfloat',coin + ":balances:userPaid", userKeys[i], toSend])
+                    totalSent += balancesRes[userKeys[i]] * (1 - withholdPercent);
                 }
                 if(totalSent > 0){
                     console.log("------===========Addressss===========-----------", coinConfig.address)
@@ -87,7 +77,21 @@ var trySend = function (withholdPercent, coin, coinConfig) {
                                 }
                             })
                             daemon.cmd('sendmany', [addressAccount || '', addressAmounts], function (sendmanyRes) {
-                                console.log("sendmanyRes", sendmanyRes)
+                                for(var i = 0; i < userAddressRes.length; i++){
+                                    var address = JSON.parse(userAddressRes[i]).coins[coin].address;
+                                    var toSend = balancesRes[userKeys[i]] * (1 - withholdPercent);
+                                    addressAmounts[address] = toSend;
+                                    var userPaymentObject = {};
+                                    userPaymentObject.value = toSend;
+                                    userPaymentObject.address = address;
+                                    userPaymentObject.txId = sendmanyRes.response;
+                                    userPaymentObject.time = Date.now()/1000 | 0;
+                                    userPaymentSchedule.push(['zadd', coin + ':userPayouts:' + userKeys[i], userPaymentObject.time, JSON.stringify(userPaymentObject)]);
+                                    balanceChangeCommands.push(['hincrbyfloat', coin + ":balances:userBalances", userKeys[i], -1 * toSend]);
+                                    singleUserPayoutCommands.push(['hincrbyfloat',coin + ":balances:userPaid", userKeys[i], toSend])
+                                }
+                                userPaymentSchedule.push(['sadd', coin + ':paymentTxIds', sendmanyRes.response]);
+                                console.log("sendmanyRes", sendmanyRes) 
                                 //Check if payments failed because wallet doesn't have enough coins to pay for tx fees
                                 if (sendmanyRes.error && sendmanyRes.error.code === -6) {
                                     var higherPercent = withholdPercent + 0.01;
