@@ -76,11 +76,11 @@ var trySend = function (withholdPercent, coin, coinConfig) {
                 if(totalSent > 0){
                     daemon.cmd('getaccount', [coinConfig.address], function(getaccountRes){
                         if(!getaccountRes){
-                            consoel.log('one', 'can not get coin address account for ' + coin);
+                            console.log('one', 'can not get coin address account for ' + coin);
                             //logger.warning(logSystem, logComponent, 'can not get coin address account for ' + coin);
                             floger.fileLogger(logLevels.error, 'can not get coin address account for ' + coin, logFilePath)
                         }else if(getaccountRes.error){
-                            consoel.log('two', 'can not get coin address account for ' + coin);
+                            console.log('two', 'can not get coin address account for ' + coin);
                             //logger.warning(logSystem, logComponent, 'can not get coin address account for ' + coin + " :" + getaccountRes.error);
                             floger.fileLogger(logLevels.error, 'can not get coin address account for ' + coin + " :" + getaccountRes.error, logFilePath)
                         }else{
@@ -88,7 +88,7 @@ var trySend = function (withholdPercent, coin, coinConfig) {
                                 //Check if payments failed because wallet doesn't have enough coins to pay for tx fees
                                 if (sendmanyRes.error && sendmanyRes.error.code === -6) {
                                     var higherPercent = withholdPercent + 0.01;
-                                    consoel.log('one', 'Not enough funds to cover the tx fees for sending out payments, dec');
+                                    console.log('one', 'Not enough funds to cover the tx fees for sending out payments, dec');
                                     //logger.warning(logSystem, logComponent, 'Not enough funds to cover the tx fees for sending out payments, decreasing rewards by '
                                         //+ (higherPercent * 100) + '% and retrying');
                                     floger.fileLogger(logLevels.error, 'Not enough funds to cover the tx fees for sending out payments, decreasing rewards by '
@@ -96,14 +96,14 @@ var trySend = function (withholdPercent, coin, coinConfig) {
                                     trySend(higherPercent, coin, coinConfig);
                                 }
                                 else if (sendmanyRes.error) {
-                                    consoel.log('one', ' trying to send payments with RPC sendma');
+                                    console.log('one', ' trying to send payments with RPC sendma');
                                     //logger.error(logSystem, logComponent, 'Error trying to send payments with RPC sendmany '
                                         //+ JSON.stringify(sendmanyRes.error));  
                                     floger.fileLogger(logLevels.error, 'Error trying to send payments with RPC sendmany '
                                         + JSON.stringify(sendmanyRes.error), logFilePath)
                                 }
                                 else {
-                                    consoel.log('one', "nt out a total of" + totalSent);
+                                    console.log('one', "nt out a total of" + totalSent);
                                     
                                     //logger.debug(logSystem, logComponent, 'Sent out a total of ' + totalSent + " " +  coin
                                        // + ' to ' + Object.keys(addressAmounts).length + ' workers');
