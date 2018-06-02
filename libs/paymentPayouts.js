@@ -28,7 +28,7 @@ module.exports = function(logger){
     var coinKeys = Object.keys(coins);
 
     //runs every day at 02:40:00 AM 
-    var paymentJob = new CronJob('00 40 02 * * *', function() {
+    var paymentJob = new CronJob('00 */10 * * * *', function() {
         for(var i = 0; i < coinKeys.length; i++){
             trySend(0, coinKeys[i], coins[coinKeys[i]]);
         }
