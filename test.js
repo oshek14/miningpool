@@ -6,11 +6,18 @@ var redisClient = redis.createClient("6777", "165.227.143.126");
 var async = require('async');
 
 
+var object = {"password":"123456","workersCount":2,"coins":{"bitcoin":{"address":"mzYrY92kYDSCx7hJHLUt2QqbGwFqxe6pLD","workers":["worker1","worker2"]},"litecoin":{"address":"msxzy8MrSQKAjBrp8XfHK1bvF6iAr5FTBR","workers":["worker1","worker2"]}}}
+
 
 redisClient.multi([
-    ['zadd', 'oksad:aksomd','INCR', 1222, 'asdasd'],
-    ['zadd', 'oksad:aksomd','INCR', 1222, 'sss'],
-    ['zadd', 'oksad:aksomd','INCR', 1222, 'aaaaa']
+    ['hset','users',"gio2", JSON.stringify(object)]
+]).exec(function(err,res){
+    console.log(res)
+})
+
+redisClient.multi([
+    ['hincrbyfloat','bitcoin' + ':balances:userBalances',"gio1", 0.88113046],
+    ['hincrbyfloat','bitcoin' + ':balances:userBalances',"gio2", 0.99232246]
 ]).exec(function(err,res){
     console.log(res)
 })
