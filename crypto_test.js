@@ -321,6 +321,16 @@ function putCoinStat(coin){
     })
        
 }
+function putTransactions(coin){
+    var redisCommands = [];
+    redisCommands.push(['sadd', coin + ':paymentTxIds', 123123123]);
+    redisCommands.push(['sadd', coin + ':paymentTxIds', 1234555]);
+    redisCommands.push(['sadd', coin + ':paymentTxIds', 14141231]);
+    redisClient.multi(redisCommands).exec(function(err,res){
+        console.log(err);
+        console.log(res);
+    })
+}
 function init(coin,howManyUsers,workersPerUser,firstIndex,address){
     var deletionCommands =[];
     for(var j=1;j<=howManyUsers;j++){ 
@@ -337,6 +347,8 @@ function init(coin,howManyUsers,workersPerUser,firstIndex,address){
     deletionCommands.push(['del',coin+':stat:global:daily']);
     deletionCommands.push(['del',coin+':stat:global:hourly']);
     deletionCommands.push(['del',coin+':stat:global:tenMinutes']);
+    deletionCommands.push(['del',coin+':paymentTxIds']);
+    deletionCommands.push(['del',coin+':blocks:confirmedInfo']);
     for(var j=1;j<=howManyUsers;j++){
         for(var i=1;i<=workersPerUser;i++){
             deletionCommands.push(['del',coin+':stat:workers:daily:'+firstIndex+j+".worker"+i]);
@@ -357,12 +369,13 @@ function init(coin,howManyUsers,workersPerUser,firstIndex,address){
             // put24HoursDataForWorkers(coin,howManyUsers,workersPerUser,firstIndex);
             // put30DaysDataForGlobal(coin);
             // put30DaysDataForWorkers(coin,howManyUsers,workersPerUser,firstIndex);
-             putExistingWorkers(coin,howManyUsers,workersPerUser,firstIndex);
+             //putExistingWorkers(coin,howManyUsers,workersPerUser,firstIndex);
             // putUserBalances(coin,howManyUsers,firstIndex);
             // workersValidInvalid(coin,howManyUsers,workersPerUser,firstIndex);
             // putUserPayouts(coin,howManyUsers,firstIndex,address);
-           // putUserTotalPaid(coin,howManyUsers,firstIndex,address);
-             putUsers(coin,howManyUsers,workersPerUser,firstIndex);
+            // putUserTotalPaid(coin,howManyUsers,firstIndex,address);
+            //putUsers(coin,howManyUsers,workersPerUser,firstIndex);
+             putTransactions(coin);
             //putBlocksInfo(coin);
             console.log("DONE");
         }else{
@@ -401,12 +414,12 @@ function init(coin,howManyUsers,workersPerUser,firstIndex,address){
 //    console.log(err);
 //     console.log(res);
 // })
-var command = [];
-command.push(['hset',
-    'bitcoin:blocks:confirmedInfo',
-    13204293,
-    JSON.stringify({"startDate":"1527798697","endDate":1527798971})]);
-redisClient.multi(command).exec(function(err,res){
-console.log(err);
-console.log(res);
-})
+// var command = [];
+// command.push(['hset',
+//     'bitcoin:blocks:confirmedInfo',
+//     13204293,
+//     JSON.stringify({"startDate":"1527798697","endDate":1527798971})]);
+// redisClient.multi(command).exec(function(err,res){
+// console.log(err);
+// console.log(res);
+// })
