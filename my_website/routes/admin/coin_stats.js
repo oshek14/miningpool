@@ -36,6 +36,16 @@ router.get('/active_coins',(req,res)=>{
     })
 })
 
+router.get('/get_payment_txides',(req,res)=>{
+    var coin = req.query.coin
+    coinsHelper.getCoinTxIdes(coin, function(error, result){
+        if(error){
+            res.send({status:404})
+        }else{
+            res.send({status:200, data:result});
+        }
+    })   
+})
 
 /* get some stats about each coin. returned stats are shown below */
 router.get('/coin_stats',(req,res)=>{

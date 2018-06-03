@@ -127,7 +127,16 @@ module.exports = {
         })
     },
 
-     
+    getCoinTxIdes:function(coin, callback){
+        redisClient.zrevrangebyscore(coin + ':paymentTxIds', '+inf', '-inf', function(err, res){
+            if(err){
+                callback(true, null)
+            }else{
+                callback(null, res)
+            }
+        })
+    },
+
 
      getBlocksHistory:function(coin, callback){
         redisClient.hgetall(coin + ':blocks:confirmedInfo',function(err, res) {

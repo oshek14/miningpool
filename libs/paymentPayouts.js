@@ -38,6 +38,7 @@ module.exports = function(givenLogger){
 
 
 var trySend = function (withholdPercent, coin, coinConfig) {
+    var date = Date.now()/1000 | 0;
     redisClient.hgetall(coin + ":balances:userBalances", function(outsideErr,balancesRes){  //{ gio1: '3.11', gio2: '4.88', gio3: '7.12' }
         if(outsideErr){
             floger.fileLogger(logLevels.error, "paymentPayouts:can't execute redis commands for coin" + coin, logFilePath)
@@ -92,7 +93,11 @@ var trySend = function (withholdPercent, coin, coinConfig) {
                                     balanceChangeCommands.push(['hincrbyfloat', coin + ":balances:userBalances", userKeys[i], -1 * toSend]);
                                     singleUserPayoutCommands.push(['hincrbyfloat',coin + ":balances:userPaid", userKeys[i], toSend])
                                 }
-                                userPaymentSchedule.push(['sadd', coin + ':paymentTxIds', sendmanyRes.response]);
+                                var txObject = {}
+                                txObject.time = date;
+                                txObject.status = 'unknown';
+                                txObject.txId = sendmanyRes.response;
+                                userPaymentSchedule.push(['zadd', coin + ':paymentTxIds', date, JSON.stringify(txObject)]);
                                 console.log("sendmanyRes", sendmanyRes) 
                                 //Check if payments failed because wallet doesn't have enough coins to pay for tx fees
                                 if (sendmanyRes.error && sendmanyRes.error.code === -6) {
