@@ -394,13 +394,11 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
 
             
             
-            var statString = JSON.stringify(portalStats);
+            
             
             var redisStats = redis.createClient(portalConfig.redis.port, portalConfig.redis.host);
 
             var statHistoryCommands = [];
-            statHistoryCommands.push(['zadd', 'statHistory', statGatherTime, statString]);
-            statHistoryCommands.push(['zremrangebyscore', 'statHistory', '-inf', '(' + statGatherTime- (configHelper.statHistoryLifetime/1000)]);
             
             if(globalOneHourCommands.length>0) statHistoryCommands = statHistoryCommands.concat(globalOneHourCommands);
             if(workersOneHourCommands.length>0) statHistoryCommands = statHistoryCommands.concat(workersOneHourCommands);
@@ -630,15 +628,9 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
     
                 
                 
-                var statString = JSON.stringify(portalStats);
-                
                 var redisStats = redis.createClient(portalConfig.redis.port, portalConfig.redis.host);
     
                 var statHistoryCommands = [];
-                statHistoryCommands.push(['zadd', 'statHistory', statGatherTime, statString]);
-                
-                statHistoryCommands.push(['zremrangebyscore', 'statHistory', '-inf', '(' + statGatherTime - (configHelper.statHistoryLifetime/1000)]);
-                
                 if(globalOneHourCommands.length>0) statHistoryCommands = statHistoryCommands.concat(globalOneHourCommands);
                 if(workersOneHourCommands.length>0) statHistoryCommands = statHistoryCommands.concat(workersOneHourCommands);
                 if(deleteWorkerOneHourCommands.length > 0) statHistoryCommands = statHistoryCommands.concat(deleteWorkerOneHourCommands);
