@@ -322,13 +322,16 @@ function putCoinStat(coin){
        
 }
 function putTransactions(coin){
-    var redisCommands = [];
-    redisCommands.push(['sadd', coin + ':paymentTxIds', 123123123]);
-    redisCommands.push(['sadd', coin + ':paymentTxIds', 1234555]);
-    redisCommands.push(['sadd', coin + ':paymentTxIds', 14141231]);
-    redisClient.multi(redisCommands).exec(function(err,res){
+    var userPaymentSchedule = [];
+    var txObject = {}
+    txObject.time = Date.now()/1000 | 0;
+    txObject.status = 'confirmed';
+    txObject.txId = 'AsdnasndoamsdaoAMdosmdoASMDoE3224234234';
+    userPaymentSchedule.push(['zadd', coin + ':paymentTxIds', txObject.time, JSON.stringify(txObject)]);
+
+    redisClient.multi(userPaymentSchedule).exec(function(err, res){
+        console.log(res)
         console.log(err);
-        console.log(res);
     })
 }
 function init(coin,howManyUsers,workersPerUser,firstIndex,address){
@@ -375,7 +378,7 @@ function init(coin,howManyUsers,workersPerUser,firstIndex,address){
             // putUserPayouts(coin,howManyUsers,firstIndex,address);
             // putUserTotalPaid(coin,howManyUsers,firstIndex,address);
             //putUsers(coin,howManyUsers,workersPerUser,firstIndex);
-             putTransactions(coin);
+            // putTransactions(coin);
             //putBlocksInfo(coin);
             console.log("DONE");
         }else{

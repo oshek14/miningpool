@@ -71,8 +71,6 @@ var trySend = function (withholdPercent, coin, coinConfig) {
                     daemon.batchCmd(batchRPCcommand, function(error, getaccountRes){
                         var addressAccount;
                         if(error || !getaccountRes){
-                            console.log('one', 'can not get coin address account for ' + coin);
-                            //logger.warning(logSystem, logComponent, 'can not get coin address account for ' + coin);
                             floger.fileLogger(logLevels.error, 'can not get coin address account for ' + coin, logFilePath)
                         }else{
                             getaccountRes.forEach(function(tx, i){
@@ -98,39 +96,32 @@ var trySend = function (withholdPercent, coin, coinConfig) {
                                 txObject.status = 'unknown';
                                 txObject.txId = sendmanyRes.response;
                                 userPaymentSchedule.push(['zadd', coin + ':paymentTxIds', date, JSON.stringify(txObject)]);
-                                console.log("sendmanyRes", sendmanyRes) 
+                                
                                 //Check if payments failed because wallet doesn't have enough coins to pay for tx fees
                                 if (sendmanyRes.error && sendmanyRes.error.code === -6) {
                                     var higherPercent = withholdPercent + 0.01;
-                                    //logger.warning(logSystem, logComponent, 'Not enough funds to cover the tx fees for sending out payments, decreasing rewards by '
-                                        //+ (higherPercent * 100) + '% and retrying');
                                     floger.fileLogger(logLevels.error, 'Not enough funds to cover the tx fees for sending out payments, decreasing rewards by '
                                         + (higherPercent * 100) + '% and retrying', logFilePath)
                                     trySend(higherPercent, coin, coinConfig);
                                 }
                                 else if (sendmanyRes.error) {
-                                    //logger.error(logSystem, logComponent, 'Error trying to send payments with RPC sendmany '
-                                        //+ JSON.stringify(sendmanyRes.error));  
-                                    floger.fileLogger(logLevels.error, 'Error trying to send payments with RPC sendmany '
+                                   floger.fileLogger(logLevels.error, 'Error trying to send payments with RPC sendmany '
                                         + JSON.stringify(sendmanyRes.error), logFilePath)
                                 }
                                 else {
-                                    //logger.debug(logSystem, logComponent, 'Sent out a total of ' + totalSent + " " +  coin
-                                       // + ' to ' + Object.keys(addressAmounts).length + ' workers');
                                     floger.fileLogger(logLevels.error, 'Sent out a total of ' + totalSent + " " +  coin
                                         + ' to ' + Object.keys(addressAmounts).length + ' users', logFilePath)
                                     if (withholdPercent > 0) {
-                                        // logger.warning(logSystem, logComponent, 'Had to withhold ' + (withholdPercent * 100)
-                                        //     + '% of reward from miners to cover transaction fees. '
-                                        //     + 'Fund pool wallet with coins to prevent this from happening');
-                                        floger.fileLogger(logLevels.error, 'Had to withhold ' + (withholdPercent * 100)
+                                       floger.fileLogger(logLevels.error, 'Had to withhold ' + (withholdPercent * 100)
                                             + '% of reward from miners to cover transaction fees. '
                                             + 'Fund pool wallet with coins to prevent this from happening', logFilePath)
                                     }
                                     redisClient.multi(balanceChangeCommands).exec(function(insideErr,res){
                                         if(insideErr){
-                                            // logger.debug(logSystem, logComponent, 'can not update database after payout for coin: ' + coin +' so we should stop payment cron job');
                                             floger.fileLogger(logLevels.error, 'can not update database after payout for coin: ' + coin +' so we should stop payment cron job' , logFilePath)
+                                            fs.writeFile(coin + '_balanceChangeCommands.txt', JSON.stringify(balanceChangeCommands), function(fileError){
+                                                floger.fileLogger(logLevels.error, 'Could not write _balanceChangeCommands.txt.' , logFilePath)
+                                            });
                                             paymentJob.stop();
                                         }
                                     })
@@ -138,10 +129,8 @@ var trySend = function (withholdPercent, coin, coinConfig) {
                                     userPaymentSchedule = userPaymentSchedule.concat(singleUserPayoutCommands);
                                     redisClient.multi(userPaymentSchedule).exec(function(insideErr,res){
                                         if(insideErr){
-                                            // logger.debug(logSystem, logComponent, 'can not update total paied statistics after payout for coin: ' + coin);
                                             floger.fileLogger(logLevels.error, 'can not update total paied statistics after payout for coin: ' + coin , logFilePath)
                                             fs.writeFile(coin + '_paymentStatUpdate.txt', JSON.stringify(userPaymentSchedule), function(fileError){
-                                                // logger.error('Could not write paymentStatUpdate.txt.');
                                                 floger.fileLogger(logLevels.error, 'Could not write paymentStatUpdate.txt.' , logFilePath)
                                             });
                                         }

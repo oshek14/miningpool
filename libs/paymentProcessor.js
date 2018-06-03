@@ -87,21 +87,16 @@ function SetupForPool(logger, poolOptions, setupFinished){
         function(callback){
             daemon.cmd('validateaddress', [poolOptions.address], function(result) {
                 if (result.error){
-                    logger.error(logSystem, logComponent, 'Error with payment processing daemon ' + JSON.stringify(result.error));
                     floger.fileLogger(logLevels.error, 'Error with payment processing daemon ' + JSON.stringify(result.error), logFilePath)
                     callback(true);
                 }
                 else if (!result.response || !result.response.ismine) {
                             daemon.cmd('getaddressinfo', [poolOptions.address], function(result) {
                         if (result.error){
-                            logger.error(logSystem, logComponent, 'Error with payment processing daemon, getaddressinfo failed ... ' + JSON.stringify(result.error));
                             floger.fileLogger(logLevels.error, 'Error with payment processing daemon, getaddressinfo failed ... ' + JSON.stringify(result.error), logFilePath);
                             callback(true);
                         }
                         else if (!result.response || !result.response.ismine) {
-                            logger.error(logSystem, logComponent,
-                                    'Daemon does not own pool address - payment processing can not be done with this daemon, '
-                                    + JSON.stringify(result.response));
                             floger.fileLogger(logLevels.error, 'Daemon does not own pool address - payment processing can not be done with this daemon'+ JSON.stringify(result.response), logFilePath);
                             callback(true);
                         }
@@ -149,7 +144,6 @@ function SetupForPool(logger, poolOptions, setupFinished){
                     callback();
                 }
                 catch(e){
-                    logger.error(logSystem, logComponent, 'Error detecting number of satoshis in a coin, cannot do payment processing. Tried parsing: ' + result.data);
                     floger.fileLogger(logLevels.error, 'Error detecting number of satoshis in a coin, cannot do payment processing. Tried parsing: ' + result.data, logFilePath);
                     callback(true);
                 }
@@ -213,7 +207,6 @@ function SetupForPool(logger, poolOptions, setupFinished){
                     endRedisTimer();
 
                     if (error){
-                        logger.error(logSystem, logComponent, 'Could not get blocks from redis ' + JSON.stringify(error));
                         floger.fileLogger(logLevels.error, 'Could not get blocks from redis ' + JSON.stringify(error), logFilePath);
                         callback(true);
                         return;
@@ -299,8 +292,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                         "hex": "010000000001010000000000000000000000000000000000000000000000000000000000000000ffffffff2003bccc1304bb64f95a0858000000e72600000d2f6e6f64655374726174756d2f00000000040000000000000000266a24aa21a9ed7d81d35efc6c4b3930034a841a54c152fb89a76f9aca8d96286ce6b9896cdabf379cf406000000001976a914c28532395869e6b598b5388fd39323250ed85e4088ac3bec6200000000001976a914d0c66a7e2d074bdb7e00595c6b4f984bd495ee4c88ac3bec6200000000001976a91417ee85869b459da5ff2f630f207d6b4c2e64222a88ac0120000000000000000000000000000000000000000000000000000000000000000000000000"
                     } */
                     if (error || !txDetails){
-                        logger.error(logSystem, logComponent, 'Check finished - daemon rpc error with batch gettransactions '
-                            + JSON.stringify(error));
+                        floger.fileLogger(logLevels.error,'Check finished - daemon rpc error with batch gettransactions '+JSON.stringify(error), logFilePath);
                         callback(true);
                         return;
                     }
@@ -314,20 +306,16 @@ function SetupForPool(logger, poolOptions, setupFinished){
                         
                         var round = rounds[i];
                         if (tx.error && tx.error.code === -5){
-                            logger.warning(logSystem, logComponent, 'Daemon reports invalid transaction: ' + round.txHash);
                             floger.fileLogger(logLevels.error,  'Daemon reports invalid transaction: ' + round.txHash, logFilePath);
                             round.category = 'kicked';
                             return;
                         }
                         else if (!tx.result.details || (tx.result.details && tx.result.details.length === 0)){
-                            logger.warning(logSystem, logComponent, 'Daemon reports no details for transaction: ' + round.txHash);
                             floger.fileLogger(logLevels.error, 'Daemon reports no details for transaction: ' + round.txHash, logFilePath);
                             round.category = 'kicked';
                             return;
                         }
                         else if (tx.error || !tx.result){
-                            logger.error(logSystem, logComponent, 'Odd error with gettransaction ' + round.txHash + ' '
-                                + JSON.stringify(tx));
                             floger.fileLogger(logLevels.error,'Odd error with gettransaction ' + round.txHash + ' '+ JSON.stringify(tx), logFilePath);
                             return;
                         }
@@ -342,8 +330,6 @@ function SetupForPool(logger, poolOptions, setupFinished){
                         }
 
                         if (!generationTx){
-                            logger.error(logSystem, logComponent, 'Missing output details to pool address for transaction '
-                                + round.txHash);
                             floger.fileLogger(logLevels.error,'Missing output details to pool address for transaction '+ round.txHash, logFilePath);
                             return;
                         }
@@ -433,8 +419,7 @@ function SetupForPool(logger, poolOptions, setupFinished){
                         var workerShares = allWorkerShares[i];
 
                         if (!workerShares){
-                            logger.error(logSystem, logComponent, 'No worker shares for round: '
-                                + round.height + ' blockHash: ' + round.blockHash);
+                            floger.fileLogger(logLevels.error,'No worker shares for round: '+ round.height + ' blockHash: ' + round.blockHash, logFilePath);
                             return;
                         }
 
@@ -520,9 +505,6 @@ function SetupForPool(logger, poolOptions, setupFinished){
                         
                         worker.reward = worker.reward || 0;
                         var username = w.split(".")[0];
-                        //?
-
-                        
                         if(worker.reward > 0){
                             if(!(username in usersPerWorker)) usersPerWorker[username] = worker.reward; 
                             else usersPerWorker[username] += worker.reward;
@@ -530,7 +512,6 @@ function SetupForPool(logger, poolOptions, setupFinished){
                     }
 
                     for(var username in usersPerWorker){
-
                         usersBalanceUpdates.push(['hincrbyfloat',coin + ':balances:userBalances',username,satoshisToCoins(usersPerWorker[username])]);
                     }
 
@@ -611,14 +592,8 @@ function SetupForPool(logger, poolOptions, setupFinished){
                         clearInterval(paymentInterval);
                         //TODO SEND MAIL :)
                         floger.fileLogger(logLevels.error, 'Balance Updates happend,but could not move from blockspending and couldnt delete shares, it is a critical error,so we need to shut down this file.commans will be saved in a file to run it manually.' + JSON.stringify(error), logFilePath)
-                        logger.error(logSystem, logComponent,
-                                'Payments sent but could not update redis. ' + JSON.stringify(error)
-                                + ' Disabling payment processing to prevent possible double-payouts. The redis commands in '
-                                + coin + '_finalRedisCommands.txt must be ran manually');
-                        
                         fs.writeFile(coin + '_finalRedisCommands.txt', JSON.stringify(finalRedisCommands), function(err){
-                            floger.fileLogger(logLevels.error, "couldn't write to file finalreddiscommands error.fucked up" + JSON.stringify(error), logFilePath)
-                            logger.error('Could not write finalRedisCommands.txt, you are fucked.');
+                            floger.fileLogger(logLevels.error, "couldn't write to file finalreddiscommands error.fucked up" + JSON.stringify(error), logFilePath);
                         });
                     }
                     callback();
@@ -626,7 +601,6 @@ function SetupForPool(logger, poolOptions, setupFinished){
             }
 
         ], function(){
-
             var paymentProcessTime = Date.now() - startPaymentProcess;
             logger.debug(logSystem, logComponent, 'Finished interval - time spent: '
                 + paymentProcessTime + 'ms total, ' + timeSpentRedis + 'ms redis, '

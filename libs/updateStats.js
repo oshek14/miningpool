@@ -205,7 +205,6 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
         client.client.multi(redisCommands).exec(function(err, replies){
             if (err){
                 floger.fileLogger(logLevels.error, "saveStatsEveryHour:couldn't execute first multi command", logFilePath);
-                logger.error("updateStats", 'Global', 'error with getting global stats ' + JSON.stringify(err));
                 callback(err);
             }
             else{
@@ -237,7 +236,6 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
     }, function(err){
             if (err){
                 floger.fileLogger(logLevels.error, "saveStatsEveryHour:couldn't execute first multi command - callback", logFilePath);
-                logger.error("updateStats", 'Global', 'error getting all stats' + JSON.stringify(err));
                 callback();
                 return;
             }
@@ -319,13 +317,6 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
                     date:statGatherTime
                 }
 
-              
-
-
-
-
-
-    
                 globalOneHourCommands.push(['zadd',coinStats.name+':stat:global:hourly',statGatherTime,JSON.stringify(oneHourStat)]);
                 /* we must delete data older than last 1 day */
                 deleteGlobalOneHourCommands.push(['zremrangebyscore',coinStats.name+':stat:global:hourly','-inf',statGatherTime - (configHelper.deleteHourlyRange/1000)]);
@@ -408,7 +399,7 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
             redisStats.multi(statHistoryCommands).exec(function(errTwo, replies){
                 if (errTwo){
                     floger.fileLogger(logLevels.error, "saveStatsEveryHour:couldn't execute last multi command, fucked up...", logFilePath);
-                    logger.error("updateStats", 'Historics', 'Error adding stats to historics ' + JSON.stringify(err));
+                    
                 }
             });
             
@@ -447,7 +438,6 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
             client.client.multi(redisCommands).exec(function(err, replies){
                 if (err){
                     floger.fileLogger(logLevels.error, "saveStatsEveryTenMinutes:couldn't execute first multi command", logFilePath);
-                    logger.error("updateStats", 'Global', 'error with getting global stats ' + JSON.stringify(err));
                     callback(err);
                 }
                 else{
@@ -480,7 +470,6 @@ function saveStatsEveryHour(portalConfig,poolConfigs,redisClients){
         }, function(err){
                 if (err){
                     floger.fileLogger(logLevels.error, "saveStatsEveryTenMinutes:couldn't execute first multi command,callback", logFilePath);
-                    logger.error("updateStats", 'Global', 'error getting all stats' + JSON.stringify(err));
                     callback();
                     return;
                 }

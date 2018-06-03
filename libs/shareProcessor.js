@@ -130,13 +130,14 @@ module.exports = function(logger, poolConfig){
                 if(error){
                     floger.fileLogger(logLevels.error,"Can't get blocksinformation because of redis from blocksconfirmedInformation with coin and round " + coin+" "+shareData.height+" " + JSON.stringify(error),logFilePath);
                 }else if(result == null){
-                    //floger.fileLogger(logLevels.error,"It mustn't be null but it is . needs more testing on this one" + coin+" "+shareData.height+" ",logFilePath);
+                    //TODO
                 }else{
                     connection.multi([
                         ['hset',coin+':blocks:confirmedInfo', shareData.height, JSON.stringify({startTime:result,endTime:dateNow / 1000 | 0})],
                         ['zremrangebyscore',coin+':blocks:info','-inf',(dateNow / 1000 | 0)],
                     ]).exec(function(blocksInfoError,blocksInfoRes){
-                        if(blocksInfoError) floger.fileLogger(logLevels.error,"couldn't add confirmedinfo and remove from blocks inf because of error-"+JSON.stringify(blocksInfoError),logFilePath);
+                        if(blocksInfoError) 
+                            floger.fileLogger(logLevels.error,"couldn't add confirmedinfo and remove from blocks inf because of error-"+JSON.stringify(blocksInfoError),logFilePath);
                     })
                 }
             })
@@ -154,7 +155,6 @@ module.exports = function(logger, poolConfig){
         connection.multi(redisCommands).exec(function(err, replies){
             if (err){
                 floger.fileLogger(logLevels.error,'Error with share processor multi ' + JSON.stringify(err), logFilePath)
-                logger.error(logSystem, logComponent, logSubCat, 'Error with share processor multi ' + JSON.stringify(err));
             }
         });
 
