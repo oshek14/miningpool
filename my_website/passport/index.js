@@ -4,7 +4,7 @@ var redis = require('redis');
 var secretKy = require('./constants')
 
 module.exports = function(passport) {
-    var redisClient = redis.createClient("6777", "165.227.143.126");
+    var redisClient = redis.createClient("6777", "128.199.56.112");
     var opts = {};
     opts.jwtFromRequest = ExtractJwt.fromAuthHeaderWithScheme('jwt');
     opts.secretOrKey = secretKy;

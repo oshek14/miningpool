@@ -6,7 +6,7 @@ const exphbs  = require('express-handlebars');
 const path = require('path');
 const bodyParser = require('body-parser');
 var redis = require('redis');
-var redisClient = redis.createClient("6777", "165.227.143.126");
+var redisClient = redis.createClient("6777", "128.199.56.112");
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());

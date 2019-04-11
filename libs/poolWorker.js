@@ -126,7 +126,7 @@ module.exports = function(logger){
 
         //Functions required for internal payment processing
         else{
-            var redisClient = redis.createClient("6777", "165.227.143.126");
+            var redisClient = redis.createClient("6777", "128.199.56.112");
             var shareProcessor = new ShareProcessor(logger, poolOptions);
 
             handlers.auth = function(port, workerName, password, authCallback){
