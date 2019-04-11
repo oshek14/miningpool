@@ -2,7 +2,7 @@
 var redis = require('redis');
 
 
-var redisClient = redis.createClient("6777", "128.199.56.112");
+var redisClient = redis.createClient("6777", "165.227.143.126");
 var async = require('async');
 
 var CronJob = require('cron').CronJob;
