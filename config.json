@@ -30,7 +30,7 @@
     },
     "website": {
         "enabled": true,
-        "host": "128.199.56.112",
+        "host": "127.0.0.1",
         "port": 80,
         "stratumHost": "cryppit.com",
         "stats": {
