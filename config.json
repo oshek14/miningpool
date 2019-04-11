@@ -30,9 +30,9 @@
     },
     "website": {
         "enabled": true,
-        "host": "0.0.0.0",
+        "host": "128.199.56.112",
         "port": 80,
-        "stratumHost": "128.199.56.112",
+        "stratumHost": "cryppit.com",
         "stats": {
             "updateInterval": 60,
             "historicalRetention": 43200,
@@ -40,7 +40,7 @@
         },
         "adminCenter": {
             "enabled": true,
-            "password": "chacho"
+            "password": "password"
         }
     },
 

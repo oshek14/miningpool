@@ -1,5 +1,5 @@
 {
-    "enabled": true,
+    "enabled": false,
     "coin": "bitcoin.json",
 
     "address": "myFUwuJBZQ5JyUvycRfE91Fgy7VatxHEZX",
