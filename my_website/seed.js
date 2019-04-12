@@ -9,7 +9,8 @@ redisClient.multi([
     ['sadd','bitcoin:existingWorkers',"gio2.worker2"],
 ]
 ).exec(function(err,res){
-    
+    if(err)console.log(err);
+    else console.log(res);
 });
 
 
