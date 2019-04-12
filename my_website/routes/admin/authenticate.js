@@ -25,7 +25,7 @@ router.post('/signin', function(req, res) {
                 res.send({status: 404})
             }
         } else {
-            res.send({status: 500})
+            res.send({status: 501})
         }
      })
 })
