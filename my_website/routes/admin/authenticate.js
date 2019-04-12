@@ -15,7 +15,7 @@ router.post('/signin', function(req, res) {
     var password = req.body.password
      redisClient.hget('administrators', email , function(err, result) {
         if (err) {
-            res.send({status: 500})
+            res.send({error : err, status: 500})
         } else if (result) {
             var parsedRes = JSON.parse(result)
             if (parsedRes.password === password) {
